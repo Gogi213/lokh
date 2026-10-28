@@ -1,0 +1,252 @@
+.claude\dispatcher\tickets.py:195:    err = errors_mod.gate(PROJECT_ROOT, tid)
+.claude\dispatcher\test_errors.py:167:                mock.patch.object(E, "run_check", side_effect=AssertionError("проверка не должна запускаться")):
+.claude\dispatcher\test_errors.py:305:                mock.patch.object(E, "run_check", wraps=E.run_check) as rc:
+.claude\dispatcher\test_errors.py:421:        with mock.patch.object(E, "run_check", return_value=(True, "")) as rc:
+.claude\dispatcher\test_errors.py:422:            self.assertEqual(E.run_all(self.root), [])
+.claude\dispatcher\test_errors.py:424:            E.run_all(self.root, timeout=7)
+.claude\dispatcher\test_errors.py:455:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\dispatcher\test_errors.py:468:        self.assertEqual([(i, t) for i, t, _ in E.run_all(self.root)], [(b, "вторая")])
+.claude\dispatcher\test_errors.py:484:        self.assertEqual(E.run_all(self.root), [])
+.claude\dispatcher\test_errors.py:485:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\dispatcher\test_errors.py:525:        msg = E.gate(self.root, "TK-5")                                          # приёмка идёт в worktree тикета
+.claude\dispatcher\test_errors.py:528:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, правки там нет")
+.claude\dispatcher\test_errors.py:533:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\dispatcher\test_errors.py:534:            bad = E.run_all(self.root)
+.claude\dispatcher\test_errors.py:576:        self.assertEqual(E.gate(self.root, "TK-1"), "", "пропуск сверки приёмку не блокирует")
+.claude\dispatcher\test_errors.py:595:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\dispatcher\test_errors.py:603:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\dispatcher\test_errors.py:605:            msg = E.gate(self.root, "TK-1")
+.claude\dispatcher\test_errors.py:611:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\dispatcher\test_errors.py:643:            with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\dispatcher\test_errors.py:645:                msg = E.gate(self.root, "TK-5")
+.claude\dispatcher\test_errors.py:688:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\dispatcher\test_errors.py:690:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\dispatcher\test_errors.py:692:        msg = E.gate(self.root, "TK-5")
+.claude\dispatcher\test_errors.py:701:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\dispatcher\test_errors.py:704:        E.gate(self.root, "TK-5")
+.claude\dispatcher\test_errors.py:705:        E.gate(self.root, "")
+.claude\dispatcher\test_errors.py:714:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, зелёный")
+.claude\dispatcher\test_errors.py:715:        self.assertEqual(E.gate(self.root, ""), "")
+.claude\dispatcher\test_errors.py:716:        self.assertIn("регрессия", E.gate(self.root, "TK-5"))
+.claude\dispatcher\test_errors.py:717:        self.assertIn(str(wt), E.gate(self.root, "TK-5"))
+.claude\dispatcher\test_errors.py:723:        msg = E.gate(self.root, "TK-5")
+.claude\dispatcher\test_doctor.py:31:        return {r[0]: r for r in D.run_checks(self.project, **kw)}
+.claude\dispatcher\report.py:300:    """Критерий 7. Отказы приёмки из-за упавшей проверки исправленной ошибки (`regressions.log`, пишет `errors.gate`) и ошибки,
+.claude\dispatcher\doctor.py:163:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed,
+.claude\dispatcher\doctor.py:193:    rows = run_checks(Path(project))
+.claude\dispatcher\errors.py:174:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\dispatcher\errors.py:347:def run_before(argv, cwd: Path, sha: str, timeout: float) -> tuple:
+.claude\dispatcher\errors.py:350:    ошибки), запуск той же `run_check`, `git worktree remove --force`. -> (прошла?, причина или конец вывода); прошла = None,
+.claude\dispatcher\errors.py:363:        return run_check(argv, tree, timeout)
+.claude\dispatcher\errors.py:373:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\dispatcher\errors.py:396:                    ok, note = run_check(argv, cwd, timeout or _seconds(h.get("timeout")) or CHECK_TIMEOUT_S)
+.claude\dispatcher\errors.py:423:    bad = run_all(root, cwd)
+.claude\dispatcher\errors.py:527:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\dispatcher\errors.py:539:    red, note = run_before(argv, cwd, before, a.timeout or CHECK_TIMEOUT_S)
+.claude\dispatcher\errors.py:562:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\tk007\.claude\dispatcher\tickets.py:194:    err = errors_mod.gate(PROJECT_ROOT, tid)
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:167:                mock.patch.object(E, "run_check", side_effect=AssertionError("проверка не должна запускаться")):
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:305:                mock.patch.object(E, "run_check", wraps=E.run_check) as rc:
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:421:        with mock.patch.object(E, "run_check", return_value=(True, "")) as rc:
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:422:            self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:424:            E.run_all(self.root, timeout=7)
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:455:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:468:        self.assertEqual([(i, t) for i, t, _ in E.run_all(self.root)], [(b, "вторая")])
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:484:        self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:485:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:525:        msg = E.gate(self.root, "TK-5")                                          # приёмка идёт в worktree тикета
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:528:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, правки там нет")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:533:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:534:            bad = E.run_all(self.root)
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:576:        self.assertEqual(E.gate(self.root, "TK-1"), "", "пропуск сверки приёмку не блокирует")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:595:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:603:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:605:            msg = E.gate(self.root, "TK-1")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:611:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:643:            with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:645:                msg = E.gate(self.root, "TK-5")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:688:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:690:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:692:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:701:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:704:        E.gate(self.root, "TK-5")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:705:        E.gate(self.root, "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:714:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, зелёный")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:715:        self.assertEqual(E.gate(self.root, ""), "")
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:716:        self.assertIn("регрессия", E.gate(self.root, "TK-5"))
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:717:        self.assertIn(str(wt), E.gate(self.root, "TK-5"))
+.claude\worktrees\tk007\.claude\dispatcher\test_errors.py:723:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\tk007\.claude\dispatcher\test_doctor.py:31:        return {r[0]: r for r in D.run_checks(self.project, **kw)}
+.claude\worktrees\tk007\.claude\dispatcher\report.py:301:    """Критерий 7. Отказы приёмки из-за упавшей проверки исправленной ошибки (`regressions.log`, пишет `errors.gate`) и ошибки,
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:174:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:347:def run_before(argv, cwd: Path, sha: str, timeout: float) -> tuple:
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:350:    ошибки), запуск той же `run_check`, `git worktree remove --force`. -> (прошла?, причина или конец вывода); прошла = None,
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:363:        return run_check(argv, tree, timeout)
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:373:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:396:                    ok, note = run_check(argv, cwd, timeout or _seconds(h.get("timeout")) or CHECK_TIMEOUT_S)
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:423:    bad = run_all(root, cwd)
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:527:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:539:    red, note = run_before(argv, cwd, before, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\tk007\.claude\dispatcher\errors.py:562:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\tk007\.claude\dispatcher\doctor.py:163:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed,
+.claude\worktrees\tk007\.claude\dispatcher\doctor.py:193:    rows = run_checks(Path(project))
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:174:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:347:def run_before(argv, cwd: Path, sha: str, timeout: float) -> tuple:
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:350:    ошибки), запуск той же `run_check`, `git worktree remove --force`. -> (прошла?, причина или конец вывода); прошла = None,
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:363:        return run_check(argv, tree, timeout)
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:373:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:396:                    ok, note = run_check(argv, cwd, timeout or _seconds(h.get("timeout")) or CHECK_TIMEOUT_S)
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:423:    bad = run_all(root, cwd)
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:527:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:539:    red, note = run_before(argv, cwd, before, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\tk003\.claude\dispatcher\errors.py:562:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\tk003\.claude\dispatcher\doctor.py:163:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed,
+.claude\worktrees\tk003\.claude\dispatcher\doctor.py:193:    rows = run_checks(Path(project))
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\doctor.py:196:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed, bus_request=None,
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\doctor.py:229:    rows = run_checks(Path(project), alive_only=a.alive)
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\errors.py:153:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\errors.py:190:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\errors.py:204:            ok, note = (False, f"проверка не допущена: {why}") if argv is None else run_check(
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\errors.py:218:    bad = run_all(root, cwd)
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\errors.py:291:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\agent-a0c15de90b190f3b6\.claude\dispatcher\errors.py:309:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\doctor.py:163:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed,
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\doctor.py:193:    rows = run_checks(Path(project))
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\errors.py:153:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\errors.py:190:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\errors.py:204:            ok, note = (False, f"проверка не допущена: {why}") if argv is None else run_check(
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\errors.py:218:    bad = run_all(root, cwd)
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\errors.py:291:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\agent-a30f0275dcd4c2364\.claude\dispatcher\errors.py:309:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\errors.py:153:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\errors.py:190:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\errors.py:204:            ok, note = (False, f"проверка не допущена: {why}") if argv is None else run_check(
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\errors.py:218:    bad = run_all(root, cwd)
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\errors.py:291:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\errors.py:309:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\doctor.py:196:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed, bus_request=None,
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\doctor.py:229:    rows = run_checks(Path(project), alive_only=a.alive)
+.claude\worktrees\tk003\.claude\dispatcher\tickets.py:195:    err = errors_mod.gate(PROJECT_ROOT, tid)
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:167:                mock.patch.object(E, "run_check", side_effect=AssertionError("проверка не должна запускаться")):
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:305:                mock.patch.object(E, "run_check", wraps=E.run_check) as rc:
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:421:        with mock.patch.object(E, "run_check", return_value=(True, "")) as rc:
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:422:            self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:424:            E.run_all(self.root, timeout=7)
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:455:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:468:        self.assertEqual([(i, t) for i, t, _ in E.run_all(self.root)], [(b, "вторая")])
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:484:        self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:485:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:525:        msg = E.gate(self.root, "TK-5")                                          # приёмка идёт в worktree тикета
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:528:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, правки там нет")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:533:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:534:            bad = E.run_all(self.root)
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:576:        self.assertEqual(E.gate(self.root, "TK-1"), "", "пропуск сверки приёмку не блокирует")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:595:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:603:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:605:            msg = E.gate(self.root, "TK-1")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:611:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:643:            with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:645:                msg = E.gate(self.root, "TK-5")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:688:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:690:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:692:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:701:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:704:        E.gate(self.root, "TK-5")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:705:        E.gate(self.root, "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:714:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, зелёный")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:715:        self.assertEqual(E.gate(self.root, ""), "")
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:716:        self.assertIn("регрессия", E.gate(self.root, "TK-5"))
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:717:        self.assertIn(str(wt), E.gate(self.root, "TK-5"))
+.claude\worktrees\tk003\.claude\dispatcher\test_errors.py:723:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\tk003\.claude\dispatcher\test_doctor.py:31:        return {r[0]: r for r in D.run_checks(self.project, **kw)}
+.claude\worktrees\tk003\.claude\dispatcher\report.py:300:    """Критерий 7. Отказы приёмки из-за упавшей проверки исправленной ошибки (`regressions.log`, пишет `errors.gate`) и ошибки,
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\report.py:300:    """Критерий 7. Отказы приёмки из-за упавшей проверки исправленной ошибки (`regressions.log`, пишет `errors.gate`) и ошибки,
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\errors.py:155:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\errors.py:192:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\errors.py:206:            ok, note = (False, f"проверка не допущена: {why}") if argv is None else run_check(
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\errors.py:233:    bad = run_all(root, cwd)
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\errors.py:307:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\errors.py:325:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\doctor.py:196:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed, bus_request=None,
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\doctor.py:226:    rows = run_checks(Path(project))
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:215:        with mock.patch.object(E, "run_check", return_value=(True, "")) as rc:
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:216:            self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:218:            E.run_all(self.root, timeout=7)
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:241:        self.assertEqual([(i, t) for i, t, _ in E.run_all(self.root)], [(b, "вторая")])
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:257:        self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:258:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:283:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:285:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:287:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:296:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:299:        E.gate(self.root, "TK-5")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:300:        E.gate(self.root, "")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:310:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, зелёный")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:311:        self.assertEqual(E.gate(self.root, ""), "")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:312:        self.assertIn("регрессия", E.gate(self.root, "TK-5"))
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:313:        self.assertIn(str(wt), E.gate(self.root, "TK-5"))
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_errors.py:319:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\test_doctor.py:34:        return {r[0]: r for r in D.run_checks(self.project, **kw)}
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\errors.py:153:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\errors.py:190:def run_all(root: Path, cwd=None, timeout: float | None = None, report=None) -> list:
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\errors.py:204:            ok, note = (False, f"проверка не допущена: {why}") if argv is None else run_check(
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\errors.py:218:    bad = run_all(root, cwd)
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\errors.py:291:    ok, note = run_check(argv, cwd, a.timeout or CHECK_TIMEOUT_S)
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\errors.py:309:    bad = run_all(root, cwd, a.timeout, report)
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\doctor.py:196:def run_checks(project: Path, now: float | None = None, installed=scheduler_installed, bus_request=None,
+.claude\worktrees\agent-a55529e72d8da13ee\.claude\dispatcher\doctor.py:229:    rows = run_checks(Path(project), alive_only=a.alive)
+.claude\worktrees\agent-a01297ca4550f6996\.claude\dispatcher\tickets.py:246:    err = errors_mod.gate(PROJECT_ROOT, tid)
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_doctor.py:34:        return {r[0]: r for r in D.run_checks(self.project, **kw)}
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:214:        with mock.patch.object(E, "run_check", return_value=(True, "")) as rc:
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:215:            self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:217:            E.run_all(self.root, timeout=7)
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:240:        self.assertEqual([(i, t) for i, t, _ in E.run_all(self.root)], [(b, "вторая")])
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:256:        self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:257:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:282:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:284:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:286:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:296:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, зелёный")
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:297:        self.assertEqual(E.gate(self.root, ""), "")
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:298:        self.assertIn("регрессия", E.gate(self.root, "TK-5"))
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:299:        self.assertIn(str(wt), E.gate(self.root, "TK-5"))
+.claude\worktrees\agent-a3ac617ce00bd4e40\.claude\dispatcher\test_errors.py:305:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\TK-002\.claude\dispatcher\tickets.py:195:    err = errors_mod.gate(PROJECT_ROOT, tid)
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:167:                mock.patch.object(E, "run_check", side_effect=AssertionError("проверка не должна запускаться")):
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:305:                mock.patch.object(E, "run_check", wraps=E.run_check) as rc:
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:421:        with mock.patch.object(E, "run_check", return_value=(True, "")) as rc:
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:422:            self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:424:            E.run_all(self.root, timeout=7)
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:455:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:468:        self.assertEqual([(i, t) for i, t, _ in E.run_all(self.root)], [(b, "вторая")])
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:484:        self.assertEqual(E.run_all(self.root), [])
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:485:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:525:        msg = E.gate(self.root, "TK-5")                                          # приёмка идёт в worktree тикета
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:528:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, правки там нет")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:533:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:534:            bad = E.run_all(self.root)
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:576:        self.assertEqual(E.gate(self.root, "TK-1"), "", "пропуск сверки приёмку не блокирует")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:595:        self.assertEqual(E.gate(self.root, "TK-1"), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:603:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:605:            msg = E.gate(self.root, "TK-1")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:611:        with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:643:            with mock.patch.object(E, "run_check", side_effect=AssertionError("запускать нельзя")):
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:645:                msg = E.gate(self.root, "TK-5")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:688:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:690:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:692:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:701:        self.assertEqual(E.gate(self.root, "TK-5"), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:704:        E.gate(self.root, "TK-5")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:705:        E.gate(self.root, "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:714:        self.assertEqual(E.gate(self.root, "TK-6"), "", "у TK-6 копии нет — корень проекта, зелёный")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:715:        self.assertEqual(E.gate(self.root, ""), "")
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:716:        self.assertIn("регрессия", E.gate(self.root, "TK-5"))
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:717:        self.assertIn(str(wt), E.gate(self.root, "TK-5"))
+.claude\worktrees\TK-002\.claude\dispatcher\test_errors.py:723:        msg = E.gate(self.root, "TK-5")
+.claude\worktrees\TK-002\.claude\dispatcher\test_doctor.py:31:        return {r[0]: r for r in D.run_checks(self.project, **kw)}
+.claude\worktrees\TK-002\.claude\dispatcher\report.py:300:    """Критерий 7. Отказы приёмки из-за упавшей проверки исправленной ошибки (`regressions.log`, пишет `errors.gate`) и ошибки,
+.claude\worktrees\TK-002\.claude\dispatcher\errors.py:174:def run_check(argv, cwd: Path, timeout: float) -> tuple[bool, str]:
+.claude\worktrees\TK-002\.claude\dispatcher\errors.py:347:def run_before(argv, cwd: Path, sha: str, timeout: float) -> tuple:
+.claude\worktrees\TK-002\.claude\dispatcher\errors.py:350:    ошибки), запуск той же `run_check`, `git worktree remove --force`. -> (прошла?, причина или конец вывода); прошла = None,
+
+[Showing results with pagination = limit: 250]

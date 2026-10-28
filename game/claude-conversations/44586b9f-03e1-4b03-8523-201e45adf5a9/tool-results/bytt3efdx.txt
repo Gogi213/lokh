@@ -1,0 +1,1049 @@
+##### ExplodingBoulder
+1	using System;
+2	using UnityEngine;
+3	public class ExplodingBoulder : Projectile
+4	{
+5		private static GameObject prefab;
+6		private CircleCollider2D[] circCols;
+7		public bool released;
+8		private bool releaseVarsSet;
+9		private Vector2 releaseVector;
+10		private int baseDamage;
+11		public int maxCharge = 20;
+12		public int currentCharge;
+13		private float chargeProgress;
+14		private bool chargeCompleted;
+15		private bool targetHit;
+16		private int hitStopwatchID;
+17		private float hitDelay = 0.062f;
+18		private bool hitWall;
+19		private Vector2 currentPosition;
+20		private bool showSpark;
+21		private ThrownCaltrop currentTC;
+22		private AttackInfo caltropInfo;
+23		private float animSpeed = 1f;
+24		private ChaosQuickStopwatch audioStopwatch = new ChaosQuickStopwatch(0.2f);
+25		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/ExplodingBoulder.prefab"));
+26		private float LerpValue => (float)currentCharge / (float)maxCharge;
+27		public override void Awake()
+28		{
+29			base.Awake();
+30			circCols = GetComponentsInChildren<CircleCollider2D>();
+31			EnableColliders(status: false);
+32			Hide();
+33		}
+34		public override void Start()
+35		{
+36			base.Start();
+37			baseDamage = calculatedDamage;
+38			Attack attack = attackBox;
+39			attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+40			Attack attack2 = attackBox;
+41			attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+42		}
+43		public override void Update()
+44		{
+45			if (!targetHit && !audioStopwatch.IsRunning)
+46			{
+47				audioStopwatch.IsRunning = true;
+48				SoundManager.PlayWithDistAndSPR("DrillLoop", transform.position, 0.85f);
+49			}
+50			if (!releaseVarsSet)
+51			{
+52				if (!chargeCompleted)
+53				{
+54					chargeProgress = LerpValue;
+55					chargeCompleted = chargeProgress >= 1f;
+56					animSpeed = Mathf.Lerp(0.1f, 3f, chargeProgress);
+57					anim.speed = animSpeed;
+58					moveSpeed = Mathf.Lerp(10f, 20f, chargeProgress);
+59					if (!projectileSpriteRenderer.enabled)
+60					{
+61						Show();
+62					}
+63				}
+64				if (!released)
+65				{
+66					return;
+67				}
+68				releaseVarsSet = true;
+69				releaseVector = moveVector;
+70				EnableColliders();
+71				calculatedDamage = baseDamage * currentCharge;
+72			}
+73			base.Update();
+74		}
+75		public override void FixedUpdate()
+76		{
+77			base.FixedUpdate();
+78			if (!targetHit)
+79			{
+80				return;
+81			}
+82			switch (ChaosStopwatch.CheckInterval(hitStopwatchID))
+83			{
+84			case StopwatchState.Ready:
+85				currentCharge--;
+86				attackBox.gameObject.SetActive(value: true);
+87				if (hitWall)
+88				{
+89					showSpark = !showSpark;
+90					if (showSpark)
+91					{
+92						currentPosition = transform.position;
+93						PoolManager.GetPoolItem<HitSparkEmitter>().EmitSingle(HitSparkType.Small, currentPosition, currentPosition + UnityEngine.Random.insideUnitCircle);
+94					}
+95				}
+96				SoundManager.PlayWithDistAndSPR("PopSnap", transform.position);
+97				break;
+98			case StopwatchState.Running:
+99				attackBox.gameObject.SetActive(value: false);
+100				break;
+101			case StopwatchState.Done:
+102				ResetProjectile();
+103				break;
+104			}
+105		}
+106		public override void ResetProjectile()
+107		{
+108			currentPosition = transform.position;
+109			Attack attack = attackBox;
+110			attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+111			attackBox.gameObject.SetActive(value: false);
+112			LeafEmitter poolItem = PoolManager.GetPoolItem<LeafEmitter>("FallingLeafEmitter");
+113			int? particleCount = 4;
+114			Vector3? position = currentPosition + Vector2.up;
+115			ParticleSystemOverride radiusTwo = ParticleEffectOverrides.RadiusTwo;
+116			poolItem.EmitSingle(particleCount, position, radiusTwo);
+117			PoolManager.GetPoolItem<ParticleEffect>("ThornEmitter").Emit(30, currentPosition);
+118			PoolManager.GetPoolItem<ParticleEffect>("ThornEmitter").Emit(10, currentPosition, ParticleEffectOverrides.Radius0p25);
+119			base.ResetProjectile();
+120			SoundManager.PlayWithDistAndSPR("ExplosionPop", currentPosition);
+121			if (released)
+122			{
+123				if (chargeCompleted)
+124				{
+125					CreateCaltropRing();
+126					EarthBurst.CreateBurst(currentPosition, attackBox.GetAtkInfoAtLevel(3), 2.5f).skipParticleEmit = true;
+127				}
+128				else
+129				{
+130					EarthBurst.CreateBurst(currentPosition, attackBox.GetAtkInfoAtLevel(2), 2.5f).skipParticleEmit = true;
+131				}
+132			}
+133		}
+134		public void OnTargetHit(Entity givenEnt)
+135		{
+136			if ((hitWall || (!(givenEnt == null) && !(givenEnt is Destructible))) && !targetHit)
+137			{
+138				targetHit = true;
+139				moveSpeed = 3f;
+140				currentCharge--;
+141				hitStopwatchID = ChaosStopwatch.Begin(hitDelay, useInterval: true, hitDelay, currentCharge);
+142				flyTime = hitDelay * (float)currentCharge + 1f;
+143				RefreshFlightTime();
+144				SoundManager.PlayWithDistAndSPR("PopSnap", transform.position);
+145			}
+146		}
+147		private void CreateCaltropRing()
+148		{
+149			caltropInfo = attackBox.GetAtkInfoAtLevel(4);
+150			AttackInfo.SetFloorTargets(caltropInfo.targetNames);
+151			currentPosition = transform.position + Vector3.down * 0.9f;
+152			if (hitWall)
+153			{
+154				currentPosition -= releaseVector * 1.5f;
+155			}
+156			CreateCaltrop(currentPosition);
+157			for (int i = 1; i < 12; i += 2)
+158			{
+159				CreateCaltrop(currentPosition + Globals.GetRotatedCircleVector(12, i, releaseVector) * 1.5f);
+160			}
+161			for (int j = 0; j < 6; j++)
+162			{
+163				CreateCaltrop(currentPosition + Globals.GetRotatedCircleVector(6, j, releaseVector) * 2.75f);
+164			}
+165		}
+166		private void CreateCaltrop(Vector2 givenPosition)
+167		{
+168			if (Globals.CheckCircle(givenPosition, 0.125f, ChaosCollisions.layerAllWallAndObst))
+169			{
+170				currentTC = Globals.ChaosInst<ThrownCaltrop>(ThrownCaltrop.Prefab, null, currentPosition);
+171				currentTC.attack.SetAttackInfo(caltropInfo);
+172				currentTC.targetPosition = givenPosition;
+173				currentTC.lifeTime = 3.5f;
+174				currentTC.layerMask = ChaosCollisions.layerAllWallAndObst;
+175				currentTC.useLineCastPosition = true;
+176			}
+177		}
+178		public void EnableColliders(bool status = true)
+179		{
+180			for (int i = 0; i < circCols.Length; i++)
+181			{
+182				circCols[i].enabled = status;
+183			}
+184		}
+185		public override void OnProjectileCollision(Collider2D other, Projectile otherProjectile, bool doCalculations = true)
+186		{
+187			if (doCalculations)
+188			{
+189				int num = calculatedDamage - otherProjectile.calculatedDamage;
+190				otherProjectile.calculatedDamage -= calculatedDamage;
+191				calculatedDamage = num;
+192				otherProjectile.OnProjectileCollision(other, this, doCalculations: false);
+193			}
+194			if (calculatedDamage > 10)
+195			{
+196				currentCharge = Mathf.CeilToInt(calculatedDamage / baseDamage);
+197				otherProjectile.calculatedDamage = 0;
+198			}
+199			else
+200			{
+201				currentCharge = 0;
+202				calculatedDamage = 0;
+203				HandleCollision(other);
+204			}
+205			collidedProjectiles.Add(otherProjectile);
+206		}
+207		public override void HandleWallCollision(Collider2D hitCol)
+208		{
+209			if (!hitWall)
+210			{
+211				hitWall = true;
+212				updateVelocity = false;
+213				moveVector = Vector2.zero;
+214				rigidbody2D.velocity = Vector2.zero;
+215				attackBox.knockbackMultiplierOverride = -1f;
+216				attackBox.atkInfo.knockbackMultiplier = -5f;
+217				attackBox.atkInfo.knockbackOverwrite = false;
+218				OnTargetHit(null);
+219				if (Projectile.globalProjectileWallCollisionEvents != null)
+220				{
+221					Projectile.globalProjectileWallCollisionEvents(this);
+222				}
+223				SoundManager.PlayWithDistAndSPR("PopSnap", transform.position);
+224			}
+225		}
+226	}
+##### FireArc
+1	using System;
+2	using UnityEngine;
+3	public class FireArc : Projectile
+4	{
+5		private static GameObject prefab;
+6		[HideInInspector]
+7		public Vector2 targetVector;
+8		[HideInInspector]
+9		public float arcRange = 5f;
+10		[HideInInspector]
+11		public bool positiveApproach = true;
+12		[HideInInspector]
+13		public float accuracyOffset = 0.707f;
+14		private ChaosQuickStopwatch arcStopwatch = new ChaosQuickStopwatch();
+15		private Vector2 initMoveVector;
+16		private Vector2 lerpExtVector;
+17		private Vector2 boundVector;
+18		private ChaosQuickStopwatch wallStopwatch = new ChaosQuickStopwatch(0.25f);
+19		private Vector3 spriteRotation;
+20		private Vector2 currentPosition;
+21		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/FireArc.prefab"));
+22		public override void Awake()
+23		{
+24			base.Awake();
+25			spriteRotation = projectileSprite.transform.localEulerAngles;
+26		}
+27		public override void Start()
+28		{
+29			base.Start();
+30			initMoveVector = targetVector;
+31			moveSpeed = Mathf.Max(1f, moveSpeed);
+32			arcStopwatch.SetDelay(arcRange / moveSpeed);
+33			boundVector = Globals.GetPerpendicular(initMoveVector);
+34			FlipSprite(initMoveVector);
+35			Attack attack = attackBox;
+36			attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+37			Attack attack2 = attackBox;
+38			attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+39			string audioID = "FireArcStart";
+40			Transform originTrans = transform;
+41			SoundManager.PlayAudioWithDistance(audioID, null, originTrans, 24f, -1f, SoundManager.StandardPitchRange);
+42			wallStopwatch.IsRunning = goThroughWalls;
+43		}
+44		public override void Update()
+45		{
+46			base.Update();
+47			if (goThroughWalls && !wallStopwatch.IsRunning)
+48			{
+49				goThroughWalls = false;
+50			}
+51		}
+52		public override void FixedUpdate()
+53		{
+54			if (!arcStopwatch.IsRunning)
+55			{
+56				positiveApproach = !positiveApproach;
+57				arcStopwatch.IsRunning = true;
+58			}
+59			lerpExtVector = accuracyOffset * Vector2.Lerp(-boundVector, boundVector, (!positiveApproach) ? (1f - arcStopwatch.TimePercentage) : arcStopwatch.TimePercentage);
+60			moveVector = (initMoveVector + lerpExtVector).normalized;
+61			base.FixedUpdate();
+62			transform.localEulerAngles = Globals.GetRotationVector(moveVector);
+63			if (attackBox != null)
+64			{
+65				attackBox.knockbackOverwriteVector = moveVector;
+66			}
+67		}
+68		private void OnTargetHit(Entity hitEnt)
+69		{
+70			FireExplosion.SpawnExplosion(transform.position, 0.5f, 0.5f, 4, 4);
+71		}
+72		public override void ResetProjectile()
+73		{
+74			currentPosition = transform.position;
+75			FireExplosion.SpawnExplosion(currentPosition, 0.5f, 0.5f, 8, 8);
+76			PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter").Emit(3, currentPosition + moveVector * 0.5f);
+77			string audioID = "FireArcEnd";
+78			Vector2? soundOrigin = currentPosition;
+79			float standardPitchRange = SoundManager.StandardPitchRange;
+80			SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+81			base.ResetProjectile();
+82		}
+83		public override bool OnReflect(Vector2 reflectedMoveVector, float damageMod)
+84		{
+85			if (!base.OnReflect(reflectedMoveVector.normalized, damageMod))
+86			{
+87				return false;
+88			}
+89			initMoveVector = reflectedMoveVector.normalized;
+90			FlipSprite(initMoveVector);
+91			return true;
+92		}
+93		public void FlipSprite(Vector2 givenVector)
+94		{
+95			Vector3 localScale = projectileSprite.transform.localScale;
+96			localScale.y = ((!(givenVector.x < 0f)) ? 1f : (-1f));
+97			projectileSprite.transform.localScale = localScale;
+98		}
+99		public override void RecycleProjectile()
+100		{
+101			base.ResetProjectile();
+102			goThroughWalls = true;
+103			Start();
+104			gameObject.SetActive(value: true);
+105			projectileSprite.transform.localEulerAngles = spriteRotation;
+106		}
+107	}
+##### FireArrow
+1	using UnityEngine;
+2	public class FireArrow : Projectile
+3	{
+4		private static GameObject _prefab;
+5		public static GameObject Prefab => _prefab ?? (_prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/FireArrow.prefab"));
+6		public override void ResetProjectile()
+7		{
+8			base.ResetProjectile();
+9			SmallFireballExplosion poolItem = PoolManager.GetPoolItem<SmallFireballExplosion>();
+10			Vector3? position = transform.position;
+11			poolItem.EmitSingle(null, position, null, null, 0f, null, ElementType.Fire);
+12		}
+13	}
+##### FireBeam
+1	using UnityEngine;
+2	public class FireBeam : Beam
+3	{
+4		private static GameObject prefab;
+5		private static AudioSource beamAudio;
+6		public Transform fireEmitterLeftTrans;
+7		public Transform fireEmitterRightTrans;
+8		public ParticleSystem leftPSys;
+9		public ParticleSystem rightPSys;
+10		private ParticleSystem.ShapeModule leftShapeMod;
+11		private ParticleSystem.ShapeModule rightShapeMod;
+12		private ParticleSystem.EmissionModule leftEmitMod;
+13		private ParticleSystem.EmissionModule rightEmitMod;
+14		private bool emitEnabled;
+15		private float ogBeamThickness = 1f;
+16		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/FireBeam.prefab"));
+17		public override void Start()
+18		{
+19			base.Start();
+20			anim.Play("Active", -1, 0f);
+21			string audioID = "VacuumExplosion";
+22			Transform originTrans = transform;
+23			SoundManager.PlayAudioWithDistance(audioID, null, originTrans, 24f, -1f, Random.Range(0.85f, 0.95f));
+24			ogBeamThickness = beamThickness;
+25			beamTipTrans.localScale = new Vector3(beamTipTrans.localScale.x * 1.25f, beamTipTrans.localScale.x * 1.25f, 1f);
+26			beamStartObj.transform.localScale = new Vector3(beamStartObj.transform.localScale.x, beamStartObj.transform.localScale.x, 1f);
+27			fireEmitterLeftTrans.localPosition = new Vector3(-0.1f * beamThickness, fireEmitterLeftTrans.localPosition.y, fireEmitterLeftTrans.localPosition.z);
+28			fireEmitterRightTrans.localPosition = new Vector3(0.1f * beamThickness, fireEmitterLeftTrans.localPosition.y, fireEmitterLeftTrans.localPosition.z);
+29			leftShapeMod = leftPSys.shape;
+30			rightShapeMod = rightPSys.shape;
+31			destroyDelay = 1f;
+32			PoolManager.GetPoolItem<ParticleEffect>("FlameCircleBurstEmitter").Emit(6, transform.position);
+33		}
+34		public override void Update()
+35		{
+36			if (beamActive)
+37			{
+38				HandleAudio();
+39			}
+40		}
+41		public override void UpdateRangeVars()
+42		{
+43			base.UpdateRangeVars();
+44			if (beamActive)
+45			{
+46				fireEmitterLeftTrans.transform.localPosition = new Vector3(fireEmitterLeftTrans.transform.localPosition.x, currentRange * 0.5f, fireEmitterLeftTrans.transform.localPosition.z);
+47				fireEmitterRightTrans.transform.localPosition = new Vector3(fireEmitterRightTrans.transform.localPosition.x, currentRange * 0.5f, fireEmitterRightTrans.transform.localPosition.z);
+48				if (!emitEnabled)
+49				{
+50					InitEmission();
+51				}
+52				leftShapeMod.radius = currentRange * 0.5f;
+53				rightShapeMod.radius = currentRange * 0.5f;
+54			}
+55		}
+56		private void InitEmission()
+57		{
+58			if (!emitEnabled)
+59			{
+60				leftEmitMod = leftPSys.emission;
+61				rightEmitMod = rightPSys.emission;
+62				leftEmitMod.enabled = true;
+63				rightEmitMod.enabled = true;
+64				emitEnabled = true;
+65			}
+66		}
+67		public override void StopBeam()
+68		{
+69			base.StopBeam();
+70			HandleAudio(status: false);
+71			anim.Play("Disable", -1, 0f);
+72			if (!emitEnabled)
+73			{
+74				InitEmission();
+75			}
+76			leftPSys.Stop();
+77			rightPSys.Stop();
+78			leftPSys.transform.localPosition = new Vector3(0f, leftPSys.transform.localPosition.y, leftPSys.transform.localPosition.z);
+79			rightPSys.transform.localPosition = new Vector3(0f, rightPSys.transform.localPosition.y, rightPSys.transform.localPosition.z);
+80			rightPSys.Emit((int)(currentRange * 0.7f));
+81			leftPSys.Emit((int)(currentRange * 0.7f));
+82		}
+83		private void HandleAudio(bool status = true)
+84		{
+85			if (status)
+86			{
+87				if (beamAudio == null || !beamAudio.isPlaying)
+88				{
+89					beamAudio = SoundManager.PlayAudioWithDistance("IgnitionOrbLoop", transform.position);
+90				}
+91			}
+92			else if (beamAudio != null)
+93			{
+94				beamAudio.Stop();
+95				beamAudio = null;
+96			}
+97		}
+98	}
+##### FireBlast
+1	using UnityEngine;
+2	public class FireBlast : MonoBehaviour
+3	{
+4		private static GameObject prefab;
+5		[HideInInspector]
+6		public Animator anim;
+7		[HideInInspector]
+8		public Attack attack;
+9		private BoxCollider2D attackTrigger;
+10		private bool attackInProgress;
+11		public bool skipParticleEmission;
+12		public int particleCountOverride;
+13		private ParticleSystem[] pEmitters;
+14		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/FireBlast.prefab"));
+15		private void Awake()
+16		{
+17			anim = GetComponent<Animator>();
+18			attack = transform.Find("FireBlastAttack").GetComponent<Attack>();
+19			attackTrigger = attack.gameObject.GetComponent<BoxCollider2D>();
+20			attackInProgress = true;
+21			pEmitters = transform.GetComponentsInChildren<ParticleSystem>();
+22		}
+23		private void Start()
+24		{
+25			if (skipParticleEmission)
+26			{
+27				for (int i = 0; i < pEmitters.Length; i++)
+28				{
+29					pEmitters[i].gameObject.SetActive(value: false);
+30				}
+31			}
+32		}
+33		public void Blast()
+34		{
+35			anim.Play("Blast", -1, 0f);
+36			SoundManager.PlayWithDistAndSPR("FireBlast", transform.position);
+37		}
+38		public void CircleBlast()
+39		{
+40			attack.disableKnockbackOverwrite = true;
+41			anim.Play("CircleBlast", -1, 0f);
+42			SoundManager.PlayAudioWithDistance("FireBlastODStart", transform.position);
+43		}
+44		public void Breath()
+45		{
+46			attack.disableKnockbackOverwrite = false;
+47		}
+48		private void Update()
+49		{
+50			if (!attackInProgress)
+51			{
+52				anim.Play("Idle");
+53			}
+54		}
+55		private void FixedUpdate()
+56		{
+57			attackTrigger.enabled = attackInProgress;
+58		}
+59		public void ToggleAttack()
+60		{
+61			attackTrigger.enabled = false;
+62		}
+63		public void EndAllAttacks()
+64		{
+65			attackInProgress = false;
+66			Object.Destroy(gameObject, 1.45f);
+67			PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter").Emit(10, transform.TransformPoint(Vector3.up * 3f), SmokeEmitter.SmokeMedOverride);
+68			PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter").Emit(7, transform.TransformPoint(Vector3.up * 5f + Vector3.right), SmokeEmitter.SmokeMedOverride);
+69			PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter").Emit(7, transform.TransformPoint(Vector3.up * 5f + Vector3.left), SmokeEmitter.SmokeMedOverride);
+70		}
+71	}
+##### FireBoomerang
+1	using UnityEngine;
+2	public class FireBoomerang : Projectile
+3	{
+4		private static GameObject prefab;
+5		[HideInInspector]
+6		public Transform parentTrans;
+7		[HideInInspector]
+8		public Vector3 targetLocation = Vector3.zero;
+9		private Vector2 originalMoveVector;
+10		private Vector2 targetVector;
+11		public float homingBias = 5f;
+12		private float timePercentage;
+13		private int speedStopwatchID;
+14		private float moveSpeedLerpTime = 1f;
+15		private float baseMoveSpeed = 8f;
+16		private float originalMoveSpeed;
+17		private AudioSource spinAudio;
+18		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/FireBoomerang.prefab"));
+19		public override void Start()
+20		{
+21			base.Start();
+22			originalMoveVector = moveVector;
+23			returningSnapDistance = 1f;
+24			originalMoveSpeed = moveSpeed;
+25			speedStopwatchID = ChaosStopwatch.Begin(moveSpeedLerpTime);
+26		}
+27		public override void OnBoomerangReturn()
+28		{
+29			base.OnBoomerangReturn();
+30			InitTimers();
+31		}
+32		public override void Update()
+33		{
+34			base.Update();
+35			PlayAudio();
+36		}
+37		public override void FixedUpdate()
+38		{
+39			moveSpeed = Mathf.Lerp(baseMoveSpeed, originalMoveSpeed, ChaosStopwatch.GetTimePercentage(speedStopwatchID));
+40			base.FixedUpdate();
+41			timePercentage = ChaosStopwatch.GetTimePercentage(flyStopwatchID);
+42			if (boomerangReturning && parentTrans != null)
+43			{
+44				targetLocation = parentTrans.position;
+45			}
+46			targetVector = (targetLocation - transform.position).normalized;
+47			moveVector = (moveVector + targetVector * homingBias * Time.fixedDeltaTime).normalized;
+48		}
+49		public override void ForceProjectileToReturn()
+50		{
+51			ResetProjectile();
+52		}
+53		public override void ResetProjectile()
+54		{
+55			base.ResetProjectile();
+56			FireExplosion.SpawnExplosion(transform.position, 0.5f, 0.5f);
+57			if (spinAudio != null)
+58			{
+59				spinAudio.Stop();
+60			}
+61		}
+62		private void PlayAudio()
+63		{
+64			if (spinAudio == null || !spinAudio.isPlaying)
+65			{
+66				string audioID = "FireSpinLoop";
+67				Transform originTrans = transform;
+68				spinAudio = SoundManager.PlayAudioWithDistance(audioID, null, originTrans);
+69			}
+70		}
+71	}
+##### FireBounce
+1	using System;
+2	using UnityEngine;
+3	public class FireBounce : Projectile
+4	{
+5		private static GameObject prefab;
+6		public float bounceRange = 4f;
+7		public int bounceCount = 4;
+8		public ParticleSystem bouncePartSys;
+9		public bool isEmpowered;
+10		private Fall fall;
+11		private ThrownItem throwScript;
+12		private Transform attackTrans;
+13		private CircleCollider2D attackCol;
+14		private bool attackStarted;
+15		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/FireBounce.prefab"));
+16		public override void Awake()
+17		{
+18			base.Awake();
+19			throwScript = GetComponent<ThrownItem>();
+20			throwScript.spriteRenderer = projectileSpriteRenderer;
+21			projectileSpriteRenderer.transform.Find("WallDetector").GetComponent<ProjectileWallDetector>().parentProjectile = this;
+22			attackTrans = transform.Find("AttackTrans");
+23			attackBox = Globals.ChaosInst<Attack>(Attack.CirclePrefab, transform.parent, attackTrans.position);
+24			attackCol = attackBox.gameObject.GetComponent<CircleCollider2D>();
+25			attackCol.radius = 0.8f;
+26			attackBox.gameObject.AddComponent<FollowTransform>().followTransform = attackTrans;
+27			Attack attack = attackBox;
+28			attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Combine(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(OnTargetHit));
+29			fall = GetComponent<Fall>();
+30			fall.fallCol = attackCol;
+31		}
+32		public override void Start()
+33		{
+34			string audioID = "FireArcEnd";
+35			Vector2? soundOrigin = transform.position;
+36			float standardPitchRange = SoundManager.StandardPitchRange;
+37			SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, 0.2f, standardPitchRange);
+38			if (moveVector.x > 0f)
+39			{
+40				rotationsPerSecond *= -1f;
+41			}
+42			base.Start();
+43			ThrowToNextPosition();
+44			ThrownItem thrownItem = throwScript;
+45			thrownItem.onLandingEventHandlers = (ThrownItem.OnLandingEventHandler)Delegate.Combine(thrownItem.onLandingEventHandlers, new ThrownItem.OnLandingEventHandler(ThrowToNextPosition));
+46		}
+47		public override void FixedUpdate()
+48		{
+49			base.FixedUpdate();
+50			if (throwScript.throwComplete)
+51			{
+52				ThrowToNextPosition();
+53			}
+54		}
+55		public override void ResetProjectile()
+56		{
+57			CreateFireEffect();
+58			if (throwScript.PercentComplete > 0.85f)
+59			{
+60				CreateBurnEffect();
+61			}
+62			SoundManager.PlayAudioWithDistance("ImpactFire", transform.position);
+63			attackBox.transform.SetParent(transform);
+64			attackBox.gameObject.SetActive(value: false);
+65			ParticleEffect poolItem = PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter");
+66			int? particleCount = 3;
+67			Vector3? position = transform.position + Vector3.up;
+68			ParticleSystemOverride smokeSmallOverride = SmokeEmitter.SmokeSmallOverride;
+69			poolItem.Emit(particleCount, position, smokeSmallOverride, null, 0.15f);
+70			base.ResetProjectile();
+71			ThrownItem thrownItem = throwScript;
+72			thrownItem.onLandingEventHandlers = (ThrownItem.OnLandingEventHandler)Delegate.Remove(thrownItem.onLandingEventHandlers, new ThrownItem.OnLandingEventHandler(ThrowToNextPosition));
+73			if (bouncePartSys != null && bouncePartSys.gameObject != null)
+74			{
+75				bouncePartSys.transform.SetParent(null);
+76				UnityEngine.Object.Destroy(bouncePartSys.gameObject, 1f);
+77			}
+78		}
+79		public override void HandleWallCollision(Collider2D other)
+80		{
+81			PoolManager.GetPoolItem<HitSparkEmitter>().EmitSingle(HitSparkType.Small, projectileSpriteRenderer.transform.position, projectileSpriteRenderer.transform.position);
+82			ResetProjectile();
+83			HandleCollision(other);
+84		}
+85		private void ThrowToNextPosition()
+86		{
+87			if (attackStarted)
+88			{
+89				if (fall.CheckOnPit())
+90				{
+91					ResetProjectile();
+92					return;
+93				}
+94				CreateBurnEffect();
+95				ParticleEffect poolItem = PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter");
+96				int? particleCount = 4;
+97				Vector3? position = transform.position;
+98				ParticleSystemOverride smokeSmallOverride = SmokeEmitter.SmokeSmallOverride;
+99				poolItem.Emit(particleCount, position, smokeSmallOverride, null, 0.15f);
+100				bouncePartSys.Play();
+101				bounceCount--;
+102				if (bounceCount <= 0)
+103				{
+104					ResetProjectile();
+105					return;
+106				}
+107				string audioID = "FireArrowStart";
+108				Vector2? soundOrigin = transform.position;
+109				float overridePitch = UnityEngine.Random.Range(0.85f, 0.9f);
+110				SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, overridePitch);
+111			}
+112			throwScript.spriteStartPosition = ((!attackStarted) ? Vector2.up : Vector2.zero);
+113			throwScript.ThrowToTargetVector(GetNextBouncePosition());
+114			throwScript.landedHeight = 0.35f;
+115			attackStarted = true;
+116		}
+117		private Vector2 GetNextBouncePosition()
+118		{
+119			return (Vector2)transform.position + moveVector * bounceRange;
+120		}
+121		private void OnTargetHit(Collider2D other)
+122		{
+123			if (isEmpowered)
+124			{
+125				CreateFireEffect();
+126			}
+127			else
+128			{
+129				ResetProjectile();
+130			}
+131		}
+132		private void CreateFireEffect()
+133		{
+134			FireExplosion.SpawnExplosion(projectileSpriteRenderer.transform.position);
+135		}
+136		private void CreateBurnEffect()
+137		{
+138			PoolManager.GetPoolItem<ParticleEffect>("BurnMarkMedEmitter").Emit(1, transform.position, ParticleEffectOverrides.StartLifeTimeOne);
+139		}
+140	}
+##### FireExplosion
+1	using UnityEngine;
+2	public class FireExplosion : MonoBehaviour
+3	{
+4		private Animator anim;
+5		private ParticleSystem primaryEmitter;
+6		private ParticleSystem secondaryEmitter;
+7		[HideInInspector]
+8		public float particleSizeModifier = 1f;
+9		[HideInInspector]
+10		public int primaryEmitCount = 15;
+11		[HideInInspector]
+12		public int secondaryEmitCount = 25;
+13		private static FireExplosion currentExplosion;
+14		private static int defaultPriEmitCount = 15;
+15		private static int defaultSecEmitCount = 15;
+16		private void Awake()
+17		{
+18			anim = GetComponent<Animator>();
+19			primaryEmitter = transform.Find("FirePrimaryBlast").GetComponent<ParticleSystem>();
+20			secondaryEmitter = transform.Find("FireSecondaryBlast").GetComponent<ParticleSystem>();
+21		}
+22		private void Start()
+23		{
+24			primaryEmitter.Play();
+25			secondaryEmitter.Play();
+26		}
+27		private void Explode()
+28		{
+29			gameObject.SetActive(value: true);
+30			anim.Play("Explode", -1, 0f);
+31			ResetEmitters();
+32			if (particleSizeModifier != 1f)
+33			{
+34				primaryEmitter.startSize *= particleSizeModifier;
+35				primaryEmitter.startSpeed *= particleSizeModifier;
+36				secondaryEmitter.startSize *= particleSizeModifier;
+37				secondaryEmitter.startSpeed *= particleSizeModifier;
+38			}
+39			primaryEmitter.Emit(primaryEmitCount);
+40			secondaryEmitter.Emit(secondaryEmitCount);
+41		}
+42		public void Disable()
+43		{
+44			gameObject.SetActive(value: false);
+45		}
+46		private void ResetEmitters()
+47		{
+48			primaryEmitter.startSize = 1f;
+49			primaryEmitter.startSpeed = 2f;
+50			secondaryEmitter.startSize = 1f;
+51			secondaryEmitter.startSpeed = 30f;
+52		}
+53		public static void SpawnExplosion(Vector3 spawnPosition, float newScale = 1f, float particleSizeMod = 1f, int firstEmitCount = 0, int secondEmitCount = 0)
+54		{
+55			currentExplosion = PoolManager.GetPoolItem<FireExplosion>();
+56			currentExplosion.transform.position = spawnPosition;
+57			currentExplosion.transform.localScale = Vector3.one * newScale;
+58			currentExplosion.particleSizeModifier = particleSizeMod;
+59			currentExplosion.primaryEmitCount = ((firstEmitCount <= 0) ? defaultPriEmitCount : firstEmitCount);
+60			currentExplosion.secondaryEmitCount = ((secondEmitCount <= 0) ? defaultSecEmitCount : secondEmitCount);
+61			currentExplosion.Explode();
+62		}
+63	}
+##### FireMine
+1	using UnityEngine;
+2	public class FireMine : Projectile
+3	{
+4		private static GameObject prefab;
+5		public Vector2 originalVector;
+6		public Vector2 targetVector;
+7		private ChaosQuickStopwatch changeStopwatch = new ChaosQuickStopwatch(0.75f);
+8		private float changeLerpValue;
+9		private bool changeCompleted;
+10		public ParticleSystem firePartSys;
+11		public ParticleEffect smokeEmitter;
+12		public bool smokePlaying;
+13		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/FireMine.prefab"));
+14		public override void Start()
+15		{
+16			base.Start();
+17			anim.Play("Spawn", -1, 0f);
+18			changeStopwatch.IsRunning = true;
+19			originalVector = moveVector;
+20			targetVector = (2f * targetVector - originalVector).normalized;
+21			smokeEmitter = PoolManager.GetPoolItem<ParticleEffect>("SmokeEmitter");
+22			smokeEmitter.followTransform = transform;
+23			smokeEmitter.transform.position = transform.position;
+24		}
+25		public override void FixedUpdate()
+26		{
+27			base.FixedUpdate();
+28			if (!changeCompleted)
+29			{
+30				changeLerpValue = changeStopwatch.TimePercentage;
+31				changeCompleted = changeLerpValue >= 1f;
+32				isPointedAtMoveVector = changeCompleted;
+33				moveVector = Vector2.Lerp(originalVector, targetVector, changeLerpValue);
+34				moveSpeed = Mathf.Lerp(4f, 32f, changeLerpValue);
+35				attackBox.knockbackOverwriteVector = moveVector;
+36			}
+37			else if (!smokePlaying)
+38			{
+39				smokePlaying = true;
+40				smokeEmitter.Play(90f);
+41			}
+42		}
+43		public override void HandleWallCollision(Collider2D other)
+44		{
+45			if (changeCompleted || changeLerpValue > 0.5f)
+46			{
+47				base.HandleWallCollision(other);
+48				return;
+49			}
+50			rigidbody2D.velocity = Vector2.zero;
+51			originalVector = Vector2.zero;
+52		}
+53		public override void ResetProjectile()
+54		{
+55			if (firePartSys != null)
+56			{
+57				firePartSys.transform.SetParent(transform.parent);
+58				firePartSys.Stop();
+59				Object.Destroy(firePartSys.gameObject, 1f);
+60			}
+61			if (smokeEmitter != null)
+62			{
+63				smokeEmitter.Stop();
+64			}
+65			FireExplosion.SpawnExplosion(transform.position, 0.5f, 0.5f);
+66			string audioID = "FireArcEnd";
+67			Vector2? soundOrigin = transform.position;
+68			float overridePitch = Random.Range(1f, 1.1f);
+69			SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, overridePitch);
+70			base.ResetProjectile();
+71		}
+72	}
+##### FirePillar
+1	using UnityEngine;
+2	public class FirePillar : MonoBehaviour
+3	{
+4		private static GameObject prefab;
+5		public Attack attack;
+6		public float attackRadius = 1.5f;
+7		public ParticleSystem warningEmitter;
+8		public ParticleSystem fireEmitter;
+9		public ParticleSystem fireBaseEmitter;
+10		[HideInInspector]
+11		public float delay = 1f;
+12		[HideInInspector]
+13		public float duration = 1f;
+14		private int delayStopwatchID;
+15		private int durationStopwatchID;
+16		private bool delayComplete;
+17		private bool durationComplete;
+18		private bool destroyQueued;
+19		private ParticleSystemOverride flameCirclePSysOverride;
+20		private Vector2 currentPosition;
+21		private Vector3 upwardRotation = Vector3.zero;
+22		private CastingCircle castingCircle;
+23		[HideInInspector]
+24		public bool useCastingCircle = true;
+25		[HideInInspector]
+26		public Color castingCircleColor = CastingCircle.enemyColor;
+27		[HideInInspector]
+28		public float atkInterval = 0.25f;
+29		private ChaosQuickStopwatch atkStopwatch;
+30		private AudioSource audioSource;
+31		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/FirePillar.prefab"));
+32		private void Start()
+33		{
+34			atkStopwatch = new ChaosQuickStopwatch(atkInterval);
+35			flameCirclePSysOverride = new ParticleSystemOverride
+36			{
+37				radius = 1.25f
+38			};
+39			warningEmitter.Play();
+40			fireEmitter.Stop();
+41			fireBaseEmitter.Stop();
+42			attack.GetComponent<CircleCollider2D>().radius = attackRadius;
+43			ParticleSystem.ShapeModule shape = fireEmitter.shape;
+44			shape.radius = attackRadius - 0.25f;
+45			ParticleSystem.EmissionModule emission = fireEmitter.emission;
+46			emission.rate = (int)(attackRadius * 300f);
+47			attack.GetComponent<CircleCollider2D>().radius = attackRadius;
+48			ParticleSystem.ShapeModule shape2 = fireBaseEmitter.shape;
+49			shape2.radius = attackRadius - 0.25f;
+50			ParticleSystem.EmissionModule emission2 = fireBaseEmitter.emission;
+51			emission2.rate = (int)(attackRadius * 100f);
+52			delayStopwatchID = ChaosStopwatch.Begin(delay);
+53			if (useCastingCircle)
+54			{
+55				castingCircle = CastingCirclePool.Spawn("Draw", transform.position, parentObj: gameObject, unitSizeY: attackRadius, color: castingCircleColor, drawTime: delay, disableWithParentVal: true, trackParentVal: true, useCastTimeVal: false, castTimeVal: 0f, unitSizeX: attackRadius);
+56			}
+57		}
+58		private void Update()
+59		{
+60			if (destroyQueued)
+61			{
+62				return;
+63			}
+64			if (!delayComplete)
+65			{
+66				if (ChaosStopwatch.Check(delayStopwatchID))
+67				{
+68					delayComplete = true;
+69					attack.collider.enabled = true;
+70					durationStopwatchID = ChaosStopwatch.Begin(duration);
+71					fireEmitter.Play();
+72					fireBaseEmitter.Play();
+73					warningEmitter.Stop();
+74					PoolManager.GetPoolItem<ParticleEffect>("BurnMarkLargeEmitter").Emit(1, transform.position, new ParticleSystemOverride
+75					{
+76						startLifetime = duration + 2f
+77					});
+78					currentPosition = transform.position;
+79					PoolManager.GetPoolItem<ParticleEffect>("FlameCircleBurstEmitter").Emit(30, currentPosition, flameCirclePSysOverride);
+80					DustEmitter poolItem = PoolManager.GetPoolItem<DustEmitter>();
+81					int particleCount = 30;
+82					float scale = 1.5f;
+83					Vector3? emitPosition = currentPosition;
+84					poolItem.EmitCircle(particleCount, scale, -1f, -1f, emitPosition);
+85					SoundManager.PlayAudioWithDistance("FireBlast", currentPosition);
+86					CameraController.ShakeCamera();
+87				}
+88			}
+89			else if (!durationComplete)
+90			{
+91				attack.collider.enabled = true;
+92				if (!atkStopwatch.IsRunning)
+93				{
+94					atkStopwatch.IsRunning = true;
+95					attack.collider.enabled = false;
+96				}
+97				PlayAudio();
+98				if (ChaosStopwatch.Check(durationStopwatchID))
+99				{
+100					durationComplete = true;
+101					Reset();
+102				}
+103			}
+104			else
+105			{
+106				Reset();
+107			}
+108		}
+109		private void PlayAudio()
+110		{
+111			if (audioSource == null || !audioSource.isPlaying)
+112			{
+113				audioSource = SoundManager.PlayAudioWithDistance("FireWallLoop", transform.position);
+114			}
+115		}
+116		public void Reset()
+117		{
+118			if (!destroyQueued)
+119			{
+120				destroyQueued = true;
+121				attack.collider.enabled = false;
+122				warningEmitter.Stop();
+123				fireEmitter.Stop();
+124				fireBaseEmitter.Stop();
+125				if (castingCircle != null)
+126				{
+127					castingCircle.Reset();
+128					castingCircle = null;
+129				}
+130				if (audioSource != null)
+131				{
+132					audioSource.Stop();
+133				}
+134				Object.Destroy(gameObject, 1f);
+135			}
+136		}
+137	}
+##### FireRapidEffect
+1	using UnityEngine;
+2	public class FireRapidEffect : MonoBehaviour
+3	{
+4		private static GameObject prefab;
+5		protected ParticleSystem partSys;
+6		protected float destroyDelay = 1f;
+7		protected bool destroyQueued;
+8		public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Effects/FireRapidEffect.prefab"));
+9		public void Awake()
+10		{
+11			partSys = GetComponent<ParticleSystem>();
+12		}
+13		public void Reset()
+14		{
+15			if (!destroyQueued)
+16			{
+17				destroyQueued = true;
+18				partSys.Stop();
+19				transform.parent = null;
+20				Object.Destroy(gameObject, destroyDelay);
+21			}
+22		}
+23	}
+##### FireShuriken
+1	using UnityEngine;
+2	public class FireShuriken : Shuriken
+3	{
+4		private static GameObject prefab;
+5		public new static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/FireShuriken.prefab"));
+6		public override void Start()
+7		{
+8			base.Start();
+9			SoundManager.PlayWithDistAndSPR("FireBlastODEnd", transform.position);
+10		}
+11		public override void ResetProjectile()
+12		{
+13			base.ResetProjectile();
+14			FireExplosion.SpawnExplosion(transform.position, 0.5f, 0.5f);
+15		}
+16	}

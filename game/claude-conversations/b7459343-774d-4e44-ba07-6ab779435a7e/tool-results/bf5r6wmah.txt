@@ -1,0 +1,1405 @@
+     1	using LootEdit;
+     2	using LootEdit.loot;
+     3	using MonsterEdit.monsters;
+     4	using ProjectTower.audio;
+     5	using ProjectTower.config;
+     6	using ProjectTower.debug;
+     7	using ProjectTower.gamestate;
+     8	using ProjectTower.player;
+     9	using ProjectTower.player.randomizer;
+    10	
+    11	namespace ProjectTower.character;
+    12	
+    13	public class CharStats
+    14	{
+    15		private Character c;
+    16	
+    17		public const float DEFENSE_FACTOR = 200f;
+    18	
+    19		public const float ARMOR_POISE_BLOCK_FACTOR = 40f;
+    20	
+    21		public const int WEIGHT_LIGHT = 0;
+    22	
+    23		public const int WEIGHT_MID = 1;
+    24	
+    25		public const int WEIGHT_MID_HEAVY = 2;
+    26	
+    27		public const int WEIGHT_HEAVY = 3;
+    28	
+    29		public const int WEIGHT_OVERBURDENED = 4;
+    30	
+    31		public const int DEF_BLUNT = 0;
+    32	
+    33		public const int DEF_FIRE = 1;
+    34	
+    35		public const int DEF_LIT = 2;
+    36	
+    37		public const int DEF_BLADED = 3;
+    38	
+    39		public const int DEF_POISON = 4;
+    40	
+    41		public const float ARMOR_POISE_ADJUST = 0.5f;
+    42	
+    43		public const int DEF_HOLY = 5;
+    44	
+    45		public const int DEF_DARK = 6;
+    46	
+    47		public const int ATK_PHYS = 0;
+    48	
+    49		public const int ATK_FIRE = 2;
+    50	
+    51		public const int ATK_LIT = 3;
+    52	
+    53		public const int ATK_POISON = 5;
+    54	
+    55		public const int ATK_BLADED = 6;
+    56	
+    57		public const int ATK_HOLY = 8;
+    58	
+    59		public const int ATK_DARK = 9;
+    60	
+    61		public CharStatsAttackVals attackVals;
+    62	
+    63		public CharStats(Character c)
+    64		{
+    65			this.c = c;
+    66			attackVals = new CharStatsAttackVals(c);
+    67		}
+    68	
+    69		public float GetSanctuaryMaxHP()
+    70		{
+    71			return c.GetPlayer()?.stats.GetHP() ?? 100f;
+    72		}
+    73	
+    74		public float GetMaxHP()
+    75		{
+    76			if (c.playerIdx > -1)
+    77			{
+    78				float hP = c.GetPlayer().stats.GetHP();
+    79				if (c.hpCapDmg > hP / 2f)
+    80				{
+    81					c.hpCapDmg = hP / 2f;
+    82				}
+    83				return hP - c.hpCapDmg;
+    84			}
+    85			MonsterDef obj = MonsterCatalog.catalog[c.monsterIdx];
+    86			float num = obj.hp;
+    87			Player mainPlayer = PlayerMgr.GetMainPlayer();
+    88			if (mainPlayer != null && mainPlayer.IsScaledRandomizer())
+    89			{
+    90				num = RandomizerMgr.GetTierAdjustHp(c);
+    91			}
+    92			else if (GameModeMgr.IsGameEnhanced())
+    93			{
+    94				num = GetPlaythroughAdjustedBaseHp(c);
+    95			}
+    96			if (GameStateManager.coopPlayerIdx > -1)
+    97			{
+    98				num *= 1.5f;
+    99			}
+   100			if (GameStateManager.playthroughCount > 0 && !GameModeMgr.IsGameEnhanced())
+   101			{
+   102				num = num + num * 0.5f + num * 0.1f * (float)GameStateManager.playthroughCount + (float)(50 * GameStateManager.playthroughCount) + 80f;
+   103				if (c.boss)
+   104				{
+   105					num += 2000f + (float)GameStateManager.playthroughCount * 500f;
+   106				}
+   107			}
+   108			else if (GameStateManager.playthroughCount > 0 && GameModeMgr.IsGameEnhanced())
+   109			{
+   110				if (c.boss)
+   111				{
+   112					if (GameStateManager.playthroughCount > 1)
+   113					{
+   114						num += num * 0.07f * ((float)GameStateManager.playthroughCount - 1f) + ((float)GameStateManager.playthroughCount - 1f) * 400f;
+   115					}
+   116				}
+   117				else
+   118				{
+   119					num = num + num * 0.5f + num * 0.1f * (float)GameStateManager.playthroughCount + (float)(50 * GameStateManager.playthroughCount) + 50f;
+   120					if (GameStateManager.playthroughCount > 1)
+   121					{
+   122						num += 50f;
+   123					}
+   124				}
+   125			}
+   126			if (obj.name == "saltbat")
+   127			{
+   128				Player mainPlayer2 = PlayerMgr.GetMainPlayer();
+   129				if (mainPlayer2 != null)
+   130				{
+   131					return mainPlayer2.stats.level;
+   132				}
+   133			}
+   134			return num;
+   135		}
+   136	
+   137		public float GetAdjustedDamage(float damage, int damageType)
+   138		{
+   139			float num = 0f;
+   140			switch (damageType)
+   141			{
+   142			case 0:
+   143				num = GetDefense(0);
+   144				break;
+   145			case 2:
+   146				num = GetDefense(1);
+   147				break;
+   148			case 3:
+   149				num = GetDefense(2);
+   150				break;
+   151			case 6:
+   152				num = GetDefense(3);
+   153				break;
+   154			case 5:
+   155				num = GetDefense(4);
+   156				break;
+   157			case 8:
+   158				num = GetDefense(5);
+   159				break;
+   160			case 9:
+   161				num = GetDefense(6);
+   162				break;
+   163			}
+   164			if (c.equipment.active && c.buffs.GetProtect())
+   165			{
+   166				num *= 2f;
+   167			}
+   168			if (c.buffs.GetBloodied() && damageType != 8)
+   169			{
+   170				if (num > 0f)
+   171				{
+   172					num = 0f;
+   173				}
+   174				if (!GameModeMgr.IsGameEnhanced())
+   175				{
+   176					damage *= 1.25f;
+   177				}
+   178			}
+   179			float num2 = 0f;
+   180			num2 = num / (num + 200f);
+   181			return damage - damage * num2;
+   182		}
+   183	
+   184		public float GetDefense(int stat, PlayerStats stats)
+   185		{
+   186			float num = 0f;
+   187			if (c.playerIdx > -1)
+   188			{
+   189				if (c.equipment.active)
+   190				{
+   191					Player player = c.GetPlayer();
+   192					if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.helm.invIdx > -1 && stats.Equippable(LootCatalog.category[2].loot[c.equipment.helm.catalogIdx], -1) == 2)
+   193					{
+   194						num += player.playerInv.inventory[c.equipment.helm.invIdx].GetValue(stat, player);
+   195					}
+   196					if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.armor.invIdx > -1 && stats.Equippable(LootCatalog.category[2].loot[c.equipment.armor.catalogIdx], -1) == 2)
+   197					{
+   198						num += player.playerInv.inventory[c.equipment.armor.invIdx].GetValue(stat, player);
+   199					}
+   200					if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.gloves.invIdx > -1 && stats.Equippable(LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx], -1) == 2)
+   201					{
+   202						num += player.playerInv.inventory[c.equipment.gloves.invIdx].GetValue(stat, player);
+   203					}
+   204					if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.boots.invIdx > -1 && stats.Equippable(LootCatalog.category[2].loot[c.equipment.boots.catalogIdx], -1) == 2)
+   205					{
+   206						num += player.playerInv.inventory[c.equipment.boots.invIdx].GetValue(stat, player);
+   207					}
+   208					num += GetPlayerLevelDefenseBonus(player, stat);
+   209					if (stat == 7)
+   210					{
+   211						num *= 0.5f;
+   212					}
+   213					num += GetRingDefense(stat);
+   214					if (c.buffs.GetWillBuff() > 0f && GameModeMgr.IsGameEnhanced() && stat == 7)
+   215					{
+   216						num *= 1.5f;
+   217					}
+   218				}
+   219				switch (stat)
+   220				{
+   221				case 0:
+   222				case 3:
+   223				case 4:
+   224					num += c.buffs.GetPhysDefBuff(23);
+   225					if (c.buffs.GetGoldenBuff())
+   226					{
+   227						num = ((!GameModeMgr.IsGameEnhanced() || stat == 4 || c.playerIdx <= -1) ? (num + 200f) : (num + 200f));
+   228					}
+   229					break;
+   230				case 1:
+   231				case 2:
+   232				case 5:
+   233				case 6:
+   234					num += c.buffs.GetPhysDefBuff(24);
+   235					if (c.buffs.GetGoldenBuff())
+   236					{
+   237						num += 100f;
+   238					}
+   239					break;
+   240				}
+   241				if (c.buffs.GetProtect() && stat != 7)
+   242				{
+   243					num *= 2f;
+   244				}
+   245			}
+   246			return num;
+   247		}
+   248	
+   249		public bool GetCharmFlag(int flag)
+   250		{
+   251			int catalogIdx = c.equipment.loadout[c.equipment.loadoutIdx, 2].catalogIdx;
+   252			int category = c.equipment.loadout[c.equipment.loadoutIdx, 2].category;
+   253			if (catalogIdx > -1 && catalogIdx < LootCatalog.category[3].loot.Length && category == 3)
+   254			{
+   255				try
+   256				{
+   257					if (LootCatalog.category[3].loot[c.equipment.loadout[c.equipment.loadoutIdx, 2].catalogIdx].flags == flag)
+   258					{
+   259						return true;
+   260					}
+   261				}
+   262				catch
+   263				{
+   264				}
+   265			}
+   266			return false;
+   267		}
+   268	
+   269		public bool GetCharmFlag(int flag, Player p, InvLoot replaceLoot)
+   270		{
+   271			switch (p.playerInv.selItem)
+   272			{
+   273			case 4:
+   274			case 5:
+   275			case 6:
+   276				if (c.equipment.loadoutIdx == 1)
+   277				{
+   278					return GetCharmFlag(flag);
+   279				}
+   280				break;
+   281			case 7:
+   282			case 8:
+   283			case 9:
+   284				if (c.equipment.loadoutIdx == 0)
+   285				{
+   286					return GetCharmFlag(flag);
+   287				}
+   288				break;
+   289			}
+   290			LootDef lootDef = LootCatalog.category[replaceLoot.category].loot[replaceLoot.catalogIdx];
+   291			if (replaceLoot.category == 3 && lootDef.type == 1 && lootDef.category == 3 && lootDef.type == 1)
+   292			{
+   293				return lootDef.flags == flag;
+   294			}
+   295			return GetCharmFlag(flag);
+   296		}
+   297	
+   298		public bool GetRingFlag(int flag)
+   299		{
+   300			if (!c.equipment.active)
+   301			{
+   302				return false;
+   303			}
+   304			for (int i = 0; i < 4; i++)
+   305			{
+   306				if (c.equipment.ring[i].catalogIdx > -1 && c.equipment.ring[i].catalogIdx < LootCatalog.category[3].loot.Length && LootCatalog.category[3].loot[c.equipment.ring[i].catalogIdx].flags == flag)
+   307				{
+   308					return true;
+   309				}
+   310			}
+   311			if (flag > 0 && c.playerIdx > -1)
+   312			{
+   313				Player player = c.GetPlayer();
+   314				if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.helm.catalogIdx], -1) == 2 && LootCatalog.category[2].loot[c.equipment.helm.catalogIdx].special == flag)
+   315				{
+   316					return true;
+   317				}
+   318				if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.armor.catalogIdx], -1) == 2 && LootCatalog.category[2].loot[c.equipment.armor.catalogIdx].special == flag)
+   319				{
+   320					return true;
+   321				}
+   322				if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx], -1) == 2 && LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx].special == flag)
+   323				{
+   324					return true;
+   325				}
+   326				if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.boots.catalogIdx], -1) == 2 && LootCatalog.category[2].loot[c.equipment.boots.catalogIdx].special == flag)
+   327				{
+   328					return true;
+   329				}
+   330				if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 128 && c.equipment.loadout[c.equipment.loadoutIdx, 1].category == 1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < LootCatalog.category[1].loot.Length && player.stats.Equippable(LootCatalog.category[1].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx], -1) == 2 && LootCatalog.category[1].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx].special == flag)
+   331				{
+   332					return true;
+   333				}
+   334			}
+   335			return false;
+   336		}
+   337	
+   338		public bool GetRingFlag(int flag, Player p, InvLoot replaceLoot)
+   339		{
+   340			LootDef lootDef = LootCatalog.category[replaceLoot.category].loot[replaceLoot.catalogIdx];
+   341			if (replaceLoot.category == 3 && lootDef.type == 0)
+   342			{
+   343				if (lootDef.category == 3 && lootDef.type == 0 && lootDef.flags == flag)
+   344				{
+   345					return true;
+   346				}
+   347				for (int i = 0; i < 4; i++)
+   348				{
+   349					if (i != p.playerInv.selItem - 16 && c.equipment.ring[i].catalogIdx != replaceLoot.catalogIdx && c.equipment.ring[i].catalogIdx > -1 && c.equipment.ring[i].catalogIdx < LootCatalog.category[3].loot.Length && LootCatalog.category[3].loot[c.equipment.ring[i].catalogIdx].flags == flag)
+   350					{
+   351						return true;
+   352					}
+   353				}
+   354			}
+   355			else if (GetRingFlag(flag))
+   356			{
+   357				return true;
+   358			}
+   359			return false;
+   360		}
+   361	
+   362		private float GetRingDefense(int stat)
+   363		{
+   364			float num = 0f;
+   365			for (int i = 0; i < 4; i++)
+   366			{
+   367				if (c.equipment.ring[i].catalogIdx > -1 && c.equipment.ring[i].catalogIdx < LootCatalog.category[3].loot.Length)
+   368				{
+   369					LootDef lDef = LootCatalog.category[3].loot[c.equipment.ring[i].catalogIdx];
+   370					num += GetRingDefense(stat, lDef);
+   371					if (stat == 7 && num > 10f)
+   372					{
+   373						num = 10f;
+   374					}
+   375				}
+   376			}
+   377			return num;
+   378		}
+   379	
+   380		public bool GetDropSuccess(float chance)
+   381		{
+   382			Player player = c.GetPlayer();
+   383			if (player != null)
+   384			{
+   385				float dropRate = player.stats.GetDropRate();
+   386				if (!Rand.CoinToss(dropRate / (dropRate + 200f) * (chance / 100f)))
+   387				{
+   388					return DebugMgr.autoDrops;
+   389				}
+   390				return true;
+   391			}
+   392			return false;
+   393		}
+   394	
+   395		private float GetRingDefense(int stat, LootDef lDef)
+   396		{
+   397			float num = 0f;
+   398			switch (stat)
+   399			{
+   400			case 0:
+   401				if (lDef.flags == 0)
+   402				{
+   403					num += 50f;
+   404				}
+   405				break;
+   406			case 1:
+   407				if (lDef.flags == 2)
+   408				{
+   409					num += 50f;
+   410				}
+   411				break;
+   412			case 2:
+   413				if (lDef.flags == 1)
+   414				{
+   415					num += 50f;
+   416				}
+   417				break;
+   418			case 4:
+   419				if (lDef.flags == 3)
+   420				{
+   421					num += 50f;
+   422				}
+   423				break;
+   424			case 3:
+   425				if (lDef.flags == 4)
+   426				{
+   427					num += 50f;
+   428				}
+   429				break;
+   430			case 5:
+   431				if (lDef.flags == 5)
+   432				{
+   433					num += 50f;
+   434				}
+   435				break;
+   436			case 6:
+   437				if (lDef.flags == 6)
+   438				{
+   439					num += 50f;
+   440				}
+   441				break;
+   442			case 7:
+   443				if (lDef.flags == 13)
+   444				{
+   445					num += 10f;
+   446				}
+   447				break;
+   448			}
+   449			return num;
+   450		}
+   451	
+   452		public float GetDefense(int stat)
+   453		{
+   454			float num = 0f;
+   455			if (c.playerIdx > -1)
+   456			{
+   457				if (c.equipment.active)
+   458				{
+   459					Player player = c.GetPlayer();
+   460					if (player != null)
+   461					{
+   462						if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.helm.invIdx > -1 && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.helm.catalogIdx], -1) == 2)
+   463						{
+   464							num += player.playerInv.inventory[c.equipment.helm.invIdx].GetValue(stat, player);
+   465						}
+   466						if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.armor.invIdx > -1 && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.armor.catalogIdx], -1) == 2)
+   467						{
+   468							num += player.playerInv.inventory[c.equipment.armor.invIdx].GetValue(stat, player);
+   469						}
+   470						if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.gloves.invIdx > -1 && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx], -1) == 2)
+   471						{
+   472							num += player.playerInv.inventory[c.equipment.gloves.invIdx].GetValue(stat, player);
+   473						}
+   474						if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.boots.invIdx > -1 && player.stats.Equippable(LootCatalog.category[2].loot[c.equipment.boots.catalogIdx], -1) == 2)
+   475						{
+   476							num += player.playerInv.inventory[c.equipment.boots.invIdx].GetValue(stat, player);
+   477						}
+   478						num += GetRingDefense(stat);
+   479						num += GetPlayerLevelDefenseBonus(player, stat);
+   480					}
+   481				}
+   482				switch (stat)
+   483				{
+   484				case 0:
+   485				case 3:
+   486				case 4:
+   487					num += c.buffs.GetPhysDefBuff(23);
+   488					if (c.buffs.GetGoldenBuff())
+   489					{
+   490						num = ((!GameModeMgr.IsGameEnhanced() || stat == 4) ? (num + 200f) : (num + 200f));
+   491					}
+   492					break;
+   493				case 1:
+   494				case 2:
+   495				case 5:
+   496				case 6:
+   497					num += c.buffs.GetPhysDefBuff(24);
+   498					if (c.buffs.GetGoldenBuff())
+   499					{
+   500						num += 100f;
+   501					}
+   502					break;
+   503				}
+   504				return num;
+   505			}
+   506			MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+   507			return stat switch
+   508			{
+   509				0 => monsterDef.defense, 
+   510				1 => monsterDef.fireDef, 
+   511				2 => monsterDef.litDef, 
+   512				4 => monsterDef.poisonDef, 
+   513				3 => monsterDef.bladedDef, 
+   514				5 => monsterDef.holyDef, 
+   515				6 => monsterDef.darkDef, 
+   516				_ => 0f, 
+   517			};
+   518		}
+   519	
+   520		public float GetDefense(int stat, Player p, InvLoot replaceLoot)
+   521		{
+   522			LootDef lootDef = LootCatalog.category[replaceLoot.category].loot[replaceLoot.catalogIdx];
+   523			float num = 0f;
+   524			if (c.playerIdx > -1)
+   525			{
+   526				if (c.equipment.active)
+   527				{
+   528					if (replaceLoot.category == 2 && lootDef.type == 0)
+   529					{
+   530						if (p.stats.Equippable(lootDef, -1) == 2)
+   531						{
+   532							num += replaceLoot.GetValue(stat, p);
+   533						}
+   534					}
+   535					else if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.helm.invIdx > -1 && p.stats.Equippable(LootCatalog.category[2].loot[c.equipment.helm.catalogIdx], -1) == 2)
+   536					{
+   537						num += p.playerInv.inventory[c.equipment.helm.invIdx].GetValue(stat, p);
+   538					}
+   539					if (replaceLoot.category == 2 && lootDef.type == 1)
+   540					{
+   541						if (p.stats.Equippable(lootDef, -1) == 2)
+   542						{
+   543							num += replaceLoot.GetValue(stat, p);
+   544						}
+   545					}
+   546					else if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.armor.invIdx > -1 && p.stats.Equippable(LootCatalog.category[2].loot[c.equipment.armor.catalogIdx], -1) == 2)
+   547					{
+   548						num += p.playerInv.inventory[c.equipment.armor.invIdx].GetValue(stat, p);
+   549					}
+   550					if (replaceLoot.category == 2 && lootDef.type == 2)
+   551					{
+   552						if (p.stats.Equippable(lootDef, -1) == 2)
+   553						{
+   554							num += replaceLoot.GetValue(stat, p);
+   555						}
+   556					}
+   557					else if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.gloves.invIdx > -1 && p.stats.Equippable(LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx], -1) == 2)
+   558					{
+   559						num += p.playerInv.inventory[c.equipment.gloves.invIdx].GetValue(stat, p);
+   560					}
+   561					if (replaceLoot.category == 2 && lootDef.type == 3)
+   562					{
+   563						if (p.stats.Equippable(lootDef, -1) == 2)
+   564						{
+   565							num += replaceLoot.GetValue(stat, p);
+   566						}
+   567					}
+   568					else if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length && c.equipment.boots.invIdx > -1 && p.stats.Equippable(LootCatalog.category[2].loot[c.equipment.boots.catalogIdx], -1) == 2)
+   569					{
+   570						num += p.playerInv.inventory[c.equipment.boots.invIdx].GetValue(stat, p);
+   571					}
+   572					if (stat == 7)
+   573					{
+   574						num *= 0.5f;
+   575					}
+   576					if (replaceLoot.category == 3 && lootDef.type == 0)
+   577					{
+   578						num += GetRingDefense(stat, lootDef);
+   579						for (int i = 0; i < 4; i++)
+   580						{
+   581							if (i != p.playerInv.selItem - 16 && c.equipment.ring[i].catalogIdx != replaceLoot.catalogIdx && c.equipment.ring[i].catalogIdx > -1 && c.equipment.ring[i].catalogIdx < LootCatalog.category[3].loot.Length)
+   582							{
+   583								num += GetRingDefense(stat, LootCatalog.category[3].loot[c.equipment.ring[i].catalogIdx]);
+   584							}
+   585						}
+   586					}
+   587					else
+   588					{
+   589						num += GetRingDefense(stat);
+   590					}
+   591					if (c.buffs.GetWillBuff() > 0f && GameModeMgr.IsGameEnhanced() && stat == 7)
+   592					{
+   593						num *= 1.5f;
+   594					}
+   595				}
+   596				num += GetPlayerLevelDefenseBonus(p, stat);
+   597				switch (stat)
+   598				{
+   599				case 0:
+   600				case 3:
+   601				case 4:
+   602					num += c.buffs.GetPhysDefBuff(23);
+   603					if (c.buffs.GetGoldenBuff())
+   604					{
+   605						num = ((!GameModeMgr.IsGameEnhanced() || stat == 4) ? (num + 200f) : (num + 200f));
+   606					}
+   607					break;
+   608				case 1:
+   609				case 2:
+   610				case 5:
+   611				case 6:
+   612					num += c.buffs.GetPhysDefBuff(24);
+   613					if (c.buffs.GetGoldenBuff())
+   614					{
+   615						num += 100f;
+   616					}
+   617					break;
+   618				}
+   619				if (c.buffs.GetProtect() && stat != 7)
+   620				{
+   621					num *= 2f;
+   622				}
+   623				return num;
+   624			}
+   625			MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+   626			return stat switch
+   627			{
+   628				0 => monsterDef.defense, 
+   629				1 => monsterDef.fireDef, 
+   630				2 => monsterDef.litDef, 
+   631				4 => monsterDef.poisonDef, 
+   632				3 => monsterDef.bladedDef, 
+   633				5 => monsterDef.holyDef, 
+   634				6 => monsterDef.darkDef, 
+   635				_ => 0f, 
+   636			};
+   637		}
+   638	
+   639		public float GetBlockAdjustedDamage(float dmg, int stat)
+   640		{
+   641			float num = 1f;
+   642			if (c.playerIdx > -1)
+   643			{
+   644				Player player = c.GetPlayer();
+   645				if (c.equipment.active)
+   646				{
+   647					if (c.equipment.HasSwordShieldLoadout())
+   648					{
+   649						if (c.equipment.twoHanded[c.equipment.loadoutIdx] || c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 0)
+   650						{
+   651							num = 0.5f;
+   652						}
+   653						else if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 128)
+   654						{
+   655							InvLoot invLoot = player.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx];
+   656							if (LootCatalog.category[1].loot[invLoot.catalogIdx].type == 4)
+   657							{
+   658								num = 0.5f;
+   659							}
+   660							else
+   661							{
+   662								float num2 = 0f;
+   663								switch (stat)
+   664								{
+   665								case 0:
+   666									num2 = GetDefense(0);
+   667									num += invLoot.GetValue(2, player);
+   668									break;
+   669								case 2:
+   670									num2 = GetDefense(0);
+   671									num += invLoot.GetValue(3, player);
+   672									break;
+   673								case 3:
+   674									num2 = GetDefense(0);
+   675									num += invLoot.GetValue(4, player);
+   676									break;
+   677								case 6:
+   678									num2 = GetDefense(0);
+   679									num += invLoot.GetValue(5, player);
+   680									break;
+   681								case 5:
+   682									num2 = GetDefense(0);
+   683									num += invLoot.GetValue(6, player);
+   684									break;
+   685								case 8:
+   686									num2 = GetDefense(0);
+   687									num += invLoot.GetValue(7, player);
+   688									break;
+   689								case 9:
+   690									num2 = GetDefense(0);
+   691									num += invLoot.GetValue(8, player);
+   692									break;
+   693								}
+   694								num /= 100f;
+   695								if (GameModeMgr.IsGameEnhanced())
+   696								{
+   697									float num3 = ((num > 0f) ? 1f : (-1f));
+   698									num *= num3;
+   699									float num4 = num * 200f / (1f - num);
+   700									num4 *= num3;
+   701									num = (num4 + num2) / (num4 + num2 + 200f);
+   702								}
+   703								if (num > 1f)
+   704								{
+   705									num = 1f;
+   706								}
+   707								if (num < 0f)
+   708								{
+   709									num = 0f;
+   710								}
+   711							}
+   712						}
+   713					}
+   714					else
+   715					{
+   716						num = 0.5f;
+   717					}
+   718				}
+   719			}
+   720			else
+   721			{
+   722				MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+   723				num = ((stat != 0) ? (monsterDef.blockMagReduce / 100f) : (monsterDef.blockDmgReduce / 100f));
+   724			}
+   725			return dmg * (1f - num);
+   726		}
+   727	
+   728		public float GetShieldAdjustedPoise()
+   729		{
+   730			float num = 1f;
+   731			if (c.playerIdx > -1)
+   732			{
+   733				if (c.equipment.active)
+   734				{
+   735					if (c.equipment.HasSwordShieldLoadout())
+   736					{
+   737						if (c.equipment.twoHanded[c.equipment.loadoutIdx] || c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 0)
+   738						{
+   739							num = 0.5f;
+   740						}
+   741						else if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 128)
+   742						{
+   743							Player player = c.GetPlayer();
+   744							InvLoot invLoot = player.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx];
+   745							num = ((!GameModeMgr.IsGameEnhanced()) ? (invLoot.GetValue(0, player) / 100f) : (LootCatalog.category[1].loot[invLoot.catalogIdx].values[0] / 100f));
+   746							if (PlayerMgr.GetMainPlayer().sanctuaryBonus[8])
+   747							{
+   748								num += (1f - num) * 0.1f;
+   749							}
+   750							if (num > 1f)
+   751							{
+   752								num = 1f;
+   753							}
+   754							if (num < 0f)
+   755							{
+   756								num = 0f;
+   757							}
+   758						}
+   759					}
+   760					else
+   761					{
+   762						num = 0.5f;
+   763					}
+   764				}
+   765				if (GameModeMgr.IsGameEnhanced())
+   766				{
+   767					float maxPoise = c.stats.GetMaxPoise();
+   768					float num2 = num * 40f / (1f - num);
+   769					num = (num2 + maxPoise) / (num2 + maxPoise + 40f);
+   770				}
+   771				else
+   772				{
+   773					float maxPoise2 = c.stats.GetMaxPoise();
+   774					float num3 = maxPoise2 / (maxPoise2 + 40f);
+   775					num += (1f - num) * num3;
+   776				}
+   777			}
+   778			else
+   779			{
+   780				num = MonsterCatalog.catalog[c.monsterIdx].blockReduce / 100f;
+   781			}
+   782			return 1f - num;
+   783		}
+   784	
+   785		public float GetMaxPoise()
+   786		{
+   787			float num = 0f;
+   788			if (c.playerIdx > -1)
+   789			{
+   790				if (c.equipment.active)
+   791				{
+   792					if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length)
+   793					{
+   794						num += LootCatalog.category[2].loot[c.equipment.helm.catalogIdx].values[7];
+   795					}
+   796					if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length)
+   797					{
+   798						num += LootCatalog.category[2].loot[c.equipment.armor.catalogIdx].values[7];
+   799					}
+   800					if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length)
+   801					{
+   802						num += LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx].values[7];
+   803					}
+   804					if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length)
+   805					{
+   806						num += LootCatalog.category[2].loot[c.equipment.boots.catalogIdx].values[7];
+   807					}
+   808					if (GetRingFlag(13))
+   809					{
+   810						num += 20f;
+   811					}
+   812				}
+   813				num *= 0.5f;
+   814				if (c.buffs.GetWillBuff() > 0f && GameModeMgr.IsGameEnhanced())
+   815				{
+   816					num *= 1.5f;
+   817				}
+   818				return num;
+   819			}
+   820			MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+   821			if (GameStateManager.coopPlayerIdx > -1)
+   822			{
+   823				return monsterDef.poise * 1.5f;
+   824			}
+   825			return monsterDef.poise;
+   826		}
+   827	
+   828		public float GetSanctuaryMaxSP()
+   829		{
+   830			return c.GetPlayer()?.stats.GetSP() ?? 100f;
+   831		}
+   832	
+   833		public float GetCastMin()
+   834		{
+   835			float sanctuaryMaxSP = GetSanctuaryMaxSP();
+   836			if (c.stats.GetRingFlag(11) && c.stats.GetRingFlag(20))
+   837			{
+   838				return 0f;
+   839			}
+   840			float num = 2f;
+   841			if (c.stats.GetRingFlag(11))
+   842			{
+   843				num = 3f;
+   844			}
+   845			else if (c.stats.GetRingFlag(20))
+   846			{
+   847				num = 4f;
+   848			}
+   849			return sanctuaryMaxSP / num;
+   850		}
+   851	
+   852		public bool GetCanCast()
+   853		{
+   854			return c.stats.GetSanctuaryMaxSP() - c.spCapDmg > GetCastMin();
+   855		}
+   856	
+   857		public float GetMaxSP()
+   858		{
+   859			if (c.playerIdx > -1)
+   860			{
+   861				if (DebugMgr.godMode)
+   862				{
+   863					c.spCapDmg = 0f;
+   864				}
+   865				float sP = c.GetPlayer().stats.GetSP();
+   866				float num = 1f;
+   867				if (c.stats.GetRingFlag(35))
+   868				{
+   869					num++;
+   870				}
+   871				if (c.stats.GetRingFlag(20))
+   872				{
+   873					num *= 1.5f;
+   874				}
+   875				return sP - c.spCapDmg / num;
+   876			}
+   877			return MonsterCatalog.catalog[c.monsterIdx].stamina;
+   878		}
+   879	
+   880		public float GetMaxMP()
+   881		{
+   882			if (c.playerIdx > -1)
+   883			{
+   884				return c.GetPlayer().stats.GetMP();
+   885			}
+   886			return MonsterCatalog.catalog[c.monsterIdx].stamina;
+   887		}
+   888	
+   889		internal float GetEquipWeight()
+   890		{
+   891			try
+   892			{
+   893				float num = 0f;
+   894				if (c.playerIdx > -1)
+   895				{
+   896					if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length)
+   897					{
+   898						num += LootCatalog.category[2].loot[c.equipment.helm.catalogIdx].weight;
+   899					}
+   900					if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length)
+   901					{
+   902						num += LootCatalog.category[2].loot[c.equipment.armor.catalogIdx].weight;
+   903					}
+   904					if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length)
+   905					{
+   906						num += LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx].weight;
+   907					}
+   908					if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length)
+   909					{
+   910						num += LootCatalog.category[2].loot[c.equipment.boots.catalogIdx].weight;
+   911					}
+   912					if (c.equipment.HasSwordShieldLoadout())
+   913					{
+   914						if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 128 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < LootCatalog.category[1].loot.Length && c.equipment.loadout[c.equipment.loadoutIdx, 1].category != 4)
+   915						{
+   916							num += LootCatalog.category[1].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx].weight;
+   917						}
+   918						else if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx >= 128 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx - 128 < LootCatalog.category[0].loot.Length)
+   919						{
+   920							num += LootCatalog.category[0].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx - 128].weight;
+   921						}
+   922					}
+   923					if (c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx < LootCatalog.category[0].loot.Length)
+   924					{
+   925						num += LootCatalog.category[0].loot[c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx].weight;
+   926					}
+   927				}
+   928				return num;
+   929			}
+   930			catch
+   931			{
+   932				return 0f;
+   933			}
+   934		}
+   935	
+   936		internal int GetWeightClass(Player p, InvLoot replaceLoot)
+   937		{
+   938			float equipWeight = GetEquipWeight(p, replaceLoot);
+   939			float maxEquipWeight = GetMaxEquipWeight(replaceLoot);
+   940			if (equipWeight <= maxEquipWeight * 0.25f)
+   941			{
+   942				return 0;
+   943			}
+   944			if (equipWeight <= maxEquipWeight * 0.5f)
+   945			{
+   946				return 1;
+   947			}
+   948			if (equipWeight <= maxEquipWeight * 0.75f)
+   949			{
+   950				return 2;
+   951			}
+   952			if (equipWeight <= maxEquipWeight)
+   953			{
+   954				return 3;
+   955			}
+   956			return 4;
+   957		}
+   958	
+   959		internal float GetEquipWeight(Player p, InvLoot replaceLoot)
+   960		{
+   961			try
+   962			{
+   963				LootDef lootDef = LootCatalog.category[replaceLoot.category].loot[replaceLoot.catalogIdx];
+   964				float num = 0f;
+   965				if (c.playerIdx > -1)
+   966				{
+   967					if (replaceLoot.category == 2 && lootDef.type == 0)
+   968					{
+   969						num += lootDef.weight;
+   970					}
+   971					else if (c.equipment.helm.catalogIdx > -1 && c.equipment.helm.catalogIdx < LootCatalog.category[2].loot.Length)
+   972					{
+   973						num += LootCatalog.category[2].loot[c.equipment.helm.catalogIdx].weight;
+   974					}
+   975					if (replaceLoot.category == 2 && lootDef.type == 1)
+   976					{
+   977						num += lootDef.weight;
+   978					}
+   979					else if (c.equipment.armor.catalogIdx > -1 && c.equipment.armor.catalogIdx < LootCatalog.category[2].loot.Length)
+   980					{
+   981						num += LootCatalog.category[2].loot[c.equipment.armor.catalogIdx].weight;
+   982					}
+   983					if (replaceLoot.category == 2 && lootDef.type == 2)
+   984					{
+   985						num += lootDef.weight;
+   986					}
+   987					else if (c.equipment.gloves.catalogIdx > -1 && c.equipment.gloves.catalogIdx < LootCatalog.category[2].loot.Length)
+   988					{
+   989						num += LootCatalog.category[2].loot[c.equipment.gloves.catalogIdx].weight;
+   990					}
+   991					if (replaceLoot.category == 2 && lootDef.type == 3)
+   992					{
+   993						num += lootDef.weight;
+   994					}
+   995					else if (c.equipment.boots.catalogIdx > -1 && c.equipment.boots.catalogIdx < LootCatalog.category[2].loot.Length)
+   996					{
+   997						num += LootCatalog.category[2].loot[c.equipment.boots.catalogIdx].weight;
+   998					}
+   999					int num2 = ((p.playerInv.selItem == 7 || p.playerInv.selItem == 8 || p.playerInv.selItem == 9) ? 1 : 0);
+  1000					bool flag = false;
+  1001					if (c.equipment.HasSwordShieldLoadout())
+  1002					{
+  1003						if (replaceLoot.category == 1 && c.equipment.loadoutIdx == num2)
+  1004						{
+  1005							num += lootDef.weight;
+  1006							flag = true;
+  1007						}
+  1008						else if (replaceLoot.category == 0 && (lootDef.type == 9 || lootDef.type == 16 || lootDef.type == 14) && c.equipment.loadoutIdx == num2)
+  1009						{
+  1010							num += lootDef.weight;
+  1011							flag = true;
+  1012						}
+  1013						else if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < 128 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < LootCatalog.category[1].loot.Length)
+  1014						{
+  1015							num += LootCatalog.category[1].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx].weight;
+  1016							flag = true;
+  1017						}
+  1018					}
+  1019					if (replaceLoot.category == 0 && lootDef.type != 9 && lootDef.type != 16 && lootDef.type != 14 && c.equipment.loadoutIdx == num2)
+  1020					{
+  1021						num += lootDef.weight;
+  1022					}
+  1023					else if (c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx < LootCatalog.category[0].loot.Length)
+  1024					{
+  1025						num += LootCatalog.category[0].loot[c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx].weight;
+  1026					}
+  1027					if (replaceLoot.category != 4)
+  1028					{
+  1029						if (replaceLoot.category == 0 && (lootDef.type == 9 || lootDef.type == 16 || lootDef.type == 14) && c.equipment.loadoutIdx == num2 && !flag)
+  1030						{
+  1031							num += lootDef.weight;
+  1032						}
+  1033						else if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx >= 128 && !flag)
+  1034						{
+  1035							if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx - 128 < LootCatalog.category[0].loot.Length)
+  1036							{
+  1037								num += LootCatalog.category[0].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx - 128].weight;
+  1038							}
+  1039						}
+  1040						else if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && !flag && c.equipment.loadout[c.equipment.loadoutIdx, 1].category == 1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx < LootCatalog.category[1].loot.Length)
+  1041						{
+  1042							num += LootCatalog.category[1].loot[c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx].weight;
+  1043						}
+  1044					}
+  1045				}
+  1046				return num;
+  1047			}
+  1048			catch
+  1049			{
+  1050				return 0f;
+  1051			}
+  1052		}
+  1053	
+  1054		public float GetMaxEquipWeight(InvLoot replaceLoot)
+  1055		{
+  1056			if (c.playerIdx > -1)
+  1057			{
+  1058				return c.GetPlayer().stats.GetMaxEquipWeight(replaceLoot);
+  1059			}
+  1060			return 30f;
+  1061		}
+  1062	
+  1063		internal int GetWeightClass(InvLoot replaceLoot)
+  1064		{
+  1065			float equipWeight = GetEquipWeight();
+  1066			float maxEquipWeight = GetMaxEquipWeight(replaceLoot);
+  1067			if (equipWeight <= maxEquipWeight * 0.25f)
+  1068			{
+  1069				return 0;
+  1070			}
+  1071			if (equipWeight <= maxEquipWeight * 0.5f)
+  1072			{
+  1073				return 1;
+  1074			}
+  1075			if (equipWeight <= maxEquipWeight * 0.75f)
+  1076			{
+  1077				return 2;
+  1078			}
+  1079			if (equipWeight <= maxEquipWeight)
+  1080			{
+  1081				return 3;
+  1082			}
+  1083			if (c.playerIdx < 0)
+  1084			{
+  1085				return 3;
+  1086			}
+  1087			return 4;
+  1088		}
+  1089	
+  1090		internal float GetWeightPerc(InvLoot replaceLoot)
+  1091		{
+  1092			return GetEquipWeight() / GetMaxEquipWeight(replaceLoot);
+  1093		}
+  1094	
+  1095		internal void PlayStep()
+  1096		{
+  1097			MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+  1098			if (monsterDef.type == 0)
+  1099			{
+  1100				switch (GetWeightClass(null))
+  1101				{
+  1102				case 0:
+  1103					Sound.Play3DSound("footstep", c.loc, 0);
+  1104					break;
+  1105				case 1:
+  1106					Sound.Play3DSound("mfootstep", c.loc, 0);
+  1107					break;
+  1108				case 2:
+  1109					Sound.Play3DSound("hfootstep", c.loc, 0);
+  1110					break;
+  1111				default:
+  1112					Sound.Play3DSound("hfootstep", c.loc, 0);
+  1113					break;
+  1114				}
+  1115			}
+  1116			else if (monsterDef.stepSnd != "")
+  1117			{
+  1118				Sound.Play3DSound(monsterDef.stepSnd, c.loc, 0);
+  1119			}
+  1120		}
+  1121	
+  1122		internal void PlayMove()
+  1123		{
+  1124			if (MonsterCatalog.catalog[c.monsterIdx].type == 0)
+  1125			{
+  1126				switch (GetWeightClass(null))
+  1127				{
+  1128				case 0:
+  1129					Sound.Play3DSound("move", c.loc, 0);
+  1130					break;
+  1131				case 1:
+  1132					Sound.Play3DSound("mmove", c.loc, 0);
+  1133					break;
+  1134				case 2:
+  1135					Sound.Play3DSound("hmove", c.loc, 0);
+  1136					break;
+  1137				default:
+  1138					Sound.Play3DSound("hmove", c.loc, 0);
+  1139					break;
+  1140				}
+  1141			}
+  1142		}
+  1143	
+  1144		internal float GetPoisonBuildupDefense()
+  1145		{
+  1146			float num = GetDefense(4);
+  1147			if (num > 0f && c.buffs.GetBloodied())
+  1148			{
+  1149				num /= 2f;
+  1150			}
+  1151			if (GameModeMgr.IsGameEnhanced())
+  1152			{
+  1153				return 3f + num / 40f;
+  1154			}
+  1155			return 3f + num / 20f;
+  1156		}
+  1157	
+  1158		internal float GetPlayerLevelDefenseBonus(Player p, int stat)
+  1159		{
+  1160			if (stat != 7)
+  1161			{
+  1162				float num = 1.125f;
+  1163				float num2 = 0.5f;
+  1164				if (GameModeMgr.IsGameEnhanced() && (float)p.stats.level > 50f)
+  1165				{
+  1166					return (((float)p.stats.level - 50f) * num2 + 50f) * num;
+  1167				}
+  1168				return (float)p.stats.level * num;
+  1169			}
+  1170			return 0f;
+  1171		}
+  1172	
+  1173		public static float GetPlaythroughAdjustedBaseHp(Character c)
+  1174		{
+  1175			MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+  1176			float result = monsterDef.hp;
+  1177			if (GameModeMgr.IsGameEnhanced() && GameStateManager.playthroughCount > 0)
+  1178			{
+  1179				switch (monsterDef.name)
+  1180				{
+  1181				case "dread":
+  1182					result = 3000f;
+  1183					break;
+  1184				case "cutqueen":
+  1185					result = 3500f;
+  1186					break;
+  1187				case "alchemist":
+  1188					result = 3250f;
+  1189					break;
+  1190				case "fauxjester":
+  1191					result = 3750f;
+  1192					break;
+  1193				case "bull":
+  1194					result = 3750f;
+  1195					break;
+  1196				case "dragon":
+  1197					result = 4000f;
+  1198					break;
+  1199				case "torturetree":
+  1200					result = 4500f;
+  1201					break;
+  1202				case "pirate":
+  1203					result = 5000f;
+  1204					break;
+  1205				case "gasbag":
+  1206					result = 5750f;
+  1207					break;
+  1208				case "gasface":
+  1209					result = 325f;
+  1210					break;
+  1211				case "inquisitor":
+  1212					result = 4500f;
+  1213					break;
+  1214				case "hippogriff":
+  1215					result = 6250f;
+  1216					break;
+  1217				case "mummy":
+  1218					result = 7250f;
+  1219					break;
+  1220				case "clay":
+  1221					result = 8000f;
+  1222					break;
+  1223				case "cloak":
+  1224					result = 6250f;
+  1225					break;
+  1226				case "lakewitch":
+  1227					result = 5750f;
+  1228					break;
+  1229				case "squiddragon":
+  1230					result = 6500f;
+  1231					break;
+  1232				case "monsterwitch":
+  1233					result = 3500f;
+  1234					break;
+  1235				case "monster":
+  1236					result = 4750f;
+  1237					break;
+  1238				case "ruinghost":
+  1239				case "ruinknight":
+  1240				case "ruinaxe":
+  1241					result = 7250f;
+  1242					break;
+  1243				case "nameless":
+  1244					result = 5750f;
+  1245					break;
+  1246				case "butterfly":
+  1247					result = 6500f;
+  1248					break;
+  1249				case "broken":
+  1250					result = 6000f;
+  1251					break;
+  1252				case "deadjudge":
+  1253					result = 3500f;
+  1254					break;
+  1255				case "deadking":
+  1256					result = 3500f;
+  1257					break;
+  1258				case "deadknight":
+  1259					result = 3500f;
+  1260					break;
+  1261				}
+  1262			}
+  1263			return result;
+  1264		}
+  1265	}
+     1	using LootEdit.loot;
+     2	using MapEdit;
+     3	using Microsoft.Xna.Framework;
+     4	using Microsoft.Xna.Framework.Graphics;
+     5	using MonsterEdit.monsters;
+     6	using ProjectTower.audio;
+     7	using ProjectTower.config;
+     8	using ProjectTower.gamestate;
+     9	using ProjectTower.hud;
+    10	using ProjectTower.map;
+    11	using ProjectTower.particles;
+    12	using ProjectTower.player;
+    13	
+    14	namespace ProjectTower.character;
+    15	
+    16	public class CharBuffs
+    17	{
+    18		private struct CharBuff(float period)
+    19		{
+    20			public float buffPeriod = period;
+    21	
+    22			public float totalVal = 0f;
+    23	
+    24			public float dps = 0f;
+    25	
+    26			public float buildup = 0f;
+    27	
+    28			public void AddVal(float val, float buildAdd)
+    29			{
+    30				totalVal += val;
+    31				float num = totalVal / buffPeriod;
+    32				if (num > dps)
+    33				{
+    34					dps = num;
+    35				}
+    36				buildup += buildAdd;
+    37			}
+    38		}
+    39	
+    40		private CharBuff[] charbuffs;
+    41	
+    42		public const int CHAR_DEBUFF_SPARK = 0;
+    43	
+    44		public const int CHAR_DEBUFF_FIRE = 1;
+    45	
+    46		public const int CHAR_DEBUFF_LIGHTNING = 2;
+    47	
+    48		public const int CHAR_DEBUFF_NATURAL = 3;
+    49	
+    50		public const int CHAR_DEBUFF_POISON = 4;
+    51	
+    52		public const int CHAR_BUFF_FASTER_HEAL = 5;
+    53	
+    54		public const int CHAR_BUFF_HEAL = 6;
+    55	
+    56		public const int CHAR_BUFF_PROTECT = 7;
+    57	
+    58		public const int CHAR_BUFF_FLAME = 8;
+    59	
+    60		public const int CHAR_BUFF_LIT = 9;
+    61	
+    62		public const int CHAR_BUFF_FROST = 10;
+    63	
+    64		public const int CHAR_BUFF_POISON = 11;
+    65	
+    66		public const int CHAR_BUFF_HOLY = 12;
+    67	
+    68		public const int CHAR_BUFF_DARK = 13;
+    69	
+    70		public const int BUFF_MIN = 8;
+    71	
+    72		public const int BUFF_MAX = 13;
+    73	
+    74		public const int CHAR_BUFF_LIGHT = 14;
+    75	
+    76		public const int CHAR_BUFF_FAST_HEAL = 15;
+    77	
+    78		public const int CHAR_BUFF_UPSIDE_DOWN = 16;
+    79	
+    80		public const int CHAR_BUFF_ALL = 17;
+    81	
+    82		public const int CHAR_BUFF_VISION = 18;
+    83	
+    84		public const int CHAR_BUFF_TORCH = 19;
+    85	
+    86		public const int CHAR_BUFF_INVINCIBLE = 20;
+    87	
+    88		public const int CHAR_BUFF_WILL = 21;
+    89	
+    90		public const int CHAR_DEBUFF_DRUNK = 22;
+    91	
+    92		public const int CHAR_BUFF_PHYS_DEF = 23;
+    93	
+    94		public const int CHAR_BUFF_MAG_DEF = 24;
+    95	
+    96		public const int CHAR_BUFF_MAG_ATK = 25;
+    97	
+    98		public const int CHAR_DEBUFF_BLOODIED = 26;
+    99	
+   100		public const int CHAR_BUFF_FOCUS = 27;
+   101	
+   102		public const int CHAR_BUFF_HEAL_MANA = 28;
+   103	
+   104		public const int CHAR_BUFF_SLOW_MANA = 29;
+   105	
+   106		public const int TOTAL_BUFFS = 30;
+   107	
+   108		private Character c;
+   109	
+   110		private float frame;
+   111	
+   112		private float light;
+   113	
+   114		private float torch;
+   115	
+   116		private float vision;
+   117	
+   118		public bool needsFlare;
+   119	
+   120		public float magBalance;
+   121	
+   122		private const float DRUNK_MAX = 3f;
+   123	
+   124		private const float MAG_BALANCE_MAX = 10f;
+   125	
+   126		public static float ITEM_BUFF_AMT
+   127		{
+   128			get
+   129			{
+   130				if (GameStateManager.mainPlayerIdx <= -1 || !GameModeMgr.IsGameEnhanced())
+   131				{
+   132					return 1f;
+   133				}
+   134				return 0.35f;
+   135			}
+   136		}
+   137	
+   138		public static float MAGIC_BUFF_AMT
+   139		{
+   140			get

@@ -1,0 +1,1327 @@
+=== DeathSummaryUI
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+public class DeathSummaryUI : MonoBehaviour
+{
+	private class PlayerBuildRefs
+	{
+		public Transform objTrans;
+		public Image outfitImage;
+		public Image outfitSparkle;
+		public Image[] skillIcons;
+		public Image[] skillBGs;
+		public Image[] itemIcons;
+		public Image[] itemBGs;
+		public PlayerBuildRefs()
+		{
+			skillIcons = new Image[7];
+			skillBGs = new Image[7];
+			itemIcons = new Image[12];
+			itemBGs = new Image[12];
+		}
+		public void SetVisible(bool givenStatus)
+		{
+			outfitImage.enabled = givenStatus;
+			outfitSparkle.enabled = givenStatus;
+			for (int i = 0; i < 7; i++)
+			{
+				skillIcons[i].enabled = givenStatus;
+				skillBGs[i].enabled = givenStatus;
+			}
+			for (int j = 0; j < 12; j++)
+			{
+				itemIcons[j].enabled = givenStatus;
+				itemBGs[j].enabled = givenStatus;
+			}
+		}
+		public void LoadPlayer(Player givenPlayer, bool win = false)
+		{
+			if (givenPlayer == null)
+			{
+				return;
+			}
+			outfitImage.sprite = IconManager.GetWizardSprite((!win) ? "WizardDeadDown8" : "WizardJokePose0");
+			outfitImage.material.SetFloat("_PaletteIndex", givenPlayer.outfitColorIndex);
+			outfitImage.enabled = true;
+			outfitSparkle.enabled = givenPlayer.outfitEnhanced;
+			for (int i = 0; i < 6; i++)
+			{
+				SetSkillIcon(i, givenPlayer.assignedSkills[i]);
+			}
+			SetSkillIcon(6, givenPlayer.stockSkill);
+			List<string> itemIDList = givenPlayer.inventory.GetItemIDList();
+			int count = itemIDList.Count;
+			for (int j = 0; j < 12; j++)
+			{
+				if (j < count)
+				{
+					itemIcons[j].sprite = IconManager.GetItemIcon(itemIDList[j]);
+					itemIcons[j].enabled = true;
+					itemBGs[j].enabled = true;
+					if (givenPlayer.inventory.GetItem(itemIDList[j]).isCursed)
+					{
+						itemBGs[j].color = cursedItemBGColor;
+						itemBGs[j].material.SetColor("_OutlineColor", cursedItemOutlineColor);
+					}
+					else
+					{
+						itemBGs[j].color = itemBGColor;
+						itemBGs[j].material.SetColor("_OutlineColor", itemOutlineColor);
+					}
+				}
+				else
+				{
+					itemIcons[j].enabled = false;
+					itemBGs[j].enabled = false;
+				}
+			}
+		}
+		private void SetSkillIcon(int givenIndex, Player.SkillState givenSkill)
+		{
+			if (givenSkill == null)
+			{
+				skillIcons[givenIndex].sprite = IconManager.GetSkillIcon("Disabled");
+				skillBGs[givenIndex].sprite = GameUI.deathSummary.skillStandard;
+			}
+			else
+			{
+				skillIcons[givenIndex].sprite = IconManager.GetSkillIcon(givenSkill.skillID);
+				if (givenSkill.isSignature)
+				{
+					skillBGs[givenIndex].sprite = GameUI.deathSummary.skillSig;
+				}
+				else if (givenSkill.IsEmpowered)
+				{
+					skillBGs[givenIndex].sprite = GameUI.deathSummary.skillEmpowered;
+				}
+				else
+				{
+					skillBGs[givenIndex].sprite = GameUI.deathSummary.skillStandard;
+				}
+			}
+			skillIcons[givenIndex].enabled = true;
+			skillBGs[givenIndex].SetNativeSize();
+			skillBGs[givenIndex].enabled = true;
+		}
+	}
+	private string deathDialogID = "PlayerDeath";
+	public static Color itemBGColor = new Color(0.17647f, 0.17647f, 0.17647f);
+	public static Color itemOutlineColor = new Color(0.3372f, 0.3372f, 0.3372f);
+	public static Color cursedItemBGColor = new Color(0.20784f, 0.1098f, 0.1098f);
+	public static Color cursedItemOutlineColor = new Color(0.38824f, 0.21961f, 0.21961f);
+	private Image[] allImages;
+	private int imageCount;
+	private Image bgImage;
+	private Dictionary<string, Text> stats;
+	private Image statTopDivider;
+	private Image statBotDivider;
+	private float bgImageFadeInTime = 0.5f;
+	private GameObject buttonPromptsObj;
+	private Image confirmButtonImage;
+	private Image cancelButtonImage;
+	private bool inCreditsScene;
+	private bool gameWon;
+	public Sprite skillStandard;
+	public Sprite skillEmpowered;
+	public Sprite skillSig;
+	private PlayerBuildRefs[] playerRefs;
+	private WaitForSeconds waitForDisplayDelay = new WaitForSeconds(0.1f);
+	private WaitForSeconds waitForShortDelay = new WaitForSeconds(0.07f);
+	private void Awake()
+	{
+		allImages = GetComponentsInChildren<Image>();
+		imageCount = allImages.Length;
+		bgImage = base.transform.Find("BackgroundImage").GetComponent<Image>();
+		stats = new Dictionary<string, Text>();
+		statTopDivider = base.transform.Find("RunStats/Title/DividerTop").GetComponent<Image>();
+		statBotDivider = base.transform.Find("RunStats/Title/DividerBot").GetComponent<Image>();
+		stats["title"] = base.transform.Find("RunStats/Title/Title").GetComponent<Text>();
+		stats["stage"] = base.transform.Find("RunStats/Stage/Value").GetComponent<Text>();
+		stats["plat"] = base.transform.Find("RunStats/Plat/Value").GetComponent<Text>();
+		stats["time"] = base.transform.Find("RunStats/Time/Value").GetComponent<Text>();
+		stats["breakTitle"] = base.transform.Find("RunStats/Breakdown/Title").GetComponent<Text>();
+		stats["breakValue"] = base.transform.Find("RunStats/Breakdown/Value").GetComponent<Text>();
+		buttonPromptsObj = base.transform.Find("ButtonPrompts").gameObject;
+		confirmButtonImage = buttonPromptsObj.transform.Find("Confirm/Image").GetComponent<Image>();
+		cancelButtonImage = buttonPromptsObj.transform.Find("Cancel/Image").GetComponent<Image>();
+		stats["confirm"] = buttonPromptsObj.transform.Find("Confirm/Text").GetComponent<Text>();
+		stats["cancel"] = buttonPromptsObj.transform.Find("Cancel/Text").GetComponent<Text>();
+		TextManager.AddUIRef(string.Empty, stats["title"]);
+		TextManager.AddUIRef(string.Empty, stats["stage"]);
+		TextManager.AddUIRef(string.Empty, stats["plat"]);
+		TextManager.AddUIRef(string.Empty, stats["time"]);
+		TextManager.AddUIRef(string.Empty, stats["breakTitle"]);
+		TextManager.AddUIRef(string.Empty, stats["breakValue"]);
+		TextManager.AddUIRef("deathSummary-stage", base.transform.Find("RunStats/Stage/Title").GetComponent<Text>());
+		TextManager.AddUIRef("deathSummary-plat", base.transform.Find("RunStats/Plat/Title").GetComponent<Text>());
+		TextManager.AddUIRef("deathSummary-time", base.transform.Find("RunStats/Time/Title").GetComponent<Text>());
+		TextManager.AddUIRef("deathSummary-confirm", stats["confirm"]);
+		TextManager.AddUIRef("deathSummary-cancel", stats["cancel"]);
+		playerRefs = new PlayerBuildRefs[2];
+		for (int i = 0; i < 2; i++)
+		{
+			playerRefs[i] = new PlayerBuildRefs();
+			playerRefs[i].objTrans = base.transform.Find("PlayerBuild/Player" + i);
+			playerRefs[i].outfitImage = playerRefs[i].objTrans.Find("Outfit/OutfitImage").GetComponent<Image>();
+			playerRefs[i].outfitImage.material = new Material(playerRefs[i].outfitImage.material);
+			playerRefs[i].outfitImage.material.SetColor("_OutlineColor", Color.white);
+			playerRefs[i].outfitSparkle = playerRefs[i].objTrans.Find("Outfit/OutfitEnhanced").GetComponent<Image>();
+			Transform transform = playerRefs[i].objTrans.Find("Skills");
+			for (int j = 0; j < 7; j++)
+			{
+				playerRefs[i].skillIcons[j] = transform.Find("Skill" + j + "/SkillIcon").GetComponent<Image>();
+				playerRefs[i].skillBGs[j] = transform.Find("Skill" + j + "/SkillBG").GetComponent<Image>();
+			}
+			transform = playerRefs[i].objTrans.Find("Items");
+			for (int k = 0; k < 12; k++)
+			{
+				playerRefs[i].itemBGs[k] = transform.Find("Item" + k + "/ItemBG").GetComponent<Image>();
+				playerRefs[i].itemIcons[k] = transform.Find("Item" + k + "/ItemIcon").GetComponent<Image>();
+				playerRefs[i].itemBGs[k].material = new Material(playerRefs[i].itemBGs[k].material);
+				playerRefs[i].itemBGs[k].material.SetColor("_OutlineColor", itemOutlineColor);
+			}
+			playerRefs[i].SetVisible(givenStatus: false);
+		}
+	}
+	private void Start()
+	{
+		for (int i = 0; i < imageCount; i++)
+		{
+			allImages[i].enabled = false;
+		}
+		ResetStats();
+	}
+	public void Activate(float fadeInOverride = -1f)
+	{
+		inCreditsScene = Application.loadedLevelName == "Credits";
+		StartCoroutine(ShowDeathSummary(fadeInOverride));
+	}
+	public void Deactivate(float fadeOutTime = 1f)
+	{
+		for (int i = 0; i < imageCount; i++)
+		{
+			allImages[i].enabled = false;
+		}
+	}
+	private IEnumerator ShowDeathSummary(float fadeInOverride = -1f)
+	{
+		gameWon = !GameController.AllPlayersDead();
+		if (fadeInOverride > 0f)
+		{
+			FadeInImage(bgImage, fadeInOverride);
+			yield return new WaitForSeconds(fadeInOverride);
+		}
+		else
+		{
+			FadeInImage(bgImage, bgImageFadeInTime);
+			yield return new WaitForSeconds(bgImageFadeInTime + 0.5f);
+		}
+		statTopDivider.enabled = true;
+		stats["title"].transform.parent.gameObject.SetActive(value: true);
+		stats["title"].text = ((!gameWon) ? TextManager.GetUIText("deathSummary-title") : TextManager.GetUIText("bossRoom-victory"));
+		statBotDivider.enabled = true;
+		yield return waitForDisplayDelay;
+		stats["stage"].transform.parent.gameObject.SetActive(value: true);
+		string tempStageStr = GameController.CurrentStageStr;
+		if (GameController.startingDifficulty > 0)
+		{
+			tempStageStr = "+ " + tempStageStr;
+		}
+		if (RunData.superSuraDefeated)
+		{
+			tempStageStr = "★ " + tempStageStr;
+		}
+		stats["stage"].text = tempStageStr;
+		yield return waitForDisplayDelay;
+		stats["plat"].transform.parent.gameObject.SetActive(value: true);
+		stats["plat"].text = GameController.totalPlat.ToString();
+		yield return waitForDisplayDelay;
+		stats["time"].transform.parent.gameObject.SetActive(value: true);
+		stats["time"].text = Globals.TimeToString(GameController.totalTime);
+		yield return waitForDisplayDelay;
+		if (Level.isBossRushMode)
+		{
+			stats["breakTitle"].transform.parent.gameObject.SetActive(value: true);
+			stats["breakValue"].transform.parent.gameObject.SetActive(value: true);
+			stats["breakTitle"].text = string.Empty;
+			stats["breakValue"].text = string.Empty;
+			yield return waitForShortDelay;
+			for (int i = 0; i < RunData.timestampList.Count; i++)
+			{
+				Text text = stats["breakTitle"];
+				string text2 = text.text;
+				text.text = text2 + (i + 1) + ". " + RunData.timestampList[i].First + "\n";
+				Text text3 = stats["breakValue"];
+				text3.text = text3.text + RunData.timestampList[i].Second + "\n";
+				yield return waitForShortDelay;
+			}
+		}
+		playerRefs[0].LoadPlayer(GameController.playerScripts[0], gameWon);
+		yield return waitForDisplayDelay;
+		playerRefs[1].LoadPlayer(GameController.playerScripts[1], gameWon);
+		yield return waitForDisplayDelay;
+		confirmButtonImage.sprite = GameUI.GetInputSprite(GameController.activePlayers[0].inputDevice.inputScheme);
+		FadeInImage(confirmButtonImage, 0.5f);
+		stats["confirm"].transform.parent.gameObject.SetActive(value: true);
+		yield return waitForDisplayDelay;
+		if (!inCreditsScene)
+		{
+			cancelButtonImage.sprite = GameUI.GetInputSprite(GameController.activePlayers[0].inputDevice.inputScheme, "Cancel");
+			FadeInImage(cancelButtonImage, 0.5f);
+			stats["cancel"].transform.parent.gameObject.SetActive(value: true);
+			yield return waitForDisplayDelay;
+		}
+		int optionSelected = 0;
+		while (optionSelected == 0)
+		{
+			Player[] activePlayers = GameController.activePlayers;
+			foreach (Player player in activePlayers)
+			{
+				if (!(player == null))
+				{
+					if (player.inputDevice.GetButtonDown("Confirm"))
+					{
+						optionSelected = 1;
+						break;
+					}
+					if (!inCreditsScene && player.inputDevice.GetButtonDown("Cancel"))
+					{
+						optionSelected = 2;
+						break;
+					}
+				}
+			}
+			yield return null;
+		}
+		Deactivate();
+		if (optionSelected == 1)
+		{
+			if (inCreditsScene)
+			{
+				GameController.LoadLevel("Epilogue");
+			}
+			else
+			{
+				GameController.LoadLevel("PlayerRoom");
+			}
+		}
+		else
+		{
+			GameController.LoadLevel("TitleScreen");
+		}
+		ResetStats();
+		GameController.ClearLevelStats(fullReset: true);
+		playerRefs[0].SetVisible(givenStatus: false);
+		playerRefs[1].SetVisible(givenStatus: false);
+	}
+	private void FadeInImage(Image img, float fadeInTime = 1f)
+	{
+		img.canvasRenderer.SetAlpha(0.01f);
+		img.enabled = true;
+		img.CrossFadeAlpha(1f, fadeInTime, ignoreTimeScale: true);
+	}
+	private void ResetStats()
+	{
+		stats["stage"].text = string.Empty;
+		stats["plat"].text = string.Empty;
+		stats["time"].text = string.Empty;
+		foreach (Text value in stats.Values)
+		{
+			value.transform.parent.gameObject.SetActive(value: false);
+		}
+		inCreditsScene = false;
+	}
+}
+=== Checkpoint
+using UnityEngine;
+public class Checkpoint : MonoBehaviour
+{
+	public void OnTriggerEnter2D(Collider2D col)
+	{
+		if (col.gameObject.name == "AllyFloorContact")
+		{
+			Player component = col.transform.parent.GetComponent<Player>();
+			if (!(component == null))
+			{
+				component.lastCheckpoint = transform.position;
+			}
+		}
+	}
+}
+=== CheckpointGenerator
+using System.Collections.Generic;
+using UnityEngine;
+public static class CheckpointGenerator
+{
+	public static void GenerateCheckpoints(TileGrid tileGrid, Transform parentTrans = null)
+	{
+		GameObject gameObject = Globals.FindOrCreateGameObject("Colliders", parentTrans);
+		GameObject gameObject2 = Globals.FindOrCreateGameObject("Checkpoints", parentTrans);
+		gameObject2.transform.SetParent(gameObject.transform);
+		DestroyOldCheckpoints(gameObject2);
+		List<Tile> list = new List<Tile>();
+		for (int i = 0; i < tileGrid.RowCount; i++)
+		{
+			for (int j = 0; j < tileGrid.ColCount; j++)
+			{
+				if (tileGrid[i, j] == null || list.Contains(tileGrid[i, j]) || tileGrid[i, j].connection == Tile.ConnectionType.None)
+				{
+					continue;
+				}
+				Tile tile = tileGrid[i, j];
+				Vector2 vector = new Vector2(j, -i);
+				Vector2 vector2 = vector;
+				list.Add(tile);
+				int num = -1;
+				float x = 1f;
+				float y = 1f;
+				if (tile.connection == Tile.ConnectionType.TopOptional || tile.connection == Tile.ConnectionType.TopRequired || tile.connection == Tile.ConnectionType.BottomOptional || tile.connection == Tile.ConnectionType.BottomRequired)
+				{
+					for (num = j + 1; num < tileGrid.ColCount && tileGrid[i, num] != null && tileGrid[i, num].connection == tile.connection; num++)
+					{
+						vector2 = new Vector2(num, -i);
+						list.Add(tileGrid[i, num]);
+					}
+					Vector2 zero = Vector2.zero;
+					zero = ((tile.connection != Tile.ConnectionType.TopOptional && tile.connection != Tile.ConnectionType.TopRequired) ? new Vector2(0.5f, -1.5f) : new Vector2(0.5f, 0.5f));
+					vector += zero;
+					vector2 += zero;
+					x = Vector2.Distance(vector, vector2) + 1f;
+				}
+				else
+				{
+					for (num = i + 1; num < tileGrid.RowCount && tileGrid[num, j] != null && tileGrid[num, j].connection == tile.connection; num++)
+					{
+						vector2 = new Vector2(j, -num);
+						list.Add(tileGrid[num, j]);
+					}
+					Vector2 zero2 = Vector2.zero;
+					zero2 = ((tile.connection != Tile.ConnectionType.LeftOptional && tile.connection != Tile.ConnectionType.LeftRequired) ? new Vector2(1.5f, -0.5f) : new Vector2(-0.5f, -0.5f));
+					vector += zero2;
+					vector2 += zero2;
+					y = Vector2.Distance(vector, vector2) + 1f;
+				}
+				GameObject gameObject3 = new GameObject();
+				gameObject3.name = "Checkpoint";
+				gameObject3.transform.SetParent(gameObject2.transform);
+				gameObject3.transform.position = (vector + vector2) / 2f;
+				gameObject3.layer = ChaosCollisions.layerPlayerDetector;
+				BoxCollider2D boxCollider2D = gameObject3.AddComponent<BoxCollider2D>();
+				boxCollider2D.size = new Vector2(x, y);
+				boxCollider2D.isTrigger = true;
+				gameObject3.AddComponent<Checkpoint>();
+			}
+		}
+	}
+	public static void DestroyOldCheckpoints(GameObject checkpoints)
+	{
+		Checkpoint component = checkpoints.GetComponent<Checkpoint>();
+		if (component != null)
+		{
+			Object.DestroyImmediate(component);
+		}
+		List<GameObject> list = new List<GameObject>();
+		Transform[] componentsInChildren = checkpoints.GetComponentsInChildren<Transform>();
+		foreach (Transform transform in componentsInChildren)
+		{
+			if (transform != checkpoints.transform)
+			{
+				list.Add(transform.gameObject);
+			}
+		}
+		list.ForEach((GameObject child) =>
+		{
+			Object.DestroyImmediate(child);
+		});
+		List<BoxCollider2D> list2 = new List<BoxCollider2D>();
+		BoxCollider2D[] components = checkpoints.GetComponents<BoxCollider2D>();
+		foreach (BoxCollider2D item in components)
+		{
+			list2.Add(item);
+		}
+		list2.ForEach((BoxCollider2D child) =>
+		{
+			Object.DestroyImmediate(child);
+		});
+	}
+}
+=== ExitPortal
+using UnityEngine;
+public class ExitPortal : MonoBehaviour
+{
+	[HideInInspector]
+	public Animator anim;
+	[HideInInspector]
+	public NextLevelLoader nextLevelLoader;
+	private Animator arcanaAnim;
+	private AnimEffect tpAnimEffect;
+	private bool tpStarted;
+	private bool tpStartedSkippedFrame;
+	private bool playersHidden;
+	public static float tpEffectHideTime = 0.1f;
+	public bool queueEndGameSummary;
+	public bool disableMiniArcana;
+	public bool hideArcanaOnSpawn;
+	private AudioSource prepareAudio;
+	public void Awake()
+	{
+		anim = GetComponent<Animator>();
+		if (!disableMiniArcana)
+		{
+			GameObject gameObject = Object.Instantiate(ChaosBundle.Get("Assets/Prefabs/Items/ArcanaMini.prefab"), Vector3.zero, Quaternion.identity, transform);
+			gameObject.transform.localPosition = new Vector3(0f, 1.0625f, 0f);
+			arcanaAnim = gameObject.GetComponent<Animator>();
+			if (hideArcanaOnSpawn)
+			{
+				arcanaAnim.Play("Hidden");
+			}
+		}
+	}
+	public void Start()
+	{
+		nextLevelLoader = transform.Find("NextLevelTrigger").GetComponent<NextLevelLoader>();
+		nextLevelLoader.showLevelSummary &= !Level.isBossRushMode;
+		Globals.AddItemRepeller(nextLevelLoader.gameObject, 2f, "ItemRepeller");
+	}
+	public void Update()
+	{
+		if (tpStarted && !tpStartedSkippedFrame)
+		{
+			tpStartedSkippedFrame = true;
+		}
+		else
+		{
+			if (!tpStarted)
+			{
+				return;
+			}
+			float animTime = tpAnimEffect.GetAnimTime();
+			if (!playersHidden && (animTime >= tpEffectHideTime || !tpAnimEffect.playing))
+			{
+				Player[] activePlayers = GameController.activePlayers;
+				foreach (Player player in activePlayers)
+				{
+					if (player != null)
+					{
+						player.Hide();
+					}
+				}
+				playersHidden = true;
+			}
+			else if (animTime >= 1f || !tpAnimEffect.playing)
+			{
+				tpStarted = false;
+				LoadNextLevel();
+			}
+		}
+	}
+	public virtual void Close()
+	{
+		tpStarted = true;
+		GameController.PauseAllPlayers();
+		GameController.allies.Clear();
+		DustEmitter poolItem = PoolManager.GetPoolItem<DustEmitter>();
+		int particleCount = 200;
+		Vector3? emitPosition = transform.position;
+		poolItem.EmitCircle(particleCount, 1f, -1f, -1f, emitPosition);
+		anim.Play("Teleport", -1, 0f);
+		tpAnimEffect = PoolManager.GetPoolItem<AnimEffect>("TeleportEffect");
+		tpAnimEffect.Play(transform.position, string.Empty);
+	}
+	public void LoadNextLevel()
+	{
+		if (queueEndGameSummary)
+		{
+			GameUI.deathSummary.Activate();
+		}
+		else
+		{
+			nextLevelLoader.LoadNextLevel();
+		}
+	}
+	public void Prepare()
+	{
+		anim.Play("Prepare");
+		if (!disableMiniArcana)
+		{
+			arcanaAnim.Play("Spin", -1, 0f);
+		}
+		prepareAudio = SoundManager.PlayIfNotPlaying("PortalShine", prepareAudio, transform, useStdPitchOverride: false);
+	}
+	public void Deactivate()
+	{
+		if (!tpStarted)
+		{
+			anim.Play("Deactivate", -1, 0f);
+			if (!disableMiniArcana)
+			{
+				arcanaAnim.Play("Idle", -1, 0f);
+			}
+			if (prepareAudio != null)
+			{
+				prepareAudio.Stop();
+				prepareAudio = null;
+			}
+		}
+	}
+}
+=== ExitRoomEventHandler
+using System.Collections;
+using System.Collections.Generic;
+using Chaos.ListExtensions;
+using UnityEngine;
+public class ExitRoomEventHandler : MonoBehaviour
+{
+	public delegate void FloorClearedHandler();
+	public static FloorClearedHandler floorClearedHandlers;
+	private GameObject exitPortalPrefab;
+	private bool exitSpawned;
+	private bool survivalRoomCreated;
+	private float portalSpawnTime = 3.5f;
+	private int portalStopwatchID;
+	private bool portalSpawnStarted;
+	private float announceTime = 0.5f;
+	private int announceStopwatchID;
+	private bool announcementDisplayed;
+	private float initSpawnTime;
+	private float enemySpawnRange = 6f;
+	private SurvivalRoom currentSRoom;
+	private float difficultyValue;
+	private float elementSwapChance;
+	private Vector2 currentPosition;
+	private Vector2 centerSpawnLocation;
+	private static int miniBossSelectedIndex = -1;
+	private static int miniBossGroupCount;
+	private List<List<Enemy.EName>> miniBossGroupList = new List<List<Enemy.EName>>
+	{
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperKnight,
+			Enemy.EName.Knight,
+			Enemy.EName.Lancer,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		},
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperLancer,
+			Enemy.EName.Lancer,
+			Enemy.EName.Knight,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		},
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperMage,
+			Enemy.EName.SkeletonMage,
+			Enemy.EName.Summoner,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		},
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperSummoner,
+			Enemy.EName.Summoner,
+			Enemy.EName.SkeletonMage,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		},
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperRogue,
+			Enemy.EName.Rogue,
+			Enemy.EName.Archer,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		},
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperArcher,
+			Enemy.EName.Archer,
+			Enemy.EName.Rogue,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		},
+		new List<Enemy.EName>
+		{
+			Enemy.EName.SuperCoffin,
+			Enemy.EName.Coffin,
+			Enemy.EName.GhoulLarge,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul,
+			Enemy.EName.Ghoul
+		}
+	};
+	private Dictionary<Enemy.EName, Enemy.EName> eeDict = new Dictionary<Enemy.EName, Enemy.EName>();
+	private List<Enemy.EName> currentEnemyList = new List<Enemy.EName>();
+	private Vector2 treasureOffset = Vector2.up * 5f;
+	private bool itemStorePortalSpawned;
+	private bool skillStorePortalSpawned;
+	private bool miscRoomPortalSpawned;
+	private bool stageStartPortalSpawned;
+	private Vector2 itemStorePortalOffset = new Vector2(-6.5f, 2f);
+	private Vector2 skillStorePortalOffset = new Vector2(6.5f, 2f);
+	private Vector2 miscRoomPortalOffset = new Vector2(3.5f, 4f);
+	private Vector2 stageStartPortalOffset = new Vector2(-3.5f, 4f);
+	private Portal itemStorePortal;
+	private Portal skillStorePortal;
+	private Portal miscRoomPortal;
+	private Portal stageStartPortal;
+	private Portal currentPortal;
+	private bool survivalRoomsCleared;
+	private bool useBlessedActivation;
+	private bool useCursedActivation;
+	private bool CheckCleared => survivalRoomCreated && currentSRoom != null && currentSRoom.roomCleared;
+	private void Awake()
+	{
+		exitPortalPrefab = ChaosBundle.Get("Assets/Prefabs/Environment/ExitPortal.prefab");
+		miniBossGroupCount = miniBossGroupList.Count;
+		if (miniBossSelectedIndex == -1)
+		{
+			miniBossSelectedIndex = Random.Range(0, miniBossGroupCount);
+		}
+	}
+	private void Start()
+	{
+		currentPosition = transform.position;
+		centerSpawnLocation = currentPosition + Vector2.up * 4f;
+		CompassIndicatorTrigger.Spawn(Compass.CompassIndicatorType.Exit, centerSpawnLocation, transform, 1f, 4f);
+		switch (Level.element)
+		{
+		case ElementType.Water:
+			eeDict[Enemy.EName.Knight] = Enemy.EName.FrostKnight;
+			eeDict[Enemy.EName.SkeletonMage] = Enemy.EName.FrostMage;
+			eeDict[Enemy.EName.Rogue] = Enemy.EName.FrostRogue;
+			eeDict[Enemy.EName.Archer] = Enemy.EName.FrostArcher;
+			eeDict[Enemy.EName.Lancer] = Enemy.EName.FrostLancer;
+			eeDict[Enemy.EName.Summoner] = Enemy.EName.FrostSummoner;
+			break;
+		case ElementType.Earth:
+			eeDict[Enemy.EName.Knight] = Enemy.EName.EarthKnight;
+			eeDict[Enemy.EName.SkeletonMage] = Enemy.EName.EarthMage;
+			eeDict[Enemy.EName.Rogue] = Enemy.EName.EarthRogue;
+			eeDict[Enemy.EName.Archer] = Enemy.EName.EarthArcher;
+			eeDict[Enemy.EName.Lancer] = Enemy.EName.EarthLancer;
+			eeDict[Enemy.EName.Summoner] = Enemy.EName.EarthSummoner;
+			break;
+		case ElementType.Fire:
+			eeDict[Enemy.EName.Knight] = Enemy.EName.FlameKnight;
+			eeDict[Enemy.EName.SkeletonMage] = Enemy.EName.FlameMage;
+			eeDict[Enemy.EName.Rogue] = Enemy.EName.FlameRogue;
+			eeDict[Enemy.EName.Archer] = Enemy.EName.FlameArcher;
+			eeDict[Enemy.EName.Lancer] = Enemy.EName.FlameLancer;
+			eeDict[Enemy.EName.Summoner] = Enemy.EName.FlameSummoner;
+			break;
+		case ElementType.Air:
+			eeDict[Enemy.EName.Knight] = Enemy.EName.WindKnight;
+			eeDict[Enemy.EName.SkeletonMage] = Enemy.EName.WindMage;
+			eeDict[Enemy.EName.Rogue] = Enemy.EName.WindRogue;
+			eeDict[Enemy.EName.Archer] = Enemy.EName.WindArcher;
+			eeDict[Enemy.EName.Lancer] = Enemy.EName.WindLancer;
+			eeDict[Enemy.EName.Summoner] = Enemy.EName.WindSummoner;
+			break;
+		case ElementType.Lightning:
+			eeDict[Enemy.EName.Knight] = Enemy.EName.ThunderKnight;
+			eeDict[Enemy.EName.SkeletonMage] = Enemy.EName.ThunderMage;
+			eeDict[Enemy.EName.Rogue] = Enemy.EName.ThunderRogue;
+			eeDict[Enemy.EName.Archer] = Enemy.EName.ThunderArcher;
+			eeDict[Enemy.EName.Lancer] = Enemy.EName.ThunderLancer;
+			eeDict[Enemy.EName.Summoner] = Enemy.EName.ThunderSummoner;
+			break;
+		}
+	}
+	private void Update()
+	{
+		if (survivalRoomsCleared)
+		{
+			if (!announcementDisplayed && ChaosStopwatch.Check(announceStopwatchID))
+			{
+				StageTitleUI stageTitleUI = GameController.stageTitleUI;
+				string uIText = TextManager.GetUIText("exitRoom-victory");
+				float duration = 1f;
+				int fontSize = 91;
+				Color? textColor = StageTitleUI.yellowColor;
+				Color? outlineColor = StageTitleUI.yellowOutlineColor;
+				Color? lineColor = StageTitleUI.yellowColor;
+				Vector3? lineScale = StageTitleUI.longLineScale;
+				Color? underlineOutlineColor = StageTitleUI.yellowOutlineColor;
+				stageTitleUI.Announce(uIText, duration, fontSize, textColor, lineColor, showUnderline: true, 1f, 0f, numberMode: false, outlineColor, lineScale, underlineOutlineColor);
+				SoundManager.PlayAudio("FloorVictory");
+				announcementDisplayed = true;
+			}
+			if (!exitSpawned && ChaosStopwatch.Check(portalStopwatchID))
+			{
+				exitSpawned = true;
+				Object.Instantiate(exitPortalPrefab, currentPosition, Quaternion.identity);
+				PortalSpawnEffect(currentPosition + Vector2.down, 1.5f);
+				if (itemStorePortal != null)
+				{
+					PortalSpawnEffect(itemStorePortal.transform.position);
+					itemStorePortal.gameObject.SetActive(value: true);
+				}
+				if (skillStorePortal != null)
+				{
+					PortalSpawnEffect(skillStorePortal.transform.position);
+					skillStorePortal.gameObject.SetActive(value: true);
+				}
+				if (miscRoomPortal != null)
+				{
+					PortalSpawnEffect(miscRoomPortal.transform.position);
+					miscRoomPortal.gameObject.SetActive(value: true);
+				}
+				if (stageStartPortal != null)
+				{
+					PortalSpawnEffect(stageStartPortal.transform.position);
+					stageStartPortal.gameObject.SetActive(value: true);
+				}
+				SoundManager.PlayAudio("ExitPortal");
+			}
+		}
+		else if (survivalRoomCreated)
+		{
+			survivalRoomsCleared = CheckCleared;
+			if (survivalRoomsCleared)
+			{
+				TimeScaleController.StandardFreezeIntoEaseOutTimeScale();
+				StartCoroutine(CreateTreasureChestDelayed());
+				portalStopwatchID = ChaosStopwatch.Begin(portalSpawnTime);
+				string uIText = "Draw";
+				Vector3 spawnPos = currentPosition;
+				bool disableWithParentVal = false;
+				float duration = portalSpawnTime;
+				CastingCirclePool.Spawn(uIText, spawnPos, disableWithParentVal, null, trackParentVal: true, useCastTimeVal: true, duration, 0f, 0f, null, portalSpawnTime);
+				announceStopwatchID = ChaosStopwatch.Begin(announceTime);
+				if (floorClearedHandlers != null)
+				{
+					floorClearedHandlers();
+				}
+			}
+		}
+		if (Level.exitFound && !Level.isBossRushMode && (!survivalRoomCreated || survivalRoomsCleared))
+		{
+			HandlePortalCreation();
+		}
+	}
+	private void HandlePortalCreation()
+	{
+		if (!stageStartPortalSpawned)
+		{
+			stageStartPortalSpawned = true;
+			stageStartPortal = CreatePortal(currentPosition + stageStartPortalOffset, Level.startPosition, Level.startPosition, PortalManager.startColor);
+		}
+		if (!itemStorePortalSpawned && Level.itemStoreFound)
+		{
+			itemStorePortalSpawned = true;
+			itemStorePortal = CreatePortal(currentPosition + itemStorePortalOffset, Level.itemStorePortalOutPosition, Level.itemStorePortalInPosition, PortalManager.itemColor);
+		}
+		if (!skillStorePortalSpawned && Level.skillStoreFound)
+		{
+			skillStorePortalSpawned = true;
+			skillStorePortal = CreatePortal(currentPosition + skillStorePortalOffset, Level.skillStorePortalOutPosition, Level.skillStorePortalInPosition, PortalManager.skillColor);
+		}
+		if (!miscRoomPortalSpawned && Level.miscRoomFound)
+		{
+			miscRoomPortalSpawned = true;
+			miscRoomPortal = CreatePortal(currentPosition + miscRoomPortalOffset, Level.miscRoomPortalOutPosition, Level.miscRoomPortalInPosition, PortalManager.miscColor);
+		}
+	}
+	private Portal CreatePortal(Vector2 givenSpawn, Vector2 givenTarget, Vector2 givenOffset, Color givenColor)
+	{
+		currentPortal = Globals.ChaosInst<Portal>(Portal.Prefab, transform.parent, givenSpawn);
+		currentPortal.targetLocation = givenTarget;
+		currentPortal.targetSpawnOffset = givenOffset - givenTarget;
+		currentPortal.color = givenColor;
+		currentPortal.createReturnPortal = true;
+		currentPortal.returnPortalSpawnOffset = PortalManager.exitOffset;
+		return currentPortal;
+	}
+	private void PortalSpawnEffect(Vector2 givenPosition, float givenScale = 1f)
+	{
+		PoolManager.GetPoolItem<AnimEffect>("TeleportEffect").Play(givenPosition + Vector2.up * 0.5f, string.Empty, 0.125f, default, 1f, givenScale);
+	}
+	public void Activate()
+	{
+		if (Inventory.EitherPlayerHasItem(PerfectRoomLocatorItem.staticID))
+		{
+			useBlessedActivation = true;
+		}
+		else
+		{
+			useCursedActivation = Inventory.EitherPlayerHasItem(ExitRoomLocatorItem.staticID);
+		}
+		CreateExitSurvivalRooms();
+		survivalRoomCreated = true;
+		if (itemStorePortal != null)
+		{
+			itemStorePortal.gameObject.SetActive(value: false);
+		}
+		if (skillStorePortal != null)
+		{
+			skillStorePortal.gameObject.SetActive(value: false);
+		}
+		if (miscRoomPortal != null)
+		{
+			miscRoomPortal.gameObject.SetActive(value: false);
+		}
+		if (stageStartPortal != null)
+		{
+			stageStartPortal.gameObject.SetActive(value: false);
+		}
+	}
+	private void CreateTreasureChest()
+	{
+		TreasureChest treasureChest = Globals.ChaosInst<TreasureChest>(TreasureChest.Prefab, transform.parent, currentPosition + treasureOffset);
+		treasureChest.lootTableName = ((!Level.isBossRushMode) ? "TreasureChestMiniBoss" : "TreasureChestMiniBossRush");
+		treasureChest.transform.SetParent(transform);
+	}
+	private IEnumerator CreateTreasureChestDelayed()
+	{
+		yield return Globals.waitForOne;
+		yield return Globals.waitForQuarter;
+		CreateTreasureChest();
+	}
+	private void CreateExitSurvivalRooms()
+	{
+		difficultyValue = 1f - Level.EnemyDefeatedPercentage;
+		elementSwapChance = difficultyValue * 0.5f;
+		currentSRoom = CreateSurvivalRoom(difficultyValue);
+		BoxCollider2D component = currentSRoom.GetComponent<BoxCollider2D>();
+		component.offset = Vector2.zero;
+		component.size = new Vector2(16f, 12f);
+		component.enabled = false;
+		component.enabled = true;
+	}
+	private SurvivalRoom CreateSurvivalRoom(float givenValue)
+	{
+		currentSRoom = Globals.ChaosInst<SurvivalRoom>(SurvivalRoom.Prefab, transform, centerSpawnLocation + Vector2.down);
+		BoxCollider2D[] components = currentSRoom.GetComponents<BoxCollider2D>();
+		foreach (BoxCollider2D boxCollider2D in components)
+		{
+			boxCollider2D.enabled = false;
+		}
+		miniBossSelectedIndex = (miniBossSelectedIndex + Random.Range(1, miniBossGroupCount)) % miniBossGroupCount;
+		currentEnemyList = miniBossGroupList[miniBossSelectedIndex];
+		initSpawnTime = 1.5f;
+		CreateEnemyFactory(currentEnemyList[0], centerSpawnLocation + Vector2.down, initSpawnTime, currentSRoom.transform);
+		if (useBlessedActivation)
+		{
+			return currentSRoom;
+		}
+		if (useCursedActivation)
+		{
+			elementSwapChance = 1f;
+			int num = 0;
+			int count = eeDict.Count;
+			foreach (Enemy.EName value in eeDict.Values)
+			{
+				CreateEnemyFactory(value, centerSpawnLocation + Globals.GetCirclePositionVector(count + 1, num + 1) * enemySpawnRange, initSpawnTime + Random.Range(0.125f, 0.25f), currentSRoom.transform);
+				num++;
+			}
+			return currentSRoom;
+		}
+		int num2 = ((!(givenValue > 0.7f)) ? ((givenValue > 0.4f) ? 1 : ((!(givenValue > 0.1f)) ? 3 : 2)) : 0);
+		int num3 = currentEnemyList.Count - num2 - 1;
+		currentEnemyList = new List<Enemy.EName>(currentEnemyList.GetRange(1, Mathf.Max(1, num3)));
+		currentEnemyList.Shuffle();
+		for (int j = 0; j < num3; j++)
+		{
+			CreateEnemyFactory(currentEnemyList[j], centerSpawnLocation + Globals.GetCirclePositionVector(num3 + 1, j + 1) * enemySpawnRange, initSpawnTime + Random.Range(0.1f, 0.5f), currentSRoom.transform);
+		}
+		return currentSRoom;
+	}
+	private Enemy.EName RollForElemental(Enemy.EName givenName)
+	{
+		return (!eeDict.ContainsKey(givenName) || !(Random.value <= elementSwapChance)) ? givenName : eeDict[givenName];
+	}
+	private void CreateEnemyFactory(Enemy.EName givenName, Vector2 givenLoc, float givenTimer, Transform givenTrans)
+	{
+		EnemyFactory enemyFactory = Globals.ChaosInst<EnemyFactory>(EnemyFactory.Prefab, givenTrans, givenLoc);
+		enemyFactory.enemyPrefabKey = RollForElemental(givenName).ToString();
+		enemyFactory.spawnTimer = givenTimer;
+		enemyFactory.maxSpawnCycles = 1;
+		enemyFactory.enemiesPerCycle = 1;
+		enemyFactory.invalidSpawnArea = Vector2.zero;
+		enemyFactory.spawnArea = Vector2.zero;
+		enemyFactory.enemiesDropLoot = false;
+		enemyFactory.disableCountDeath = true;
+	}
+}
+=== EndingAltar
+using System.Collections;
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+public class EndingAltar : ExitPortal
+{
+	public Transform playerWinItemTrans;
+	public Animator playerWinItemAnim;
+	public Transform playerWinItemSpriteTrans;
+	public SpriteRenderer playerWinItemSprite;
+	private bool playerWinItemLayerChanged;
+	public override void Close()
+	{
+		GameController.PauseAllPlayers();
+		StartCoroutine(GoHome());
+	}
+	public IEnumerator GoHome()
+	{
+		SoundManager.PlayBGM(string.Empty);
+		EndingRoomEventHandler.playCrowdAudio = false;
+		yield return new WaitForSeconds(0.5f);
+		playerWinItemTrans.position = GameController.activePlayers[0].transform.position + Vector3.up * 2f;
+		playerWinItemAnim.Play("SpawnHigh", -1, 0f);
+		SoundManager.PlayAudio("CrestSpinUp");
+		GameController.cameraController.disablePlayerTracking = true;
+		CameraController cameraController = GameController.cameraController;
+		Vector3? targetLoc = playerWinItemTrans.position + Vector3.up * 5f;
+		cameraController.OverrideAndMoveCameraToLocation(null, targetLoc, 18f, followPlayer: false, setLocks: true);
+		yield return null;
+		ParticleEffect sparkleEmitter = PoolManager.GetPoolItem<ParticleEffect>("SparkleEffect");
+		playerWinItemSprite.sortingLayerName = "Effect";
+		sparkleEmitter.followTransform = playerWinItemSpriteTrans;
+		sparkleEmitter.Play(3f);
+		while (!playerWinItemAnim.AnimPlayed(0.9f))
+		{
+			if (!playerWinItemLayerChanged && playerWinItemAnim.AnimPlayed(0.5f))
+			{
+				playerWinItemSprite.sortingLayerName = "Overlay";
+				playerWinItemLayerChanged = true;
+			}
+			yield return null;
+		}
+		SoundManager.StopAudio("CrestSpinUp");
+		playerWinItemTrans.position += Vector3.up * 7f;
+		playerWinItemAnim.Play("Flash", -1, 0f);
+		yield return new WaitForSeconds(0.25f);
+		CameraController.ShakeCamera(0.5f);
+		yield return new WaitForSeconds(0.2f);
+		CameraController.ShakeCamera(0.75f);
+		SoundManager.PlayAudio("LightBeamWindup");
+		int beamLoops = 3;
+		int beamCountMax = 3;
+		bool initialBeams = true;
+		float initAngle = 0f;
+		while (beamLoops > 0)
+		{
+			if (!initialBeams)
+			{
+				beamCountMax = Random.Range(2, 3);
+			}
+			else
+			{
+				initialBeams = false;
+			}
+			initAngle = Random.Range(0f, 360f);
+			for (int i = 0; i < beamCountMax; i++)
+			{
+				AnimEffect poolItem = PoolManager.GetPoolItem<AnimEffect>("LightBeam");
+				float num = initAngle + 360f / (float)beamCountMax * (float)i;
+				float num2 = num;
+				poolItem.Play(playerWinItemTrans.position, animSpeed: Random.Range(0.5f, 1.25f), localEulerAngles: new Vector3(0f, 0f, Random.Range(num - 45f, num2 + 45f)), animName: string.Empty, normalizedTime: Random.Range(0f, 0.15f));
+			}
+			yield return new WaitForSeconds(Random.Range(0.08f, 0.15f));
+			beamLoops--;
+		}
+		yield return new WaitForSeconds(0.15f);
+		CameraController.ShakeCamera();
+		SoundManager.PlayAudio("LightFillScreen");
+		GameController.overlayEffects.imageTrans.pivot = Camera.main.WorldToViewportPoint(playerWinItemTrans.position);
+		GameController.overlayEffects.imageTrans.anchoredPosition = Vector3.zero;
+		GameController.overlayEffects.anim.Play("HoriWhiteFill", -1, 0f);
+		yield return null;
+		while (!GameController.overlayEffects.anim.AnimPlayed(1.25f))
+		{
+			GameController.overlayEffects.imageTrans.pivot = Camera.main.WorldToViewportPoint(playerWinItemTrans.position);
+			yield return null;
+		}
+		GameController.overlayEffects.anim.Play("WhiteToBlack", -1, 0f);
+		yield return new WaitForSeconds(1f);
+		Credits.transitionToTitle = false;
+		GameController.LoadLevel("Credits");
+	}
+}
+=== EndingRoomEventHandler
+using System.Collections;
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+public class EndingRoomEventHandler : MonoBehaviour
+{
+	public Vector3 cameraLockPosition = Vector3.zero;
+	public bool overrideCameraLocks;
+	public bool overrideVertLockValue;
+	public bool overrideHoriLockValue;
+	protected Collider2D triggerCollider;
+	public Vector3 bossCameraOffset;
+	private GameObject finalBossObj;
+	private BossNpc finalBoss;
+	private GameObject airBossObj;
+	private BossNpc airBoss;
+	private GameObject fireBossObj;
+	private BossNpc fireBoss;
+	private GameObject iceBossObj;
+	private BossNpc iceBoss;
+	private Animator iceWheelAnim;
+	private GameObject earthBossObj;
+	private BossNpc earthBoss;
+	private GameObject lightBossAObj;
+	private GameObject lightBossBObj;
+	private BossNpc lightBossA;
+	private BossNpc lightBossB;
+	public Transform playerWinItemTrans;
+	public Animator playerWinItemAnim;
+	public Transform playerWinItemSpriteTrans;
+	public static bool playCrowdAudio;
+	public static AudioSource crowdAudio;
+	private bool playAllDialog = true;
+	private bool allowDialogSkip;
+	private string currentDialogID = string.Empty;
+	private string currentChaosID = string.Empty;
+	private bool IsInDialog
+	{
+		get
+		{
+			if (playAllDialog)
+			{
+				if (!GameUI.dialogManager.HandleDialog(currentDialogID, resetOnExit: true, unpauseOnComplete: false, 0.5f))
+				{
+					return true;
+				}
+				if (allowDialogSkip)
+				{
+					Player[] activePlayers = GameController.activePlayers;
+					foreach (Player player in activePlayers)
+					{
+						if (player != null && player.inputDevice.GetButtonDown("Cancel"))
+						{
+							playAllDialog = false;
+						}
+					}
+				}
+			}
+			return false;
+		}
+	}
+	private void Awake()
+	{
+		triggerCollider = GetComponent<BoxCollider2D>();
+		Transform transform = GameObject.Find("EndingStage/BossNpcs").transform;
+		finalBossObj = transform.Find("FinalBoss").gameObject;
+		finalBoss = finalBossObj.GetComponent<BossNpc>();
+		airBossObj = transform.Find("AirBoss").gameObject;
+		airBoss = airBossObj.GetComponent<BossNpc>();
+		airBossObj.SetActive(value: false);
+		fireBossObj = transform.Find("FireBoss").gameObject;
+		fireBoss = fireBossObj.GetComponent<BossNpc>();
+		fireBossObj.SetActive(value: false);
+		iceBossObj = transform.Find("IceBoss").gameObject;
+		iceBoss = iceBossObj.GetComponent<BossNpc>();
+		iceWheelAnim = iceBossObj.transform.Find("IceWheel").GetComponent<Animator>();
+		iceBossObj.SetActive(value: false);
+		earthBossObj = transform.Find("EarthBoss").gameObject;
+		earthBoss = earthBossObj.GetComponent<BossNpc>();
+		earthBossObj.SetActive(value: false);
+		lightBossAObj = transform.Find("LightningBossA").gameObject;
+		lightBossA = lightBossAObj.GetComponent<BossNpc>();
+		lightBossAObj.SetActive(value: false);
+		lightBossBObj = transform.Find("LightningBossB").gameObject;
+		lightBossB = lightBossBObj.GetComponent<BossNpc>();
+		lightBossBObj.SetActive(value: false);
+	}
+	private void Start()
+	{
+		playCrowdAudio = true;
+	}
+	public void Update()
+	{
+		if (playCrowdAudio)
+		{
+			if (crowdAudio == null || !crowdAudio.isPlaying)
+			{
+				string audioID = "CrowdCheer";
+				float overrideVolume = Mathf.Lerp(0.02f, 0.125f, Mathf.Clamp01((transform.position.y - GameController.cameraController.transform.position.y) * 0.125f));
+				crowdAudio = SoundManager.PlayAudio(audioID, 1f, ignoreTimeRestriction: false, overrideVolume);
+			}
+		}
+		else if (crowdAudio != null)
+		{
+			crowdAudio.Stop();
+			crowdAudio = null;
+		}
+	}
+	private void OnTriggerEnter2D(Collider2D col)
+	{
+		if (!(col.gameObject.tag == "Player") || (!(col.gameObject.name == "AllyFloorContact") && !(col.gameObject.name == "IgnoreFloorContact")))
+		{
+			return;
+		}
+		triggerCollider.enabled = false;
+		int playerID = col.transform.parent.gameObject.GetComponent<Player>().playerID;
+		Player[] activePlayers = GameController.activePlayers;
+		foreach (Player player in activePlayers)
+		{
+			if (player.playerID != playerID && !player.TeleportToPartner(playerID, showSpawnPortal: true, excludeOrigin: true))
+			{
+				player.TeleportToPartner(playerID);
+			}
+		}
+		StartCoroutine(SpawnBosses());
+	}
+	private IEnumerator SpawnAirBoss()
+	{
+		AirBoss.PlaySpawnEffects(airBossObj.transform.position, airBossObj.transform);
+		airBossObj.SetActive(value: true);
+		airBoss.anim.Play("Hidden", -1, 0f);
+		yield return new WaitForSeconds(0.27f);
+		airBoss.anim.Play("Spin", -1, 0f);
+		yield return Globals.waitForHalf;
+		airBoss.anim.Play("SpinEnd", -1, 0f);
+		yield return Globals.waitForHalf;
+		airBoss.anim.Play("Idle", -1, 0f);
+	}
+	private IEnumerator SpawnFireBoss()
+	{
+		FireBoss.PlaySpawnEffects(fireBossObj.transform.position);
+		yield return Globals.waitForQuarter;
+		fireBossObj.SetActive(value: true);
+	}
+	private IEnumerator SpawnEarthBoss()
+	{
+		int tempRefInt = 0;
+		EarthBoss.SpawnIntroPillars(earthBossObj.transform.position, null, ref tempRefInt, 0.5f);
+		earthBossObj.SetActive(value: true);
+		earthBoss.anim.Play("Hidden", -1, 0f);
+		yield return Globals.waitForOne;
+		earthBoss.anim.Play("Intro", -1, 0f);
+	}
+	private IEnumerator SpawnIceBoss()
+	{
+		iceBossObj.SetActive(value: true);
+		iceBoss.anim.Play("Intro", -1, 0f);
+		yield return null;
+		while (!iceBoss.anim.AnimPlayed())
+		{
+			yield return null;
+		}
+		iceWheelAnim.Play("Fold", -1, 1f);
+	}
+	private IEnumerator SpawnLightningBoss()
+	{
+		lightBossAObj.SetActive(value: true);
+		lightBossBObj.SetActive(value: true);
+		lightBossA.anim.Play("Land", -1, 0f);
+		Animator tpAnim = Globals.ChaosInst<Animator>(ChaosBundle.Get("Assets/Prefabs/Effects/Lightning/LightningTeleportEffect.prefab"));
+		tpAnim.transform.position = lightBossA.transform.position;
+		tpAnim.Play("Land", -1, 0f);
+		Globals.ChaosInst<LightningStrike>(LightningStrike.Prefab, null, lightBossA.transform.position);
+		SoundManager.PlayWithDistAndSPR("ThunderClap", lightBossA.transform.position);
+		lightBossB.anim.Play("DashEnd");
+		LightningBoss.EmitStatueMetalBreak(lightBossB.transform.position);
+		yield return Globals.waitForOne;
+		Object.Destroy(tpAnim.gameObject);
+	}
+	public IEnumerator SpawnBosses()
+	{
+		CameraController camController = GameController.cameraController;
+		Vector3 originalCameraPosition = ((!(cameraLockPosition == Vector3.zero)) ? cameraLockPosition : camController.transform.position);
+		bool horiOnly = ((!overrideCameraLocks) ? camController.HoriMoveOnly : (!overrideHoriLockValue));
+		bool vertOnly = ((!overrideCameraLocks) ? camController.VertMoveOnly : (!overrideVertLockValue));
+		GameController.PauseAllPlayers();
+		Vector3? targetLoc = finalBossObj.transform.position + bossCameraOffset;
+		camController.OverrideAndMoveCameraToLocation(null, targetLoc, 2f, followPlayer: false, setLocks: true, vertLockStatus: true, horiLockStatus: true);
+		yield return Globals.waitForQuarter;
+		finalBoss.anim.Play("Shield", -1, 0f);
+		yield return Globals.waitForHalf;
+		StartCoroutine(SpawnAirBoss());
+		StartCoroutine(SpawnEarthBoss());
+		yield return Globals.waitForHalf;
+		StartCoroutine(SpawnFireBoss());
+		StartCoroutine(SpawnIceBoss());
+		yield return Globals.waitForHalf;
+		StartCoroutine(SpawnLightningBoss());
+		yield return new WaitForSeconds(1.5f);
+		playAllDialog = true;
+		currentChaosID = LootManager.GetLockedChaosArcana();
+		allowDialogSkip = Item.IsUnlocked(PlayerWinItem.staticID) && currentChaosID == string.Empty;
+		currentDialogID = "FinalBoss-Ending0";
+		while (IsInDialog)
+		{
+			yield return null;
+		}
+		if (playAllDialog)
+		{
+			yield return Globals.waitForOne;
+			finalBoss.anim.Play("Summon", -1, 0f);
+			playerWinItemTrans.position = finalBossObj.transform.position + Vector3.up * 2f;
+			playerWinItemAnim.Play("Spawn", -1, 0f);
+			ParticleEffect sparkleEmitter = PoolManager.GetPoolItem<ParticleEffect>("SparkleEffect");
+			sparkleEmitter.followTransform = playerWinItemSpriteTrans;
+			sparkleEmitter.Play(3f);
+			yield return null;
+			ChaosQuickStopwatch chimeStopwatch = new ChaosQuickStopwatch(0.5f);
+			while (!playerWinItemAnim.AnimPlayed())
+			{
+				if (!chimeStopwatch.IsRunning)
+				{
+					chimeStopwatch.SetDelay(Random.Range(0.35f, 0.5f), stopCurrent: false, autoStart: true);
+					SoundManager.PlayAudio("Chime", Random.Range(1f, 1.5f));
+				}
+				yield return null;
+			}
+			yield return Globals.waitForOne;
+			currentDialogID = "FinalBoss-Ending1";
+			while (IsInDialog)
+			{
+				yield return null;
+			}
+			playerWinItemAnim.Play("Hidden", -1, 0f);
+			sparkleEmitter.Stop();
+			PlayerRunData prd = RunData.GetWinnerData();
+			GameController.activePlayers[(GameController.coopOn && prd != null) ? prd.playerID : 0].newItemNoticeUI.Display(TextManager.GetItemName(PlayerWinItem.staticID), IconManager.GetItemIcon(PlayerWinItem.staticID));
+			SoundManager.PlayAudio("Powerup");
+			if (!Item.IsUnlocked(PlayerWinItem.staticID))
+			{
+				Item.IsUnlocked(PlayerWinItem.staticID, setUnlocked: true);
+			}
+			finalBoss.anim.Play("SummonRecovery", -1, 0f);
+			yield return new WaitForSeconds(1.5f);
+		}
+		else
+		{
+			finalBoss.anim.Play("SummonRecovery", -1, 0.35f);
+		}
+		if (playAllDialog && !allowDialogSkip)
+		{
+			currentDialogID = "FinalBoss-Ending2";
+			while (IsInDialog)
+			{
+				yield return null;
+			}
+			GameController.activePlayers[0].HandleSkillUnlock(currentChaosID, isSignature: true);
+			AchievementManager.UnlockAchievement(Achievement.UnlockThreeChaos);
+			yield return new WaitForSeconds(1.5f);
+		}
+		if (playAllDialog)
+		{
+			currentDialogID = "FinalBoss-Ending3";
+			while (IsInDialog)
+			{
+				yield return null;
+			}
+		}
+		targetLoc = originalCameraPosition;
+		camController.OverrideAndMoveCameraToLocation(null, targetLoc, 1f, followPlayer: false, setLocks: true, horiOnly, vertOnly);
+		while (camController.overrideCameraUpdate)
+		{
+			yield return null;
+		}
+		yield return Globals.waitFor0p15;
+		GameController.PauseAllPlayers(state: false);
+	}
+}

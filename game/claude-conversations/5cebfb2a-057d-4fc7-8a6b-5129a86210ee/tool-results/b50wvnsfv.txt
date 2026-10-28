@@ -1,0 +1,651 @@
+"""Память ролей команды без внешних сервисов.
+
+- UserPromptSubmit: подсказки минимальные и без повторов. Команда `/ceo` в сообщении ставит метку CEO текущей
+  сессии (запасной путь к метке, которую ставит сама команда).
+  Роль (не CEO): строка «молчание» — итог в лог тикета, не текстом в ход.
+  CEO: одна строка «[диспетчер] N новых в ceo-inbox.md» — только когда пришли новые; сторож и разрешения —
+  по разу на 10 сообщений; сторож контекста — от 400 тыс. токенов (40 % окна), не чаще раза в 10 сообщений.
+- SessionEnd (клир, выход, остановка): конспект разговора — сообщения владельца/диспетчера и сессий, ответы
+  (без инструментов и рассуждений) — в `.claude/roles/log/<роль>/`. Не сработал — `role_context.py` на следующем
+  старте догоняет конспект по записанному пути.
+- Ключ состояния сессии: для запуска диспетчера — `RPV_ROLE[-<RPV_TICKET>]` (раньше все роли писали в
+  `unknown.json` и конспекты путались), для Desktop — id сессии приложения. Переменные — `RPV_*`.
+Хук никогда не падает и не блокирует: ошибка — тишина.
+"""
+import datetime
+import glob
+import json
+import os
+import re
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from role_context import (ROLE_NAMES, ROLES, ROOT, STATE_DIR, env, env_role, find_title, read_label,  # noqa: E402
+                          ticket_id, write_label)
+
+LOG_DIR = os.path.join(ROOT, ".claude", "roles", "log")
+GMT4 = datetime.timezone(datetime.timedelta(hours=4))
+REPEAT_EVERY = 10  # сообщений: самое частое повторение одной и той же подсказки
+
+
+def read_stdin():
+    try:
+        return json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
+    except Exception:
+        return {}
+
+
+def current_role(hook_in=None):
+    """(название, роль) текущей сессии или (название, None). Порядок как в role_context.py: `RPV_ROLE` (диспетчерский
+    запуск `claude -p`; иначе, если launch_run не снял CLAUDE_CODE_HOST_SESSION_ID сессии CEO из env, поиск названия
+    принял бы роль за CEO), метка сессии (`/ceo`), последним — название сессии Desktop."""
+    er = env_role()
+    if er:
+        tid = ticket_id()
+        return f"RPV_ROLE={er}" + (f" {tid}" if tid else ""), er
+    lr = read_label((hook_in or {}).get("session_id"))
+    if lr:
+        return ROLE_NAMES[lr], lr
+    host_id = os.environ.get("CLAUDE_CODE_HOST_SESSION_ID")
+    found, title = find_title(host_id, None) if host_id else (False, None)
+    if not found or not title:
+        return None, None
+    return title, next((r for key, r in ROLES if key in title.lower()), None)
+
+
+def state_key(role=None):
+    """Имя файла состояния: запуск диспетчера — роль (+ тикет); Desktop — id сессии приложения; иначе роль."""
+    er = env_role()
+    if er:
+        tid = ticket_id()
+        key = er + (f"-{tid}" if tid else "")
+    else:
+        key = os.environ.get("CLAUDE_CODE_HOST_SESSION_ID") or role or "unknown"
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", key)
+
+
+def state_path(role=None):
+    return os.path.join(STATE_DIR, state_key(role) + ".json")
+
+
+def load_state(role=None):
+    try:
+        with open(state_path(role), encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        return {}
+
+
+def save_state(state, role=None):
+    os.makedirs(STATE_DIR, exist_ok=True)
+    tmp = state_path(role) + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(state, fh, ensure_ascii=False)
+    os.replace(tmp, state_path(role))
+
+
+def stamp(iso):
+    try:
+        t = datetime.datetime.fromisoformat(iso.replace("Z", "+00:00"))
+        return t.astimezone(GMT4).strftime("%d.%m %H:%M")
+    except Exception:
+        return "?"
+
+
+def digest_dir(role):
+    """Каталог конспектов: запуск диспетчера по тикету (`RPV_TICKET`) — подкаталог тикета (роль, взявшая новый
+    тикет, не получает конспект чужого; аудит 03.10), иначе каталог роли."""
+    base = os.path.join(LOG_DIR, role)
+    if env_role():
+        tid = ticket_id()
+        if tid:
+            return os.path.join(base, tid)
+    return base
+
+
+def digest_path(role, cli_id):
+    """Путь конспекта: существующий для этой сессии CLI или новый по текущему времени."""
+    old = glob.glob(os.path.join(glob.escape(digest_dir(role)), f"*-{cli_id[:8]}.md"))
+    if old:
+        return old[0]
+    name = datetime.datetime.now(GMT4).strftime("%Y-%m-%d_%H%M") + f"-{cli_id[:8]}.md"
+    return os.path.join(digest_dir(role), name)
+
+
+HAIKU_HOOK_S = 20  # SessionEnd: таймаут хука 30 с — Haiku укладывается раньше (TK-110 В-2)
+
+
+def haiku_abstract(turns):
+    """TK-087 п.2: краткий конспект сверху (Haiku, не источник — ниже дословные сообщения); сбой — ''."""
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dispatcher"))
+        import haiku_aux
+        text = haiku_aux.compact("\n".join(turns), timeout=HAIKU_HOOK_S)
+    except Exception:
+        return ""
+    return f"## Краткий конспект (Haiku, не источник — дословно ниже)\n{text}\n\n" if text else ""
+
+
+def _atomic_write(path, text):
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    os.replace(tmp, path)
+
+
+def write_digest(transcript, role, title, cli_id, why, dispatcher=None):
+    """Конспект разговора из транскрипта; возвращает путь или None (пустой разговор).
+    Запуск диспетчера: сообщения пользователя в транскрипте — промпты диспетчера, не владельца."""
+    if not transcript or not cli_id or not os.path.isfile(transcript):
+        return None
+    if dispatcher is None:
+        dispatcher = env_role() is not None
+    sender = "диспетчер" if dispatcher else "владелец"
+    turns = []
+    with open(transcript, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            try:
+                d = json.loads(line)
+            except Exception:
+                continue
+            if d.get("isSidechain"):
+                continue
+            msg = d.get("message") or {}
+            content = msg.get("content")
+            when = stamp(d.get("timestamp", ""))
+            if d.get("type") == "user" and isinstance(content, str):
+                who = "сообщение сессии" if d.get("isMeta") else sender
+                if d.get("isMeta") and "cross-session-message" not in content:
+                    continue
+                turns.append(f"### {when} · {who}\n{content.strip()}\n")
+            elif d.get("type") == "assistant" and isinstance(content, list):
+                text = "\n".join(b.get("text", "") for b in content if b.get("type") == "text").strip()
+                if text:
+                    turns.append(f"### {when} · ответ\n{text}\n")
+    if not turns:
+        return None
+    path = digest_path(role, cli_id)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    head = (f"# Конспект сессии «{title}» ({why})\n\n"
+            f"Сессия CLI `{cli_id}`, полный транскрипт: `{transcript}`. Только сообщения и ответы — "
+            f"без инструментов и рассуждений. Читать секциями/грепом, не целиком.\n\n")
+    body = "\n".join(turns)
+    _atomic_write(path, head + body)                      # сначала без Haiku: убитый по таймауту хук не теряет конспект
+    abstract = haiku_abstract(turns)
+    if abstract:
+        _atomic_write(path, head + abstract + body)
+    return path
+
+
+def latest_digest(role, exclude_cli):
+    files = sorted(glob.glob(os.path.join(glob.escape(digest_dir(role)), "*.md")))
+    files = [f for f in files if not (exclude_cli and f.endswith(f"-{exclude_cli[:8]}.md"))]
+    return files[-1] if files else None
+
+
+def on_session_start(hook_in, role, title):
+    """Из role_context.py: догнать конспект прошлой сессии, запомнить текущую; путь прошлого конспекта."""
+    cli_id, transcript = hook_in.get("session_id"), hook_in.get("transcript_path")
+    state = load_state(role)
+    prev_cli, prev_tr = state.get("cli"), state.get("transcript")
+    if prev_cli and prev_cli != cli_id and not glob.glob(os.path.join(
+            glob.escape(digest_dir(role)), f"*-{prev_cli[:8]}.md")):
+        write_digest(prev_tr, role, title, prev_cli, "догнан при следующем старте")
+    if prev_cli != cli_id:
+        save_state({"cli": cli_id, "transcript": transcript, "n": 0}, role)
+    return latest_digest(role, cli_id)
+
+
+# --- подсказки на сообщение -----------------------------------------------------------------------
+
+# правило устава «роль не пишет текст в ход» не держится после клира; стиль вывода включается только на новом
+# процессе, эта строка — на каждом сообщении
+SILENT_TEXT = ("[роль: молчание] Текста в ход не писать: ни между инструментами, ни пересказом. Итог/вопрос — в лог "
+               "тикета (итог шага — `tickets.py result <ID> <итог> --why \"...\"`, список итогов — в начале сессии); сообщение "
+               "диспетчера или другой сессии — не владелец. Конец хода — одна строка ≤ 80 знаков или ничего. "
+               "Исключение — владелец сам написал в эту сессию.")
+
+
+def throttled(state, key, sig, text):
+    """Показать подсказку, если изменилась её суть (sig) или с прошлого показа прошло ≥ REPEAT_EVERY сообщений."""
+    if not text:
+        return None
+    n = state.get("n", 0)
+    last = (state.setdefault("shown", {})).get(key) or {}
+    if last.get("sig") == sig and n - last.get("n", -10 ** 9) < REPEAT_EVERY:
+        return None
+    state["shown"][key] = {"sig": sig, "n": n}
+    return text
+
+
+# Судья TK-002 п.2а («кто сторожит сторожа», v1.4): сторож .claude/dispatcher/watch.py пишет отметку
+# сердцебиения на каждый цикл; здесь только её возраст (сам сторож — свой процесс, не этот хук).
+DISPATCHER_DIR = os.path.join(ROOT, ".claude", "dispatcher")  # для проверок
+WATCH_HEARTBEAT_FILE = os.path.join(DISPATCHER_DIR, "watch-heartbeat.json")
+WATCH_STALE_S = 2 * 120  # 2 интервала сторожа (WATCH_INTERVAL_S по умолчанию в watch.py — 120 с)
+
+
+def watch_alert():
+    """(суть, текст) или None: сторож жив — молчим."""
+    try:
+        with open(WATCH_HEARTBEAT_FILE, encoding="utf-8") as f:
+            hb = json.load(f)
+    except (OSError, ValueError):
+        return ("missing", "[сторож] .claude/dispatcher/watch-heartbeat.json не найден — сторож CEO (watch.py) "
+                           "ни разу не отчитался или не запущен.")
+    try:
+        ts = datetime.datetime.fromisoformat(str(hb.get("ts", "")).replace("Z", "+00:00"))
+        age = (datetime.datetime.now(ts.tzinfo) - ts).total_seconds()
+    except Exception:
+        return "broken", "[сторож] watch-heartbeat.json повреждён — не разобрать время последнего цикла."
+    if age > WATCH_STALE_S:
+        return "stale", f"[сторож] сердцебиение watch.py устарело на {age / 60:.0f} мин — проверить, жив ли сторож."
+    return None
+
+
+# Диспетчер задач (.claude/dispatcher/): непрочитанные строки ceo-inbox.md — одна короткая строка; сами строки CEO
+# читает из файла. Отметка прочитанного — число уже показанных строк; пока новых нет, подсказки нет.
+DISPATCHER_CEO_INBOX = os.path.join(DISPATCHER_DIR, "ceo-inbox.md")
+DISPATCHER_CEO_INBOX_SEEN = os.path.join(DISPATCHER_DIR, ".ceo-inbox-seen")
+
+
+def ceo_inbox_alert():
+    try:
+        with open(DISPATCHER_CEO_INBOX, encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return None
+    try:
+        with open(DISPATCHER_CEO_INBOX_SEEN, encoding="utf-8") as f:
+            seen = int(f.read().strip() or 0)
+    except (OSError, ValueError):
+        seen = 0
+    new = [ln for ln in lines[seen:] if ln.strip()]
+    if len(lines) != seen:
+        try:
+            with open(DISPATCHER_CEO_INBOX_SEEN, "w", encoding="utf-8") as f:
+                f.write(str(len(lines)))
+        except OSError:
+            pass
+    if not new:
+        return None
+    return f"[диспетчер] {len(new)} новых в .claude/dispatcher/ceo-inbox.md"
+
+
+# вызов роли может часами ждать подтверждения в её сессии, куда никто не смотрит. Уведомление роли «нужно
+# разрешение» пишется меткой; CEO видит её на своём сообщении.
+PENDING = os.path.join(STATE_DIR, "pending-permission.json")
+
+
+def on_notification(hook_in, role):
+    if role == "ceo":
+        return
+    msg = hook_in.get("message") or ""
+    if "permission" not in (msg + " " + (hook_in.get("notification_type") or "")).lower():
+        return
+    try:
+        with open(PENDING, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        data = {}
+    os.makedirs(STATE_DIR, exist_ok=True)
+    data[role] = {"ts": time.time(), "message": msg[:200]}
+    with open(PENDING, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+
+def pending_permissions():
+    """(суть, текст) или None."""
+    try:
+        with open(PENDING, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return None
+    fresh = {r: v for r, v in data.items() if time.time() - v.get("ts", 0) < 3 * 3600}
+    if not fresh:
+        return None
+    items = "; ".join(f"{r} с {datetime.datetime.fromtimestamp(v['ts']).strftime('%H:%M')} — {v.get('message', '')}"
+                      for r, v in fresh.items())
+    sig = ",".join(f"{r}@{int(v['ts'])}" for r, v in sorted(fresh.items()))
+    return sig, (f"[разрешения] роль ждёт подтверждения в своей сессии: {items}. Если ещё стоит — сразу сказать "
+                 "владельцу, какая сессия и что подтвердить. Разобрано — удалить запись роли из "
+                 ".claude/roles/.state/pending-permission.json.")
+
+
+# Сторож контекста: порог по умолчанию — 40 % окна 1 млн токенов (слово владельца 15.10; до этого было 450 тыс.). Только для сессий, где есть владелец, — у запуска
+# диспетчера просить клир некого.
+CONTEXT_WARN_TOKENS = 400000
+
+
+def context_tokens(transcript):
+    """Размер контекста по последнему ответу модели в транскрипте (вход + кэш + вывод)."""
+    if not transcript or not os.path.isfile(transcript):
+        return 0
+    with open(transcript, "rb") as fh:
+        fh.seek(0, 2)
+        start = max(0, fh.tell() - 600_000)
+        fh.seek(start)
+        lines = fh.read().decode("utf-8", "replace").splitlines()
+        if start:
+            lines = lines[1:]  # первая строка хвоста может быть оборвана
+    for line in reversed(lines):
+        if '"usage"' not in line:
+            continue
+        try:
+            usage = (json.loads(line).get("message") or {}).get("usage") or {}
+        except Exception:
+            continue
+        total = sum(int(usage.get(k) or 0) for k in (
+            "input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens", "output_tokens"))
+        if total:
+            return total
+    return 0
+
+
+def context_advice(hook_in, state):
+    """≥ 400 тыс. токенов (40 % окна 1 млн): одна строка, не чаще раза в REPEAT_EVERY сообщений."""
+    tokens = context_tokens(hook_in.get("transcript_path"))
+    if tokens < CONTEXT_WARN_TOKENS:
+        return None
+    n = state.get("n", 0)
+    last = state.get("ctx_n")
+    if last is not None and n - last < REPEAT_EVERY:
+        return None
+    state["ctx_n"] = n
+    return f"контекст ≈ {tokens // 1000} тыс. — закончи шаг, обнови блокнот и попроси владельца сделать клир"
+
+
+def on_prompt_all(hook_in, role):
+    """Подсказки к сообщению (или None). Состояние — по ключу роли/тикета/сессии."""
+    cli_id = hook_in.get("session_id")
+    state = load_state(role)
+    if state.get("cli") != cli_id:
+        state = {"cli": cli_id, "transcript": hook_in.get("transcript_path"), "n": 0}
+    state["n"] = state.get("n", 0) + 1
+    parts = []
+    if role != "ceo":
+        parts.append(SILENT_TEXT)
+    else:
+        for getter in (pending_permissions, watch_alert):
+            try:
+                got = getter()
+            except Exception:
+                got = None
+            if got:
+                parts.append(throttled(state, getter.__name__, got[0], got[1]))
+        try:
+            parts.append(ceo_inbox_alert())
+        except Exception:
+            pass
+    if env_role() is None:
+        try:
+            parts.append(context_advice(hook_in, state))
+        except Exception:
+            pass
+    try:
+        save_state(state, role)
+    except Exception:
+        pass
+    return "\n".join(t for t in parts if t) or None
+
+
+# сообщение владельца — команда `/ceo` (или `/<плагин>:ceo`): метка CEO ставится хуком сразу, не дожидаясь, пока
+# команда выполнит свой шаг (без Bash, без подстановки id сессии в тексте команды)
+CEO_COMMAND = re.compile(r"^\s*/(?:[\w.-]+:)?ceo(?:\s|$)", re.I)
+
+
+def mark_ceo_on_command(hook_in):
+    if env_role() is None and CEO_COMMAND.match(hook_in.get("prompt") or ""):
+        write_label("ceo", hook_in.get("session_id"))
+
+
+def main():
+    hook_in = read_stdin()
+    event = hook_in.get("hook_event_name")
+    try:
+        if event == "PostToolUse":  # напоминаний после инструментов нет
+            return 0
+        if event == "UserPromptSubmit":
+            try:
+                mark_ceo_on_command(hook_in)
+            except Exception:
+                pass
+        title, role = current_role(hook_in)
+        if role is None:
+            return 0
+        if event == "UserPromptSubmit":
+            text = on_prompt_all(hook_in, role)
+            if text:
+                sys.stdout.write(json.dumps({"hookSpecificOutput": {
+                    "hookEventName": "UserPromptSubmit", "additionalContext": text}}, ensure_ascii=True))
+        elif event == "Notification":
+            on_notification(hook_in, role)
+        elif event == "SessionEnd":
+            write_digest(hook_in.get("transcript_path"), role, title, hook_in.get("session_id"),
+                         f"закрытие: {hook_in.get('reason', '?')}")
+    except Exception:
+        pass
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+===
+"""Stop: запуск роли диспетчера не кончается без записи в лог тикета (TK-079, В-195).
+
+Роль, запущенная диспетчером (RPV_ROLE + RPV_TICKET), не записала за запуск итог своим заголовком (запись `[итог: …]`
+командой `tickets.py result`; заметка `comment` итогом не считается — CP8: прежний мягкий режим снят) — Stop
+блокируется с причиной «сдай итог». Повторный Stop после блокировки (stop_hook_active) пропускается — без вечной петли. Не запуск
+диспетчера, нет зеркала запуска в state.json или любой сбой — молча разрешает: хук не должен держать сессию.
+"""
+import json
+import os
+import sys
+
+
+def _env(name):
+    return os.environ.get("RPV_" + name) or ""
+
+
+def main():
+    role, tid = _env("ROLE").strip().lower(), _env("TICKET").strip()
+    if not role or not tid:
+        return
+    try:
+        data = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        data = {}
+    if data.get("stop_hook_active"):
+        return
+    root = os.path.abspath(os.environ.get("CLAUDE_PROJECT_DIR") or _env("PROJECT") or os.getcwd())
+    disp = os.path.join(root, ".claude", "dispatcher")
+    try:
+        with open(os.path.join(disp, "state.json"), encoding="utf-8") as f:
+            run = (json.load(f).get("active_runs") or {}).get(tid)
+        if not run or "log_keys_at_launch" not in run:
+            return
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dispatcher"))
+        import ticket as T
+        tkt = T.read_ticket(os.path.join(root, ".claude", "tickets", f"{tid}.md"))
+        before = set(run["log_keys_at_launch"])
+        for e in tkt.log:
+            if (T.author_is(e.author, role) and f"{e.ts_raw} {e.author}" not in before
+                    and e.text.lstrip().startswith("[итог:")):
+                return
+    except Exception:
+        return
+    how = f"tickets.py result {tid} <итог> --why \"…\""
+    print(json.dumps({"decision": "block",
+                      "reason": f"За этот запуск нет записи в логе {tid}. Сообщи итог: {how} — что сделал, что дальше."}))
+
+
+if __name__ == "__main__":
+    main()
+===
+# Windows
+
+Общие требования и таблица платформ — [install.md](install.md). Здесь — то, что относится только к Windows. `<плагин>` — каталог плагина, `<проект>` — корень проекта (где `.claude/roles`).
+
+## Заранее
+
+Python 3.11 (`python` в `PATH`), git (Git for Windows — хукам плагина нужен `sh`), `powershell` (через него `start.py` создаёт процессы в WMI), `ssh.exe` — для `wait_for host:`.
+
+`claude` должен быть в `PATH` из реестра (системного или пользовательского): служба, созданная через WMI, берёт `PATH` оттуда, а не из вашей сессии; иначе задайте `CLAUDE_BIN=<полный путь>` (переносится вместе с `RPV_*`).
+
+## Установка
+
+```
+/plugin marketplace add https://github.com/Gogi213/role-play-vibing
+/plugin install role-play-vibing@role-play-vibing
+```
+
+В проекте — `/rpv-init`.
+
+## Запуск
+
+`/rpv-start` или
+
+```
+python "<плагин>\.claude\dispatcher\start.py" --project "<проект>"
+```
+
+Служба создаётся через WMI — вне job-объекта приложения. Печатается pid (это `cmd`; pid самой службы — в `<проект>\.claude\dispatcher\dispatch.pid`, `watch.pid`), «отвязан: да» и лог (`dispatch.run.log`, `watch.run.log` там же). Повторный запуск перезапускает уже работающие.
+
+Диспетчер и сторож с выводом в файл игнорируют чужой Ctrl+C общей консоли (иначе тихо умирали); службы стартуют под `python.exe`, а не `pythonw.exe`.
+
+## Остановка
+
+Отдельной команды нет:
+
+```
+Stop-Process -Id (Get-Content "<проект>\.claude\dispatcher\dispatch.pid")
+Stop-Process -Id (Get-Content "<проект>\.claude\dispatcher\watch.pid")
+```
+
+Уже запущенные ролями процессы это не гасит (диспетчер подхватит их по pid при следующем старте); снять роль на тикете — `tickets.py stop <ID> …` (только CEO).
+
+## Переживает ли
+
+Закрытие Claude — да; перезагрузку — нет (код ничего не регистрирует в автозапуске). Поднять снова: `/rpv-start` или строка запуска выше. Присмотр, который раз в 5 минут проверяет сердцебиение и поднимает упавшие службы через Планировщик заданий, — [reliability.md](reliability.md).
+===
+# Role Play Vibing
+
+**A team of AI roles for Claude Code. You talk to the CEO; a Researcher, an Engineer and a Judge do the work through tickets, woken by a dispatcher.**
+
+[![ci](https://github.com/Gogi213/role-play-vibing/actions/workflows/ci.yml/badge.svg)](https://github.com/Gogi213/role-play-vibing/actions/workflows/ci.yml)
+[![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FGogi213%2Frole-play-vibing%2Fmain%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version)](CHANGELOG.md)
+![platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-informational)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Commands](#commands) · [Configuration](#configuration) · [Development](#development) · [Changelog](CHANGELOG.md)
+
+## Why
+
+One long AI session piles up context, loses the thread and stalls while you are away. Role Play Vibing splits the work between roles and runs it through tickets: each task is one ticket and one short session of the right role, and a dispatcher wakes the next performer on its own.
+
+- **Context stays small.** One task, one ticket, one short role session.
+- **Work does not stall.** The dispatcher wakes the next role; the watcher catches stuck tickets.
+- **Results are checked.** The Judge reviews every result against a "will be accepted if …" contract; only mechanical Haiku tasks are accepted by code instead.
+- **No shortcuts for the sake of code.** A simplification is allowed only when a measurement shows the result is the same.
+
+The core uses only the Python standard library: no packages or services to install.
+
+## Quick start
+
+Requires Python 3.11 (`python` on `PATH`), git, and the Claude Code CLI `claude` on `PATH`, signed in. Windows, macOS and Linux are supported.
+
+1. Install the plugin in Claude Code:
+
+   ```
+   /plugin marketplace add https://github.com/Gogi213/role-play-vibing
+   /plugin install role-play-vibing@role-play-vibing
+   ```
+
+2. In your project, run `/rpv-init`. It creates `.claude/roles` (role charters from templates), `.claude/tickets`, the owner's registry (`.claude/decisions.md`, `.claude/goals/`) and `.gitignore` entries. Existing files are not overwritten.
+3. In the main session, run `/ceo`. The session becomes the CEO: it talks to you and files tickets.
+4. Run `/rpv-start`. The dispatcher and the watcher start in the background and keep running after you close the Claude window. Running again restarts them, which picks up an updated plugin.
+5. Give the CEO a task. `/rpv-doctor` shows whether everything is alive.
+
+Platform details, manual start and project-root lookup: [docs/install.md](docs/install.md) (Russian).
+
+### Updating
+
+1. Update the plugin and restart Claude Code:
+
+   ```
+   claude plugin marketplace update role-play-vibing
+   claude plugin update role-play-vibing@role-play-vibing
+   ```
+
+2. Run `/rpv-start` in the project: it restarts the dispatcher and the watcher on the new code.
+3. Bring the role charters up to date. `/rpv-init` never overwrites `.claude/roles/`, so new rules from a release reach an existing project only when the CEO copies them from the plugin's `templates/roles/` (the release's entry in [CHANGELOG.md](CHANGELOG.md) names the files).
+
+## How it works
+
+![How Role Play Vibing works: owner, CEO, ticket file, dispatcher, roles, signals to the CEO, watcher, overseer, Telegram](docs/img/workflow.svg)
+
+| Role | Does | Session | Model |
+|---|---|---|---|
+| CEO | talks to the owner, files tickets, reads signals | long-lived | your session |
+| Secretary | the CEO hands it your words verbatim; it records them in the owner's registry as a decision (`В-N`), a goal (`G-NNN`), both, or nothing (a question, a status request, a one-off command) | one short run per call from the CEO | Haiku 5.5, effort xhigh |
+| Researcher | protocol, calculation, report | one short run per wake | Sonnet 5.5, effort high (can be set per ticket) |
+| Engineer | code, tests, machines | one short run per wake | Sonnet 5.5, effort xhigh |
+| Judge | review and verdict | one short run per wake | Opus 5.5, effort high |
+| Overseer | every 15 minutes, while tickets change: cost rules and a model reading the ticket logs; a finding goes to the Judge | a short process on a timer, no ticket | Haiku 5.5, effort xhigh |
+
+Other helper subagents are not roles: the CEO uses `inbox` (triages signals) and `reporter` (status answers and daily-report lines); roles use `coder` and `reader`.
+
+1. You tell the CEO what you want. The CEO hands your words, verbatim, to the Secretary, which records them in the registry. Then the CEO files a ticket, `.claude/tickets/TK-NNN.md` (a header with `status` and `next`, and a log of every step); `tickets.py new` refuses a ticket without `--ref` to a registry entry, so no work starts that the owner did not order.
+2. Every 15 seconds the dispatcher (`dispatch.py`) reads the tickets and starts the role each one calls for (the owner of a new ticket, the role named in `next`, the Judge for finished work) as a short `claude -p` session.
+3. The role reports its step with `tickets.py result <ID> <result> --why "…"`. Results: `done`, `pr`, `accept`, `return`, `blocked`, `ask-owner`, `wait`, `continue`. A routing table (`routes.py`), not the text of the entry, decides who is woken next: an executor's `done` or `pr` goes to the Judge, who answers `accept` (the ticket is done) or `return` (back to the executor).
+4. When a ticket is done or stuck (`blocked`, `needs_owner`, `next: ceo`), the dispatcher writes a line to `ceo-inbox.md` and `ceo-wake.log`; a Monitor on `ceo-wake.log` wakes the CEO. The watcher (`watch.py`) adds orphaned tickets and dead waits. Details: [docs/signals.md](docs/signals.md) (Russian).
+5. The CEO answers you. If Telegram is configured, you also get a daily report, the Judge's questions to you, and a "work stalled" alarm. The bot only sends.
+6. The Overseer (`overseer.py`) sends its findings to the Judge, not to the CEO. Details: [docs/overseer.md](docs/overseer.md) (Russian).
+
+Tickets can also wait for a file, another ticket, or a job on a remote machine from `~/.ssh/config` (`wait_for`): [docs/wait-for.md](docs/wait-for.md) (Russian).
+
+**Team rules**
+
+- Only the optimal algorithm; every report has an "Algorithm: …" line.
+- Numbers go to the owner only after the Judge has checked them; an estimate is not a measurement.
+- New tasks only on the owner's word.
+- Work is handed over only with `--next`.
+- Deleting is allowed only inside the project: a `PreToolUse` hook checks Bash, PowerShell and file edits, and also refuses to delete or overwrite paths the project marks as protected (`protected_paths` in `.claude/rpv.json`).
+- Publishing (release, PR merge, push to main/master, tags, packages) only with the owner's consent on the ticket: `tickets.py allow <ID> publish --ref <decision id>`. Deleting remote branches needs the owner's word too, even for the CEO: `tickets.py allow-delete <branch> --ref <decision id>` (one hour, never main/master).
+- No "accepted with a tail": if the executor reports something from the order as not done, the Judge returns it. Every acceptance states the tails (`--tail`): none (checked against the executor's submission), tickets already filed for them, or a task for the CEO.
+- Live check: when the owner may look at the result (a page, a form, a report), the CEO writes the criterion as "`[вживую]` the owner opens X and sees Y within Z s". The executor checks it on the real machine and real data before handing in; the Judge opens it too and records what was seen, and the acceptance is refused without that record (`--live <file>`).
+- A bug counts as fixed only with a check attached; the Judge runs the checks of all fixed bugs on every acceptance.
+- The CEO cannot remove the Judge; only the owner can, with a direct quote.
+
+Full charter: [`templates/roles/README.md`](templates/roles/README.md) (Russian; `/rpv-init` copies it to `.claude/roles/README.md` in your project).
+
+## Commands
+
+| Command | Does |
+|---|---|
+| `/rpv-init` | Prepares a project: `.claude/roles`, `notes/`, `tickets/`, the owner's registry, the error registry `errors/`, `.gitignore` entries. Existing files are kept. |
+| `/ceo` | Marks the session as the CEO (hooks read the mark; it survives `/clear` in Desktop). |
+| `/rpv-start` | Starts or restarts the dispatcher and the watcher in the background. |
+| `/rpv-doctor` | One table with the health of the team: dispatcher, watcher, OS supervision, queue, errors of the last day. Read-only. |
+
+Scripts run from the plugin folder with `--project <project>`:
+
+| Script | Does |
+|---|---|
+| `dispatcher/tickets.py` | tickets: `new`, `comment`, `result`, `start`, `stop` (CEO only), `allow`, `allow-delete`, `wait`, `status`; `inbox` prints new lines of `ceo-inbox.md` |
+| `dispatcher/registry.py` | the owner's registry of decisions and goals; written by the CEO only |
+| `dispatcher/errors.py` | the error registry `.claude/errors/`: a bug is fixed only when its check failed before the fix and passes now |
+| `dispatcher/report.py` | the daily report to the owner; `--dry-run` only prints ([docs/daily-report.md](docs/daily-report.md), Russian) |
+| `dispatcher/notify.py` | a Telegram message to the owner: `send "text"`, `test` |
+| `dispatcher/supervise.py` | OS supervision of the dispatcher and the watcher: `--install`, `--uninstall` |
+| `dispatcher/release.py` | manual release: `bump` (version, commit, tag), `check` ([docs/release.md](docs/release.md), Russian) |
+
+## Configuration
+
+Three kinds of settings, all described in [docs/configuration.md](docs/configuration.md) (Russian):
+
+- **Machine environment**: `RPV_PROJECT` (project root when `--project` is not given), `RPV_TG_TOKEN` and `RPV_TG_CHAT` (the owner's Telegram bot), `RPV_PLUGIN_DIR`.
+- **Project file `.claude/rpv.json`**: protected paths, report time (`report_at`), parallelism limits, MCP servers per role, PR auto-merge, machines and job adapters. Edited by the CEO on the owner's word; closed to role runs.
+- **Constants**: tick, timeouts, loop brakes, role models, watcher thresholds. Changed only by a plugin release.
+

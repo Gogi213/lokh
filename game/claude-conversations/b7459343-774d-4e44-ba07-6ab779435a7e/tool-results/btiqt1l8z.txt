@@ -1,0 +1,567 @@
+acceptance:
+- Цена перехода 1 на 2 - 500 соли; 2 на 3 - 520; 10 на 11 - 940; 100 на 101 - 27820; 548 на 549 - 764100; сумма от 1 до 549 - 141304000.
+- Каждый купленный уровень добавляет ровно один предмет-очко навыка.
+- Отдых у алтаря заполняет здоровье, ману и выносливость до максимума и переносит точку возрождения в позицию игрока.
+- Нормальное святилище имеет зону 25 клеток по ширине (12 влево и 12 вправо плюс центр) и 15 клеток по высоте (12 вверх и 2 вниз плюс строка); малый храм - 11 по ширине.
+- Осквернение даёт ровно три волны по два стража, после третьей игрок получает предмет-награду и орден святилища обнуляется.
+- В святилище четыре слота паломников; один тип не может занимать два слота.
+catalog:
+- behavior: Перечень из 11 стилей поведения/позы NPC (сидит, знать, шут, на выступе, старик, сутулый на выступе, капитан, лодочник, принцесса, служанка, пугало-голова). NPC хранит имя своего определения
+    монстра и отметку «клеймо огня».
+  id: C-17-hub_npc-001
+  kind: npc
+  numbers:
+    style_none:
+      value: -1
+    style_values:
+      value: 11
+  own_name: Справочник стилей NPC
+  source_ref: ProjectTower.npcs.NPC (salt/ProjectTower.npcs/NPC.cs)
+- behavior: Список из 22 NPC (воины-одиночки, кочевник, мудрая женщина, шут, унылый, старик и старик-2, лодочники, капитаны, жители особых зон, принцесса и её служанка, пугало, дама дерева, привратник тьмы).
+    Внутри таблицы NPC находится по имени определения монстра; обратный поиск возвращает минус один при отсутствии.
+  id: C-17-hub_npc-002
+  kind: npc
+  numbers:
+    npc_total:
+      value: 22
+  own_name: Реестр именных NPC
+  source_ref: ProjectTower.npcs.NPCMgr (salt/ProjectTower.npcs/NPCMgr.cs)
+- behavior: Таблица цен повышения уровня в соли (550 ячеек) с началом в 500 и ростом на 5*L+21 на шаг, затем округлением вниз до кратного 20. Даёт и суммарную цену подряд идущих уровней.
+  id: C-17-hub_npc-003
+  kind: npc
+  numbers:
+    max_level_table:
+      value: 550
+    start_cost:
+      unit: соли
+      value: 500
+  own_name: Таблица цены уровней
+  source_ref: ProjectTower.player.LevelMgr (salt/ProjectTower.player/LevelMgr.cs)
+- behavior: Показывает реплики NPC рамкой по центру, плавно проявляет/гасит, ждёт подтверждения, ведёт речевую анимацию рта и открывает меню отдыха/торговли/уровня после реплик. При отдыхе в святилище выполняет
+    молитву и восстановление; в малом храме запускает свою анимацию и сразу закрывается.
+  id: C-17-hub_npc-004
+  kind: npc
+  numbers:
+    legacy_action_ids:
+      value: 5
+  own_name: Менеджер реплик игрока
+  source_ref: ProjectTower.player.PlayerDialog (salt/ProjectTower.player/PlayerDialog.cs)
+- behavior: Числовые номера орденов и их уровни членства (-1 отступник, 0 не состоит, 1 состоит с баффом). Таблица наборов расходников по ордену создаётся при старте на 10 строк.
+  id: C-17-hub_npc-005
+  kind: npc
+  numbers:
+    order_ids_used:
+      value:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 8
+    unused_order_ids:
+      value:
+      - 7
+      - 9
+  own_name: Реестр орденов
+  source_ref: ProjectTower.sanctuary.Creeds (salt/ProjectTower.sanctuary/Creeds.cs)
+- behavior: Для ордена хранит номер, суффикс варианта паломников и четыре имени расходников - лечилка, мана и два особых слота; у некоторых строк после имени стоит множитель количества.
+  id: C-17-hub_npc-006
+  kind: npc
+  numbers:
+    consumable_slots:
+      value: 4
+  own_name: Строка набора ордена
+  source_ref: ProjectTower.sanctuary.Creeds.CreedDef (salt/ProjectTower.sanctuary/Creeds.cs)
+- behavior: Хранит орден, число визитов, область карты, клетку, границы зоны, позицию алтаря, иконку, кадр захвата и счётчики осквернения, а также 4 слота паломников с типами 1-8. Внутри две стороны - обновление
+    и отрисовка.
+  id: C-17-hub_npc-007
+  kind: npc
+  numbers:
+    merchant_types:
+      note: включая «выключено»
+      value: 9
+    pilgrim_slots:
+      value: 4
+    total_char_slots:
+      note: четыре паломника и четыре резервных значка
+      value: 8
+  own_name: Состояние святилища
+  source_ref: ProjectTower.sanctuary.Sanctuary (salt/ProjectTower.sanctuary/Sanctuary.cs)
+- behavior: Слот хранит индекс персонажа, определение монстра, время появления (3 с + номер слота + случайные 0-10 с) и непрозрачность вывески (появляется за 1 с).
+  id: C-17-hub_npc-008
+  kind: npc
+  numbers:
+    base_spawn_delay:
+      unit: с
+      value: 3
+    random_spawn_delay_max:
+      unit: с
+      value: 10
+  own_name: Слот паломника
+  source_ref: ProjectTower.sanctuary.Sanctuary.SanctuaryChar (salt/ProjectTower.sanctuary/Sanctuary.cs)
+- behavior: Рисует знамя ордена за алтарём (огненный и тёмный ордена - свои эффекты, ордена 3 и 4 - по три знамени), вывески кузнеца, торговца, проводника и наёмника у мест паломников, затемнение при осквернении.
+    Пропущено как чистый рендер, игровых чисел нет.
+  id: C-17-hub_npc-009
+  kind: npc
+  numbers:
+    visible_range_x:
+      unit: px
+      value: 1200
+    visible_range_y:
+      unit: px
+      value: 600
+  own_name: Отрисовка святилища
+  source_ref: ProjectTower.sanctuary.SanctuaryDraw (salt/ProjectTower.sanctuary/SanctuaryDraw.cs)
+- behavior: Содержит массив из 40 святилищ, находит святилище по клетке игрока, определяет, в какой зоне стоит игрок (захват, отдых/торговля), переносит паломников в резерв и обратно, сохраняет и читает
+    орден, визиты и паломников в данных игрока. Номера 0-31 названы (по местам - берег, деревня, ущелье, замок, твердыня и т.д.), 32 штуки на карте.
+  id: C-17-hub_npc-010
+  kind: npc
+  numbers:
+    max_sanctuaries:
+      value: 40
+    named_sanctuary_ids:
+      value: 32
+    other_order_marker_offset:
+      value: 1000
+  own_name: Менеджер святилищ
+  source_ref: ProjectTower.sanctuary.SanctuaryMgr (salt/ProjectTower.sanctuary/SanctuaryMgr.cs)
+- behavior: Добавляет паломника в слот и создаёт двух стражей волны по жребию. Стражи сразу агрессивны. Подробности - в правилах про паломников и осквернение.
+  id: C-17-hub_npc-011
+  kind: npc
+  numbers:
+    guardians_per_wave:
+      value: 2
+    pi
+behavior: Цена перехода с уровня L на уровень L+1 берётся из таблицы на 550 ячеек (индексы 0-549, ячейка 0 не используется). Базовая цена для L=1 равна 500 соли. Каждая следующая необработанная цена получается прибавлением
+  к предыдущей величины 5*L + 21 (L - индекс новой ячейки). Накопление идёт по необработанным значениям, и лишь потом каждая цена округляется вниз до кратного 20. Это даёт закрытую формулу необработанной цены 2.5*L^2 + 23.5*L
+  + 474 (проверено на L=2 - 531 до округления, 520 после). Цена нескольких уровней подряд - сумма цен каждого из пройденных уровней.
+conditions:
+- ячейка 549 существует (766860), но цена из неё применяется только для перехода 549 на 550, который таблица не поддерживает
+- стартовый уровень персонажа - 1
+confidence: high
+id: 17.level-curve
+numbers:
+  base_cost_level_1:
+    unit: соли
+    value: 500
+  cost_L100_to_L101:
+    unit: соли
+    value: 27820
+  cost_L10_to_L11:
+    unit: соли
+    value: 940
+  cost_L2_to_L3:
+    unit: соли
+    value: 520
+  cost_L548_to_L549:
+    unit: соли
+    value: 764100
+  cost_step_offset:
+    unit: соли
+    value: 21
+  cost_step_per_level:
+    unit: соли на номер уровня
+    value: 5
+  rounding_step:
+    note: округление вниз после накопления
+    unit: соли
+    value: 20
+  table_size:
+    unit: ячеек
+    value: 550
+  total_L1_to_L549:
+    note: сумма цен для L от 1 до 548
+    unit: соли
+    value: 141304000
+source_refs:
+- ProjectTower.player.LevelMgr.Init (salt/ProjectTower.player/LevelMgr.cs:11-22)
+- ProjectTower.player.LevelMgr.GetLevelSaltDifference (salt/ProjectTower.player/LevelMgr.cs:25)
+- ProjectTower.player.PlayerStats (salt/ProjectTower.player/PlayerStats.cs:243)
+tags:
+- progression
+- salt
+- leveling
+title: Кривая цены уровня в соли
+
+behavior: 'В главном меню святилища можно купить повышение уровня за соль из кошелька. Цена одного уровня - ячейка таблицы для текущего уровня; если соли меньше, меню показывает только отказ. Игрок может набрать несколько
+  уровней разом: каждая прибавка проверяется, хватит ли соли на суммарную цену, и не выходит ли целевой уровень за границу 549 (строго меньше). Каждый купленный уровень добавляет в инвентарь один предмет-очко навыка, который
+  тратится в дереве умений; сам уровень на статы влияет через пересчёт характеристик. Полоска соли на экране показывает отношение накопленной соли к цене следующего уровня (не больше 1).'
+conditions:
+- списание соли и повышение уровня происходят после анимации (проверка по цене на момент подтверждения)
+- предметы-очки возвращаются при сбросе узла дерева через предмет-обратный обмен
+confidence: medium
+id: 17.level-up-purchase
+numbers:
+  multi_buy_target_ceiling:
+    note: суммарная цель при покупке пачки должна быть строго ниже
+    value: 549
+  skill_items_per_level:
+    unit: предмет
+    value: 1
+  starting_level:
+    value: 1
+source_refs:
+- ProjectTower.player.dialog.levels.LevelUpYouSure (salt/ProjectTower.player.dialog.levels/LevelUpYouSure.cs:46-95)
+- ProjectTower.player.Player (salt/ProjectTower.player/Player.cs:1323-1328)
+- ProjectTower.player.PlayerDraw (salt/ProjectTower.player/PlayerDraw.cs:702)
+- ProjectTower.player.dialog.levels.AcceptLevel (salt/ProjectTower.player.dialog.levels/AcceptLevel.cs:53,172)
+tags:
+- progression
+- skill-tree
+title: Покупка уровней в святилище
+
+behavior: 'Святилище создаётся из особого тайла на карте (признак ячейки 11) на одном из двух слоёв. Максимум 40 святилищ (в обеих картах 32 штуки). Координаты клетки - деление позиции на 64 px по ширине и 32 px по высоте.
+  Зона нормального святилища - 12 клеток влево и вправо, 12 вверх и 2 вниз; у святилища-«храмика» (малого, без паломников) - 5 по горизонтали, 10 вверх, 2 вниз. Центральная точка (алтарь) - середина клетки по X (+32 px) и
+  y*32 + 6.4 px по высоте. Текстовые метки в данных тайла задают: запуск сюжетной цепочки при захвате, флаг игрока, набор паломников (торговец, кузнец, маг, алхимик, вождь, наёмник, жрец) и орден. Позицию игрока в святилище
+  определяют по клетке; пересечение зон не проверяется, берётся первое попавшееся святилище.'
+conditions:
+- проверка принадлежности зоне - клетка по X в пределах [левый, правый], по Y в пределах [верх, низ + 1]
+- рисуются и обновляются все 40 слотов; на экране показывается святилище, находящееся не дальше 1200 px по X и 600 px по Y от камеры
+confidence: high
+id: 17.sanctuary-zone
+numbers:
+  altar_offset_x:
+    unit: px
+    value: 32
+  altar_offset_y:
+    unit: px
+    value: 6.4
+  max_sanctuaries:
+    unit: штук
+    value: 40
+  sanctuaries_on_map:
+    unit: штук
+    value: 32
+  tile_height:
+    unit: px
+    value: 32
+  tile_width:
+    unit: px
+    value: 64
+  visible_range_x:
+    unit: px
+    value: 1200
+  visible_range_y:
+    unit: px
+    value: 600
+  zone_down:
+    unit: клеток
+    value: 2
+  zone_half_width_normal:
+    unit: клеток
+    value: 12
+  zone_half_width_shrine:
+    unit: клеток
+    value: 5
+  zone_up_normal:
+    unit: клеток
+    value: 12
+  zone_up_shrine:
+    unit: клеток
+    value: 10
+source_refs:
+- ProjectTower.sanctuary.Sanctuary (salt/ProjectTower.sanctuary/Sanctuary.cs:137-149)
+- ProjectTower.sanctuary.SanctuaryMgr.InitFromMap (salt/ProjectTower.sanctuary/SanctuaryMgr.cs)
+- ProjectTower.sanctuary.SanctuaryMgr.GetSanctuaryIn (salt/ProjectTower.sanctuary/SanctuaryMgr.cs)
+- data/map/map_summary.json (поле sanctuaries)
+tags:
+- sanctuary
+- map
+title: Зона святилища и размещение на карте
+
+behavior: 'Свободное святилище (орден 0) захватывают, поставив у алтаря предмет-эмблему ордена: игрок должен стоять в полосе от алтаря вниз на 128 px (строго ниже линии алтаря и не ниже 128 px) и не дальше 120 px по горизонтали,
+  кроме второго игрока кооператива. Захват: даётся достижение, срабатывает сюжетная цепочка и выставляется флаг игрока, описанные в данных этой точки, мир трясётся с силой 0.8, счётчик визитов ставится в 1, святилище получает
+  номер ордена от 1 до 9 и иконку этого ордена. Уже занятое святилище (результат запроса +1000) даёт игроку из другого ордена доступ к вступлению или осквернению. После загрузки сохранения орден и состав паломников читаются
+  из сохранённых значений, а сюжетная цепочка запускается заново в состоянии «включено».'
+conditions:
+- в кооперативе второй игрок захватывать не может
+- малый храм не получает орден через захват - его орден берётся как последний из орденов с уровнем игрока от 1
+confidence: medium
+id: 17.sanctuary-claim
+numbers:
+  claim_depth_below_altar:
+    unit: px
+    value: 128
+  claim_half_width:
+    unit: px
+    value: 120
+  claim_quake:
+    value: 0.8
+  initial_visit_count:
+    value: 1
+  order_id_max:
+    value: 9
+  order_id_min:
+    value: 1
+source_refs:
+- ProjectTower.sanctuary.SanctuaryMgr.GetSanctuaryClaim (salt/ProjectTower.sanctuary/SanctuaryMgr.cs)
+- ProjectTower.sanctuary.Sanctuary.Claim (salt/ProjectTower.sanctuary/Sanctuary.cs:721)
+- ProjectTower.sanctuary.Sanctuary.InitFromPlayerCreed (salt/ProjectTower.sanctuary/Sanctuary.cs:1038)
+- ProjectTower.sanctuary.Sanctuary.SetCreedLoadout (salt/ProjectTower.sanctuary/Sanctuary.cs:780)
+tags:
+- sanctuary
+- claim
+title: Захват святилища орденом
+
+behavior: 'Обращение к алтарю (на 120 px спереди и 60 px позади игрока по направлению взгляда, на уровне алтаря) открывает окно отдыха. Эффекты отдыха: счётчик отдыхов растёт на 1, горящий факел выбрасывается, игрок молится;
+  святилище записывается как последнее посещённое, очищаются баффы и дебаффы особого типа «очищение святилища», точка возрождения переносится в текущую позицию (кроме второго игрока кооператива), накопленные потери порога
+  здоровья и выносливости обнуляются, здоровье, мана и выносливость заполняются до максимума, у святилища растёт счётчик посещений на 1, пересобирается набор расходников ордена, а все враги карты (по определённым типам), не
+  привязанные к святилищам и игрокам, исчезают и возрождаются заново. В кооперативе умирающий напарник воскрешается на месте с полным здоровьем и получает такой же набор. Вокруг алтаря рассыпается 64 частицы, играет звук отдыха.
+  Игра записывает сохранение. Малый храм ведёт себя как обычный отдых без меню - играет анимация поклона и сразу закрывается.'
+conditions:
+- доступ закрыт, если святилище занято враждебным для игрока орденом (положение игрока отрицательное)
+- во время осквернения алтарь не доступен
+- в кооперативе напарник не увеличивает счётчик посещений
+confidence: high
+id: 17.sanctuary-rest
+numbers:
+  interact_front_reach:
+    unit: px
+    value: 120
+  interact_rear_reach:
+    unit: px
+    value: 60
+  interact_vertical_band:
+    note: от линии алтаря вниз
+    unit: px
+    value: 128
+  npc_vertical_band:
+    note: допуск по высоте при подходе к паломнику
+    unit: px
+    value: 10
+  rest_count_increment:
+    value: 1
+  rest_particles:
+    unit: штук
+    value: 64
+  visit_count_increment:
+    value: 1
+source_refs:
+- ProjectTower.player.PlayerDialog.Activate (salt/ProjectTower.player/PlayerDialog.cs:69-99)
+- ProjectTower.sanctuary.Sanctuary.RefreshChar (salt/ProjectTower.sanctuary/Sanctuary.cs:976)
+- ProjectTower.sanctuary.SanctuaryMgr.GetSanctuaryBuy (salt/ProjectTower.sanctuary/SanctuaryMgr.cs)
+- ProjectTower.map.MapMgr.SanctuaryRefresh (salt/ProjectTower.map/MapMgr.cs:330)
+tags:
+- sanctuary
+- rest
+- checkpoint
+title: Отдых у алтаря
+
+behavior: При каждом отдыхе набор ордена перекладывается заново. Сначала из инвентаря и ячеек расходников удаляются все предметы, помеченные как «набор святилища» (список из 30 видов лута). Затем для каждого из четырёх слотов
+  добавляется предмет ордена. Слот 0 - лечилка, количество 3 плюс значение улучшения «ёмкость лечилки» из статов игрока. Слот 1 - восстановление маны, количество равно значению улучшения «ёмкость маны». Слоты 2 и 3 - особые
+  предметы ордена (усиления, метательное, особая вещь), стартовое количество 0. Если игрок состоит в ордене (уровень ордена 1 и выше), к количеству слота прибавляется его накопленная награда по этому слоту. Если у строки определения
+  указан множитель, количество умножается на него (метательные ножи лесного ордена ×25, кровавые склянки тёмного ордена ×3, очищающая ткань ордена блеска ×2 в одном из режимов игры и ×1 в другом). Предметы с количеством 0
+  не добавляются. Каждый добавленный предмет кладётся в первую свободную ячейку расходников, и на экране показывается пометка о получении.
+conditions:
+- орден 0 (нет ордена) набор не выдаёт
+- в расширенном режиме при кооперативе второй игрок использует набор того ордена, в котором состоит он сам (первый найденный орден с уровнем больше 0)
+- при отдыхе выгружается запись для рейтинга (сетевая служба) - пропущено как служебное
+confidence: medium
+id: 17.creed-loadout
+numbers:
+  base_heal_count:
+    unit: штук
+    value: 3
+  base_mana_count:
+    note: плюс значение улучшения
+    unit: штук
+    value: 0
+  blood_vials_multiplier:
+    value: 3
+  cleansing_cloth_multiplier:
+    note: в одном из режимов 1
+    value: 2
+  loadout_item_kinds:
+    note: сколько видов лута признаются набором святилища
+    value: 30
+  slot_count:
+    unit: слотов
+    value: 4
+  thrown_knives_multiplier:
+    value: 25
+source_refs:
+- ProjectTower.sanctuary.Sanctuary.SetCreedLoadout (salt/ProjectTower.sanctuary/Sanctuary.cs:780-850)
+- ProjectTower.sanctuary.Sanctuary.AddCreedItem (salt/ProjectTower.sanctuary/Sanctuary.cs:850-920)
+- ProjectTower.sanctuary.Sanctuary.IsCreedLoadoutItem (salt/ProjectTower.sanctuary/Sanctuary.cs:925)
+- ProjectTower.sanctuary.Creeds.Init (salt/ProjectTower.sanctuary/Creeds.cs:58-70)
+tags:
+- sanctuary
+- consumables
+- build
+title: Набор расходников ордена при отдыхе
+
+behavior: 'В каждом святилище четыре слота паломников. Тип паломника записан в данных точки (жрец, торговец, кузнец, маг, алхимик, проводник, вождь, наёмник - 8 видов). Добавление: тот же тип дважды не берётся; свободный слот
+  выбирается в одном из двух случайных порядков (1,2,0,3 или 2,1,3,0), если все четыре заняты - отказ. Пока у святилища есть орден, для каждого слота с типом проверяется, существует ли персонаж-паломник; если нет и осквернение
+  не идёт (или идёт в первой волне), создаётся новый - из левого или правого края зоны (подбрасывается монета, шанс 0.5), стоит в покое на земле. Вариант персонажа берётся по виду паломника и ордену (базовое имя плюс суффикс
+  ордена); если такого варианта нет, берётся базовый. Позиции мест в мире - от алтаря на -500, -250, +250, +500 px по горизонтали (слоты 0-1 слева, 2-3 справа). После потери паломника запоминается время нового появления -
+  30-100 с от времени захвата. При осквернении паломники исчезают, а после очищения святилища (без ордена) постепенно гаснут за 1 с.'
+conditions:
+- паломников не бывает у святилища без ордена
+- у малого храма паломников нет
+confidence: medium
+id: 17.pilgrims
+numbers:
+  fade_in_duration:
+    unit: с
+    value: 1
+  initial_spawn_delay_base:
+    unit: с
+    value: 3
+  initial_spawn_delay_random_max:
+    unit: с
+    value: 10
+  pilgrim_slots:
+    unit: слота
+    value: 4
+  pilgrim_types:
+    value: 8
+  respawn_delay:
+    unit: с
+    value:
+    - 30
+    - 100
+  slot_fill_orders:
+    value:
+    - - 1
+      - 2
+      - 0
+      - 3
+    - - 2
+      - 1
+      - 3
+      - 0
+  slot_offsets_x:
+    note: от алтаря
+    unit: px
+    value:
+    - -500
+    - -250
+    - 250
+    - 500
+  spawn_side_chance:
+    value: 0.5
+source_refs:
+- ProjectTower.sanctuary.SanctuaryUpdate.AddMerchant (salt/ProjectTower.sanctuary/SanctuaryUpdate.cs:19-73)
+- ProjectTower.sanctuary.Sanctuary.GetSanctuaryCharMonsterIdx (salt/ProjectTower.sanctuary/Sanctuary.cs:308)
+- ProjectTower.sanctuary.Sanctuary.Update (salt/ProjectTower.sanctuary/Sanctuary.cs:351-520)
+- ProjectTower.sanctuary.Sanctuary.GetPilgrimLoc (salt/ProjectTower.sanctuary/Sanctuary.cs:1033)
+- ProjectTower.sanctuary.Sanctuary.SanctuaryChar (salt/ProjectTower.sanctuary/Sanctuary.cs:26-32)
+tags:
+- sanctuary
+- npc
+title: Паломники - поселенцы святилища
+
+behavior: 'Осквернение запускается, когда игрок, чьё положение у ордена отрицательное, зашёл в святилище, либо игрок с порчей 100 и выше без уровня в ордене вошёл в чужое святилище, либо игрок сам подтвердил осквернение в
+  меню (или применил специальный предмет-осквернитель). При запуске счётчик ставится в 1 с, волна - 1, всего волн 3, положение игрока у ордена становится враждебным. Каждую секунду после 10-й проверяется, остались ли стражи:
+  если нет, волна растёт; после волны 3 осквернение завершается - выдаётся предмет-награда, счётчик изгнаний растёт, паломники и орден святилища обнуляются. Если стражи живы, их позиции прижимаются к зоне (1000 px по X, 600
+  вверх, 200 вниз от алтаря). Каждая волна создаёт двух стражей (на левом и правом краях зоны, смотрят внутрь). Одному из двух (выбирается монетой) достаётся маг, второму рыцарь; в третьей волне вместо рыцаря всадник, а вместо
+  мага - маг. Для ордена 2 рыцарь и маг получают особые варианты, для ордена 5 - гнилой рыцарь, для остальных (кроме 3) - общий вариант. Стражи сразу агрессивны: оповещение 20 с, работа 10 с, цель - ближайший игрок. Осквернение
+  сорвётся, если в первые 6 секунд в зоне нет игроков, или, при кооперативе, если после 6 с в зоне нет ни одного живого игрока (тогда все созданные святилищем персонажи удаляются).'
+conditions:
+- отдых у алтаря во время осквернения не доступен; при отдыхе в другом месте осквернение гасится и стражи удаляются
+- в оригинале волны 1 и 2 одинаковы, в волне 3 состав меняется
+- при успехе эффект экрана (событие «изгнание») запускается для основного игрока
+confidence: medium
+id: 17.desecration
+numbers:
+  abort_if_empty_before:
+    unit: с
+    value: 6
+  clamp_down:
+    unit: px
+    value: 200
+  clamp_up:
+    unit: px
+    value: 600
+  clamp_x:
+    unit: px
+    value: 1000
+  corruption_threshold:
+    value: 100
+  guardian_aggro_alert:
+    unit: с
+    value: 20
+  guardian_aggro_job:
+    unit: с
+    value: 10
+  guardians_per_wave:
+    value: 2
+  mage_coin_chance:
+    value: 0.5
+  start_counter:
+    unit: с
+    value: 1
+  wave_check_start:
+    unit: с
+    value: 10
+  waves_total:
+    value: 3
+source_refs:
+- ProjectTower.sanctuary.Sanctuary.Update (salt/ProjectTower.sanctuary/Sanctuary.cs:351-480)
+- ProjectTower.sanctuary.SanctuaryUpdate.AddGuardian (salt/ProjectTower.sanctuary/SanctuaryUpdate.cs:74-143)
+- ProjectTower.character.update.CharUpdate (salt/ProjectTower.character.update/CharUpdate.cs:815-835)
+- ProjectTower.player.PlayerInv (salt/ProjectTower.player/PlayerInv.cs:1725-1734)
+- ProjectTower.player.dialog.levels.DesecrateYouSure (salt/ProjectTower.player.dialog.levels/DesecrateYouSure.cs:104)
+tags:
+- sanctuary
+- wave
+- desecration
+title: Осквернение святилища - три волны стражей
+
+behavior: 'У игрока есть положение по каждому ордену. Отрицательное положение (его вызывает осквернение) запрещает вход в святилища этого ордена: игрок мгновенно переносится на последнюю безопасную точку у входа (по X округляется
+  до клетки +32 px), ему выдаётся предмет-улика, а если и после этого он оказался в зоне, его переносит в фиксированную точку с координатами (900, 14800) px, после чего высота опускается до земли. Положение напарника в кооперативе
+  проверяется по основному игроку.'
+conditions:
+- предмет-улика выдаётся один раз (проверка наличия)
+confidence: medium
+id: 17.hostile-standing
+numbers:
+  fallback_x:
+    unit: px
+    value: 900
+  fallback_y:
+    unit: px
+    value: 14800
+  respawn_snap_offset:
+    unit: px
+    value: 32
+  respawn_snap_tile:
+    unit: px
+    value: 64
+source_refs:
+- ProjectTower.map.MapMgr.CheckSafeSanctuary (salt/ProjectTower.map/MapMgr.cs:945-975)
+- ProjectTower.sanctuary.SanctuaryMgr.GetSanctuaryBuy (salt/ProjectTower.sanctuary/SanctuaryMgr.cs)
+tags:
+- sanctuary
+- standing
+title: Враждебное положение у ордена и вход в святилище
+
+behavior: 'Орденов шесть играбельных (номера 1-6), плюс огненный (8) и два запасных (7 и 9, использующие набор ордена 3), и свечной (10) без собственной записи набора. Номер 0 - «без ордена». У каждого ордена своя строка набора
+  из четырёх расходников и суффикс варианта паломников. Уровень членства в ордене у игрока: -1 отступник, 0 не состоит, 1 и выше - состоит с баффом. Всего 4 награды ордена (по числу слотов набора) накапливаются при росте членства.'
+conditions:
+- номера 7 и 9 в таблице есть, но в обычной игре не используются
+confidence: medium
+id: 17.creed-registry
+numbers:
+  declared_orders:
+    note: размер таблицы наборов
+    value: 10
+  order_standing_apostate:
+    value: -1
+  order_standing_member:
+    value: 1
+  order_standing_none:
+    value: 0
+  playable_orders:
+    value: 6
+  unlock_slots:
+    value: 4
+source_refs:
+- ProjectTower.sanctuary.Creeds (salt/ProjectTower.sanctuary/Creeds.cs:5-70)
+- ProjectTower.sanctuary.Sanctuary.SetCreedAchievement (salt/ProjectTower.sanctuary/Sanctuary.cs:267)
+tags:
+- creed
+- sanctuary
+title: Реестр орденов
+

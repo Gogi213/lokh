@@ -1,0 +1,335 @@
+===== c-item_synergies.yaml Коллекция «Группы, рецепты, исключения, проклятия»: автоизвлечение из данных игры.
+C-15-item_synergies-0001 upgrade_recipe 0001
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.12, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0002 upgrade_recipe 0002
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0003 upgrade_recipe 0003
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0004 upgrade_recipe 0004
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0005 upgrade_recipe 0005
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0006 upgrade_recipe 0006
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0007 upgrade_recipe 0007
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0008 upgrade_recipe 0008
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0009 upgrade_recipe 0009
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0010 upgrade_recipe 0010
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.06, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0011 upgrade_recipe 0011
+  N: {'category': 0, 'upgrade': 2, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0012 upgrade_recipe 0012
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0013 upgrade_recipe 0013
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0014 upgrade_recipe 0014
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0015 upgrade_recipe 0015
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.07, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0016 upgrade_recipe 0016
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0017 upgrade_recipe 0017
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0018 upgrade_recipe 0018
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0019 upgrade_recipe 0019
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.06, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0020 upgrade_recipe 0020
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0021 upgrade_recipe 0021
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0022 upgrade_recipe 0022
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0023 upgrade_recipe 0023
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0024 upgrade_recipe 0024
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0025 upgrade_recipe 0025
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0026 upgrade_recipe 0026
+  N: {'category': 0, 'upgrade': 2, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0027 upgrade_recipe 0027
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0028 upgrade_recipe 0028
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0029 upgrade_recipe 0029
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0030 upgrade_recipe 0030
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0031 upgrade_recipe 0031
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0032 upgrade_recipe 0032
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0033 upgrade_recipe 0033
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0034 upgrade_recipe 0034
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0035 upgrade_recipe 0035
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0036 upgrade_recipe 0036
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0037 upgrade_recipe 0037
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.06, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0038 upgrade_recipe 0038
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0039 upgrade_recipe 0039
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0040 upgrade_recipe 0040
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0041 upgrade_recipe 0041
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0042 upgrade_recipe 0042
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0043 upgrade_recipe 0043
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0044 upgrade_recipe 0044
+  N: {'category': 0, 'upgrade': 2, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0045 upgrade_recipe 0045
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0046 upgrade_recipe 0046
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0047 upgrade_recipe 0047
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0048 upgrade_recipe 0048
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0049 upgrade_recipe 0049
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0050 upgrade_recipe 0050
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0051 upgrade_recipe 0051
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0052 upgrade_recipe 0052
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.07, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0053 upgrade_recipe 0053
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0054 upgrade_recipe 0054
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0055 upgrade_recipe 0055
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0056 upgrade_recipe 0056
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0057 upgrade_recipe 0057
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0058 upgrade_recipe 0058
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0059 upgrade_recipe 0059
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0060 upgrade_recipe 0060
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.09, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0061 upgrade_recipe 0061
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0062 upgrade_recipe 0062
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0063 upgrade_recipe 0063
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0064 upgrade_recipe 0064
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0065 upgrade_recipe 0065
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0066 upgrade_recipe 0066
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0067 upgrade_recipe 0067
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0068 upgrade_recipe 0068
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0069 upgrade_recipe 0069
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0070 upgrade_recipe 0070
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0071 upgrade_recipe 0071
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0072 upgrade_recipe 0072
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0073 upgrade_recipe 0073
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0074 upgrade_recipe 0074
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0075 upgrade_recipe 0075
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0076 upgrade_recipe 0076
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0077 upgrade_recipe 0077
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0078 upgrade_recipe 0078
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0079 upgrade_recipe 0079
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0080 upgrade_recipe 0080
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0081 upgrade_recipe 0081
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0082 upgrade_recipe 0082
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0083 upgrade_recipe 0083
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0084 upgrade_recipe 0084
+  N: {'category': 0, 'upgrade': 4, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0085 upgrade_recipe 0085
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0086 upgrade_recipe 0086
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0087 upgrade_recipe 0087
+  N: {'category': 0, 'upgrade': 5, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0088 upgrade_recipe 0088
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0089 upgrade_recipe 0089
+  N: {'category': 0, 'upgrade': 0, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0090 upgrade_recipe 0090
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.03, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0091 upgrade_recipe 0091
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0092 upgrade_recipe 0092
+  N: {'category': 0, 'upgrade': 1, 'upgradeFac': 1.04, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0093 upgrade_recipe 0093
+  N: {'category': 0, 'upgrade': 2, 'upgradeFac': 1.05, 'reqCount': 1, 'cost': 100000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0094 upgrade_recipe 0094
+  N: {'category': 1, 'upgrade': 0, 'upgradeFac': 1.01, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0095 upgrade_recipe 0095
+  N: {'category': 1, 'upgrade': 0, 'upgradeFac': 1.01, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0096 upgrade_recipe 0096
+  N: {'category': 1, 'upgrade': 0, 'upgradeFac': 1.01, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0097 upgrade_recipe 0097
+  N: {'category': 1, 'upgrade': 0, 'upgradeFac': 1.01, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0098 upgrade_recipe 0098
+  N: {'category': 1, 'upgrade': 0, 'upgradeFac': 1.01, 'reqCount': 1, 'cost': 30000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0099 upgrade_recipe 0099
+  N: {'category': 2, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0100 upgrade_recipe 0100
+  N: {'category': 2, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0101 upgrade_recipe 0101
+  N: {'category': 2, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 10000, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0102 upgrade_recipe 0102
+  N: {'category': 2, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 1500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+C-15-item_synergies-0103 upgrade_recipe 0103
+  N: {'category': 2, 'upgrade': 0, 'upgradeFac': 1.1, 'reqCount': 1, 'cost': 3500, 'index': 0}
+  B: Автоизвлечено из данных игры; поведение не описано — числа в numbers.
+===== c-value_curves.yaml Собрать каталог зависимостей «величина → величина» в изученных файлах: угасание частиц эффектов, пороговое сокращение их жизни при перегрузке и несколько кривых защиты героя. Изучаем формы (линейное затухание, острый пик, ступени) и масштаб входов и выходов.
+C-14-value_curves-000 Искры с взлётом: подъём и угасание
+  N: {'curve_id': 'частица_искра_вверх', 'input_var': 'оставшаяся жизнь, с', 'output_var': 'прозрачность 0…0.3; вертикальная скорость, px/с', 'shape': 'linear (прозрачность ∝ остатку жизни) + равноускоренное движение вверх', 'domain': 'остаток жизни от начального (0.4–0.6 с) до 0', 'range': 'прозрачность 0.2–0.3 → 0', 'constants.life': {'value': [0.4, 0.6], 'unit': 'с', 'note': 'случайная начальная длительность жизни частицы'}, 'constants.alpha_k': 0.5, 'constants.accel_y': {'value': -300, 'unit': 'px/с²', 'note': 'вверх'}, 'constants.initial_vy': {'value': [-100, 0], 'unit': 'px/с'}, 'constants.spin': {'value': [-10, 10], 'unit': 'рад/с'}, 'constants.size': [0, 4], 'constants.sprite_frames': '5…
+  B: Каждая искра живёт 0.4–0.6 с. Движется со случайной начальной вертикальной скоростью от −100 до 0 px/с и с ускорением −300 px/с² вверх, вращается со случайной скоростью до ±10 рад/с. Прозрачность равна половине остатка жизни, то есть падает линейно с 0.2–0.3 до нуля. Масштаб спрайта = 0.05 × случайный размер (0–4) × масштаб глубины слоя.
+C-14-value_curves-001 Вспышка-штрих: резкий пик и хвост
+  N: {'curve_id': 'частица_штрих', 'input_var': 'оставшаяся жизнь f, с', 'output_var': 'прозрачность штриха', 'shape': 'кусочно-линейная с крутым подъёмом: a = 0.1·f; если a > 0.05, то a += (a − 0.05)·100', 'domain': 'f ∈ (0, 0.6]', 'range': 'от 0 до ≈1.05 (при f = 0.6); при f ≤ 0.5 не более 0.05', 'constants.life': {'value': [0.4, 0.6], 'unit': 'с', 'note': 'случайная начальная длительность жизни частицы'}, 'constants.alpha_k': 0.1, 'constants.knee': 0.05, 'constants.gain_above_knee': 100, 'constants.streak_aspect': '2:1', 'constants.core_alpha_k': 0.5, 'constants.spin': {'value': [-1, 1], 'unit': 'рад/с'}, 'constants.initial_angle': {'value': [0, 6.28], 'unit': 'рад'}, 'constants.size': [0, 4],
+  B: У этой частицы две части: вытянутый 2:1 штрих (левый/правый вариант зеркалится) и круглое ядро. Прозрачность штриха — 0.1 от остатка жизни, но выше порога 0.05 (то есть в первые ~0.1 с жизни) превышение умножается на 100 и прибавляется — получается резкая вспышка, затем тихий хвост не выше 0.05. Ядро угасает линейно (0.5 × остаток). Начальный угол случайный от 0 до 6.28 рад, вращение ±1 рад/с.
+C-14-value_curves-002 Зелёные брызги с падением и сносом
+  N: {'curve_id': 'частица_брызги_вправо', 'input_var': 'оставшаяся жизнь, с', 'output_var': 'скорость px/с; прозрачность 0…0.6', 'shape': 'линейное затухание прозрачности + равноускоренное движение', 'domain': '0…0.6 с', 'range': 'прозрачность 0.4–0.6 → 0', 'constants.life': {'value': [0.4, 0.6], 'unit': 'с', 'note': 'случайная начальная длительность жизни частицы'}, 'constants.accel_y': {'value': 500, 'unit': 'px/с²', 'note': 'вниз'}, 'constants.accel_x': {'value': 100, 'unit': 'px/с²', 'note': 'вправо'}, 'constants.tint': 'жёлто-зелёный (0.65, 0.9, 0.2)', 'constants.spin': {'value': [-5, 5], 'unit': 'рад/с'}, 'constants.size': [0, 2], 'constants.sprite_frames': '1…4', 'constants.draw_scale_k':
+  B: Брызги падают с ускорением 500 px/с² вниз и сносятся вправо с 100 px/с²; прозрачность равна остатку жизни (линейно к нулю), цвет жёлто-зелёный. Размер 0–2, масштаб 0.125 × размер × глубина слоя, вращение ±5 рад/с.
+C-14-value_curves-003 Белые капли с падением
+  N: {'curve_id': 'частица_капли', 'input_var': 'оставшаяся жизнь, с', 'output_var': 'скорость px/с; прозрачность', 'shape': 'линейное затухание + равноускоренное падение', 'domain': '0…0.6 с', 'range': 'прозрачность 0.4–0.6 → 0', 'constants.life': {'value': [0.4, 0.6], 'unit': 'с', 'note': 'случайная начальная длительность жизни частицы'}, 'constants.accel_y': {'value': 300, 'unit': 'px/с²', 'note': 'вниз'}, 'constants.accel_x': 0, 'constants.tint': 'белый', 'constants.spin': {'value': [-5, 5], 'unit': 'рад/с'}, 'constants.size': [0, 2], 'constants.sprite_frames': '1…4', 'constants.draw_scale_k': 0.125, 'applied_where': 'эффект попадания стихийной атаки, вариант 4'}
+  B: То же, что предыдущий вариант, но без бокового сноса и слабее падение (300 px/с² вниз), цвет белый.
+C-14-value_curves-004 Мелкие неподвижные блики (два цвета)
+  N: {'curve_id': 'частица_блик', 'input_var': 'оставшаяся жизнь, с', 'output_var': 'прозрачность', 'shape': 'linear', 'domain': '0…0.6 с', 'range': {'value': 'вариант A: 0.4–0.6 → 0; вариант B: 0.2–0.3 → 0'}, 'constants.life': {'value': [0.4, 0.6], 'unit': 'с', 'note': 'случайная начальная длительность жизни частицы'}, 'constants.accel': 'нет', 'constants.spin': {'value': [-1, 1], 'unit': 'рад/с'}, 'constants.size': [0, 2], 'constants.sprite_frames': '41…49', 'constants.draw_scale_k': 0.35, 'constants.tint_A': 'тёплый (1, 0.9, 0.8)', 'constants.tint_B': 'зелёно-жёлтый (0.8, 1, 0.5), прозрачность вдвое меньше', 'applied_where': 'эффект попадания стихийной атаки, варианты 5 и 6'}
+  B: Блики не ускоряются, только вращаются (±1 рад/с). Масштаб 0.35 × размер (0–2) × глубина слоя. Первый вариант тёплый и прозрачность равна остатку жизни, второй — зелёно-жёлтый с прозрачностью вдвое меньше.
+C-14-value_curves-005 Сокращение жизни частиц при большой плотности
+  N: {'curve_id': 'частицы_перегрузка', 'input_var': 'число живых частиц этого типа N', 'output_var': 'скорость расходования жизни, множитель к реальному времени', 'shape': 'step: 1 при N ≤ 100; 2 при 100 < N ≤ 200; 3 при N > 200', 'domain': 'N ≥ 0', 'range': '1…3', 'constants.thresholds': [100, 200], 'applied_where': 'обновление частиц этого эффекта (и ещё ряда базовых эффектов)'}
+  B: Когда частиц одного типа становится больше 100, у каждой жизнь убывает вдвое быстрее (одно дополнительное списание времени за кадр), а когда больше 200 — втрое быстрее. Это защита производительности: плотные эффекты быстрее рассеиваются.
+C-14-value_curves-006 Бонус защиты от уровня героя
+  N: {'curve_id': 'защита_от_уровня', 'input_var': 'уровень героя L', 'output_var': 'прибавка к защите', 'shape': 'linear; в расширенном режиме после уровня 50 наклон вдвое меньше', 'domain': 'L ≥ 1; для стата 7 бонус равен 0', 'range': 'классика: 1.125·L; расширенный, L > 50: ((L − 50)·0.5 + 50)·1.125', 'constants.k': 1.125, 'constants.k_over_50_enhanced': 0.5, 'constants.knee': 50, 'applied_where': 'защита героя от урона (кроме одного исключённого стата)'}
+  B: Каждый уровень даёт 1.125 защиты. В расширенном режиме выше 50-го уровня каждый следующий уровень даёт лишь половину: на L = 50 бонус 56.25, на L = 70 — 67.5 (классика даёт 78.75).
+C-14-value_curves-007 Набор отравления от защиты
+  N: {'curve_id': 'яд_защита', 'input_var': 'защита от яда D', 'output_var': 'сопротивление набору отравления', 'shape': 'linear', 'domain': 'D ≥ 0', 'range': 'расширенный: 3 + D/40; классика: 3 + D/20', 'constants.base': 3, 'constants.divisor_enhanced': 40, 'constants.divisor_classic': 20, 'constants.bloodied_half': 0.5, 'applied_where': 'скорость накопления шкалы яда'}
+  B: Сопротивление яду — 3 плюс защита, делённая на 40 (расширенный) или на 20 (классика). Если герой «кровоточит», сама защита перед делением берётся вдвое меньше.

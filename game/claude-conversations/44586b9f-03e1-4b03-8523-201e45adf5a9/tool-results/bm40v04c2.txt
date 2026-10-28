@@ -1,0 +1,881 @@
+     1	using System;
+     2	using System.Text;
+     3	using DialogEdit;
+     4	using MapEdit;
+     5	using Microsoft.Xna.Framework;
+     6	using Microsoft.Xna.Framework.Graphics;
+     7	using MonsterEdit.monsters;
+     8	using ProjectTower.audio;
+     9	using ProjectTower.character;
+    10	using ProjectTower.gameservices;
+    11	using ProjectTower.gameservices.messages;
+    12	using ProjectTower.hud;
+    13	using ProjectTower.map;
+    14	using ProjectTower.particles;
+    15	using ProjectTower.physics;
+    16	using ProjectTower.player;
+    17	using ProjectTower.texturesheet;
+    18	
+    19	namespace ProjectTower.gamestate;
+    20	
+    21	public class GameStateManager
+    22	{
+    23		public const int GAME_STATE_MENU = 0;
+    24	
+    25		public const int GAME_STATE_PLAYING = 1;
+    26	
+    27		public const int GAME_STATE_MENU_INTRO = 2;
+    28	
+    29		public const int GAME_STATE_LOADING = 3;
+    30	
+    31		public const int GAME_STATE_CREDITS = 4;
+    32	
+    33		public static int gameState;
+    34	
+    35		public static bool splitScreenCoopMode;
+    36	
+    37		public static float uberDeadFrame;
+    38	
+    39		public static float obliteratedWordsFrame;
+    40	
+    41		public const int STR_YOU_DIED = 0;
+    42	
+    43		public const int STR_CLEARED = 1;
+    44	
+    45		public const int STR_FIRST_DEATH = 2;
+    46	
+    47		public const int TOTAL_STR = 3;
+    48	
+    49		public static StringBuilder[] megaStr;
+    50	
+    51		public static int mainPlayerIdx;
+    52	
+    53		public static int coopPlayerIdx;
+    54	
+    55		public static bool pvpMode;
+    56	
+    57		private static int msgIdx;
+    58	
+    59		public static bool activeFocus;
+    60	
+    61		private static Vector2[] wisp;
+    62	
+    63		public const int VANQUISHED_MODE_VANQUISHED = 0;
+    64	
+    65		public const int VANQUISHED_MODE_EXPUNGED = 1;
+    66	
+    67		public static int vanquishedMode;
+    68	
+    69		public static float vanquishedFrame;
+    70	
+    71		public static float flashingEndFrame;
+    72	
+    73		public static bool upsideDown;
+    74	
+    75		public static float slowTime;
+    76	
+    77		public static bool demoMode;
+    78	
+    79		public static float newGameFrame;
+    80	
+    81		private static float tutorialFrameTime;
+    82	
+    83		public static float quitGameFrame;
+    84	
+    85		public static float endGameMusicFrame;
+    86	
+    87		public const float END_GAME_MUSIC_MAX = 100f;
+    88	
+    89		public static float quitFrame;
+    90	
+    91		public static float wordsFrame;
+    92	
+    93		public static int wordsMode;
+    94	
+    95		public const int WORDS_INTRO_1 = 0;
+    96	
+    97		public const int WORDS_INTRO_2 = 1;
+    98	
+    99		private static StringBuilder[][] wordsIntro1;
+   100	
+   101		private static StringBuilder[][] wordsIntro2;
+   102	
+   103		private static StringBuilder[] wordsExitStr;
+   104	
+   105		private static StringBuilder[] obliteratedStr;
+   106	
+   107		public static Vector2 simulationGravity;
+   108	
+   109		public const int MAX_PLAYTHROUGHS = 7;
+   110	
+   111		public static int playthroughCount;
+   112	
+   113		private static float wordsExitFrame;
+   114	
+   115		public static RopeBunch globalRopeBunch;
+   116	
+   117		public static float savingFrame;
+   118	
+   119		public static float storageFrame;
+   120	
+   121		public static Character GetMainCharacter()
+   122		{
+   123			if (mainPlayerIdx > -1 && mainPlayerIdx < PlayerMgr.player.Length)
+   124			{
+   125				if (PlayerMgr.player[mainPlayerIdx].charIdx > -1 && PlayerMgr.player[mainPlayerIdx].charIdx < CharMgr.character.Length)
+   126				{
+   127					return CharMgr.character[PlayerMgr.player[mainPlayerIdx].charIdx];
+   128				}
+   129				return null;
+   130			}
+   131			return null;
+   132		}
+   133	
+   134		public static Player GetMainPlayer()
+   135		{
+   136			if (PlayerMgr.player == null)
+   137			{
+   138				return null;
+   139			}
+   140			return PlayerMgr.player[mainPlayerIdx];
+   141		}
+   142	
+   143		public static void Init()
+   144		{
+   145			megaStr = new StringBuilder[3];
+   146			megaStr[0] = new StringBuilder("Obliterated!");
+   147			megaStr[1] = new StringBuilder("Vanquished!");
+   148			megaStr[2] = new StringBuilder("!");
+   149			wisp = new Vector2[32];
+   150		}
+   151	
+   152		public static void RandomWisps()
+   153		{
+   154			for (int i = 0; i < wisp.Length; i++)
+   155			{
+   156				wisp[i] = Rand.GetRandomVec2(0f, 180f, 0f, 60f);
+   157			}
+   158		}
+   159	
+   160		public static void SetWordsMode(int mode)
+   161		{
+   162			wordsExitFrame = 0f;
+   163			wordsMode = mode;
+   164			switch (wordsMode)
+   165			{
+   166			case 0:
+   167				wordsFrame = 24f;
+   168				break;
+   169			case 1:
+   170				wordsFrame = 22f;
+   171				wordsIntro2 = null;
+   172				break;
+   173			}
+   174			wordsExitStr = new StringBuilder[2]
+   175			{
+   176				new StringBuilder("[a]"),
+   177				LocStrings.GetLocString(239)
+   178			};
+   179		}
+   180	
+   181		public static void Saving()
+   182		{
+   183			savingFrame = 3f;
+   184		}
+   185	
+   186		public static bool IsGamepadUsedByCoopPlayer(int ID, int gamepadIdx)
+   187		{
+   188			if (ID == 0 && gameState == 1 && coopPlayerIdx > -1 && PlayerMgr.GetCoopPlayer().gamepadIdx == gamepadIdx)
+   189			{
+   190				return true;
+   191			}
+   192			return false;
+   193		}
+   194	
+   195		public static void Update()
+   196		{
+   197			if (newGameFrame > 0f)
+   198			{
+   199				newGameFrame -= Game1.frameTime * 0.5f;
+   200			}
+   201			UpdateTutorialMessages();
+   202			if (flashingEndFrame > 0f)
+   203			{
+   204				flashingEndFrame -= Game1.realTime;
+   205			}
+   206			if (wordsFrame > 0f)
+   207			{
+   208				Player mainPlayer = GetMainPlayer();
+   209				if (wordsFrame < ((wordsMode == 1) ? 16f : 22f) && wordsFrame > 1f)
+   210				{
+   211					if (wordsExitFrame == 0f)
+   212					{
+   213						if (mainPlayer.keyAccept)
+   214						{
+   215							wordsExitFrame = 1f;
+   216						}
+   217					}
+   218					else if (wordsExitFrame < 2f)
+   219					{
+   220						wordsExitFrame += Game1.frameTime * 4f;
+   221						if (wordsExitFrame >= 2f)
+   222						{
+   223							wordsExitFrame = 2f;
+   224						}
+   225					}
+   226					else if (wordsExitFrame == 2f)
+   227					{
+   228						if (mainPlayer.keyAccept)
+   229						{
+   230							wordsExitFrame = 3f;
+   231						}
+   232					}
+   233					else
+   234					{
+   235						wordsExitFrame += Game1.frameTime * 4f;
+   236						if (wordsFrame > 4f)
+   237						{
+   238							Game1.fastForwardMode = true;
+   239							Game1.frameTime *= 10f;
+   240						}
+   241					}
+   242				}
+   243				float num = wordsFrame;
+   244				wordsFrame -= Game1.frameTime;
+   245				if ((int)(num / 4f) != (int)(wordsFrame / 4f))
+   246				{
+   247					Sound.PlaySnd("omiloop");
+   248				}
+   249				if (wordsMode == 1)
+   250				{
+   251					if (wordsFrame > 15f)
+   252					{
+   253						QuakeManager.SetQuake(1f, ScrollManager.scroll);
+   254					}
+   255					if (num > 13f && wordsFrame <= 13f)
+   256					{
+   257						Character mainCharacter = GetMainCharacter();
+   258						int arenaIdx = MapMgr.map.triggerMgr.GetArenaIdx(mainCharacter);
+   259						if (arenaIdx > -1)
+   260						{
+   261							for (int i = 0; i < MapMgr.map.triggerMgr.arena[arenaIdx].bossCount; i++)
+   262							{
+   263								int num2 = MapMgr.map.triggerMgr.arena[arenaIdx].bossCharIdx[i];
+   264								if (num2 > -1 && CharMgr.character[num2].dyingFrame > 0f)
+   265								{
+   266									CharMgr.character[num2].update.death.KillMe();
+   267								}
+   268							}
+   269						}
+   270						if (mainCharacter != null && mainPlayer != null && !(mainCharacter.anim.animName == "ashore") && mainCharacter.dyingFrame <= 0f)
+   271						{
+   272							mainCharacter.update.death.Respawn(mainPlayer);
+   273						}
+   274					}
+   275				}
+   276			}
+   277			simulationGravity = new Vector2(0f, 10f);
+   278			upsideDown = false;
+   279			for (int j = 0; j < CharMgr.maxChars; j++)
+   280			{
+   281				if (CharMgr.character[j].buffs.GetUpsideDown())
+   282				{
+   283					upsideDown = true;
+   284					break;
+   285				}
+   286			}
+   287			if (coopPlayerIdx > -1)
+   288			{
+   289				Player mainPlayer2 = PlayerMgr.GetMainPlayer();
+   290				Player coopPlayer = PlayerMgr.GetCoopPlayer();
+   291				if (mainPlayer2 != null && coopPlayer != null && mainPlayer2.charIdx > -1 && coopPlayer.charIdx > -1 && CharMgr.character[mainPlayer2.charIdx].dyingFrame > 1f && CharMgr.character[coopPlayer.charIdx].dyingFrame > 1f && uberDeadFrame < 1f)
+   292				{
+   293					CoopObliteratedMessage();
+   294					uberDeadFrame = 1f;
+   295					Sound.PlaySnd("obliterated");
+   296					RandomWisps();
+   297				}
+   298			}
+   299			else
+   300			{
+   301				Character mainCharacter2 = GetMainCharacter();
+   302				if (mainCharacter2.dyingFrame > 1f && uberDeadFrame < 1f)
+   303				{
+   304					if (mainCharacter2.playerIdx > -1)
+   305					{
+   306						Player p = PlayerMgr.player[mainCharacter2.playerIdx];
+   307						int monsterIdx = -1;
+   308						if (mainCharacter2.lastHitBy > -1)
+   309						{
+   310							Character character = CharMgr.character[mainCharacter2.lastHitBy];
+   311							if (character.origVec.X > 0f && character.origVec.Y > 0f && MonsterCatalog.catalog[character.monsterIdx].ai != 30 && character.hp > 0f)
+   312							{
+   313								monsterIdx = character.monsterIdx;
+   314							}
+   315						}
+   316						SetObliteratedMessage(p, monsterIdx);
+   317					}
+   318					uberDeadFrame = 1f;
+   319					Sound.PlaySnd("obliterated");
+   320					RandomWisps();
+   321				}
+   322				if (mainCharacter2.loc.Y > 49900f)
+   323				{
+   324					float num3 = (mainCharacter2.loc.Y - 49900f) / 2100f;
+   325					if (num3 > 1f)
+   326					{
+   327						num3 = 1f;
+   328					}
+   329					simulationGravity.Y -= num3 * 20f;
+   330				}
+   331			}
+   332			if (vanquishedFrame >= 1f)
+   333			{
+   334				vanquishedFrame += Game1.frameTime * 0.5f;
+   335				if (vanquishedFrame > 5f)
+   336				{
+   337					vanquishedFrame = 0f;
+   338				}
+   339			}
+   340			if (uberDeadFrame >= 1f)
+   341			{
+   342				uberDeadFrame += Game1.frameTime * 0.5f;
+   343				if (coopPlayerIdx > -1 && uberDeadFrame > 5f)
+   344				{
+   345					if (uberDeadFrame > 4.5f)
+   346					{
+   347						Player mainPlayer3 = PlayerMgr.GetMainPlayer();
+   348						Player coopPlayer2 = PlayerMgr.GetCoopPlayer();
+   349						if (mainPlayer3 != null && coopPlayer2 != null && mainPlayer3.charIdx > -1 && coopPlayer2.charIdx > -1)
+   350						{
+   351							Character character2 = CharMgr.character[mainPlayer3.charIdx];
+   352							Character character3 = CharMgr.character[coopPlayer2.charIdx];
+   353							character2.update.CheckDropTorch(mainPlayer3);
+   354							character3.update.CheckDropTorch(coopPlayer2);
+   355							character2.update.death.Respawn(mainPlayer3);
+   356							character3.update.death.Respawn(coopPlayer2);
+   357							mainPlayer3.camMgr.scroll = character2.loc;
+   358							coopPlayer2.camMgr.scroll = character3.loc;
+   359							MapMgr.SanctuaryRefresh();
+   360							character2.update.death.DraggingRevive(mainPlayer3);
+   361							character3.update.death.DraggingRevive(coopPlayer2);
+   362						}
+   363					}
+   364					uberDeadFrame = 0f;
+   365				}
+   366			}
+   367			if (!(quitGameFrame > 0f))
+   368			{
+   369				return;
+   370			}
+   371			_ = quitGameFrame;
+   372			if (demoMode)
+   373			{
+   374				quitGameFrame -= Game1.frameTime * 0.08f;
+   375			}
+   376			else
+   377			{
+   378				quitGameFrame -= Game1.frameTime;
+   379			}
+   380			if (!(quitGameFrame <= 0f))
+   381			{
+   382				return;
+   383			}
+   384			Player mainPlayer4 = PlayerMgr.GetMainPlayer();
+   385			Game1.charSaveList.Init(mainPlayer4);
+   386			gameState = 2;
+   387			uberDeadFrame = 0f;
+   388			upsideDown = false;
+   389			vanquishedFrame = 0f;
+   390			LogoRender.drawFrame = 0f;
+   391			LogoRender.frame = 0f;
+   392			LogoRender.logoAlpha = 1f;
+   393			if (coopPlayerIdx > -1)
+   394			{
+   395				coopPlayerIdx = -1;
+   396				Game1.SetCoopTargs();
+   397			}
+   398			for (int k = 0; k < PlayerMgr.player.Length; k++)
+   399			{
+   400				Player player = PlayerMgr.player[k];
+   401				if (player != null)
+   402				{
+   403					player.menuMgr.curLev = 0;
+   404					player.menuMgr.transMode = 2;
+   405					player.menuMgr.transFrame = 0f;
+   406					for (int l = 0; l < player.menuMgr.menuLevel.Length; l++)
+   407					{
+   408						player.menuMgr.menuLevel[l].alpha = 0f;
+   409					}
+   410				}
+   411			}
+   412		}
+   413	
+   414		public static void CoopObliteratedMessage()
+   415		{
+   416			obliteratedStr = new StringBuilder[2];
+   417			obliteratedStr[0] = new StringBuilder(LocStrings.GetLocStr(1029));
+   418			obliteratedStr[1] = new StringBuilder(LocStrings.GetLocStr(1030));
+   419		}
+   420	
+   421		public static void SetObliteratedMessage(Player p, int monsterIdx)
+   422		{
+   423			int salt = p.salt;
+   424			int saltTiedUp = p.saltTiedUp;
+   425			int num = (int)((float)p.gold * 0.1f);
+   426			if (p.challenge.category[0].activeChallenge == 0)
+   427			{
+   428				obliteratedStr = new StringBuilder[1];
+   429				obliteratedStr[0] = new StringBuilder(LocStrings.GetLocStr(1031));
+   430				return;
+   431			}
+   432			int num2 = 0;
+   433			if (saltTiedUp > 0)
+   434			{
+   435				obliteratedStr = new StringBuilder[5];
+   436				obliteratedStr[num2] = new StringBuilder(LocStrings.GetLocStr(1032).Replace("[n]", saltTiedUp.ToString()));
+   437				num2++;
+   438			}
+   439			else
+   440			{
+   441				obliteratedStr = new StringBuilder[4];
+   442			}
+   443			if (monsterIdx > -1)
+   444			{
+   445				string locStr = LocStrings.GetLocStr(1033);
+   446				locStr = locStr.Replace("[n]", salt.ToString());
+   447				locStr = locStr.Replace("[m]", MonsterCatalog.catalog[monsterIdx].title[Game1.language]);
+   448				obliteratedStr[num2] = new StringBuilder(locStr);
+   449				num2++;
+   450				obliteratedStr[num2] = new StringBuilder(LocStrings.GetLocStr(1034));
+   451			}
+   452			else
+   453			{
+   454				obliteratedStr[num2] = new StringBuilder(LocStrings.GetLocStr(1035).Replace("[n]", salt.ToString()));
+   455				num2++;
+   456				obliteratedStr[num2] = new StringBuilder(LocStrings.GetLocStr(1034));
+   457			}
+   458			num2 += 2;
+   459			string t = LocStrings.GetLocStr(1036).Replace("[n]", num.ToString());
+   460			t = WordWrap.ProcessGender(t, p);
+   461			obliteratedStr[num2] = new StringBuilder(t);
+   462		}
+   463	
+   464		private static void UpdateTutorialMessages()
+   465		{
+   466			tutorialFrameTime -= Game1.realTime;
+   467			if (tutorialFrameTime <= 0f)
+   468			{
+   469				tutorialFrameTime = 30f;
+   470				switch (AreaCatalog.GetAreaIndexFromSpriteFlags(PlayerMgr.GetMainPlayer().zoneEnter))
+   471				{
+   472				case 0:
+   473					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(3667.849f, 14560f), LocStrings.GetLocStr(456), "", 0, 29f);
+   474					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(3991.141f, 14528f), LocStrings.GetLocStr(448), "", 0, 29f);
+   475					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(4855.169f, 14176f), LocStrings.GetLocStr(449), "", 0, 29f);
+   476					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(6691.496f, 13664f), LocStrings.GetLocStr(450), "", 0, 29f);
+   477					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(7068.16f, 13536f), LocStrings.GetLocStr(452), "", 0, 29f);
+   478					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(7254.334f, 13536f), LocStrings.GetLocStr(451), "", 0, 29f);
+   479					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(7659.123f, 13472f), LocStrings.GetLocStr(453), "", 0, 29f);
+   480					break;
+   481				case 17:
+   482					BottleMessageMgr.AddMessage("!@#D3MO!@#", new Vector2(20876.23f, 11488f), LocStrings.GetLocStr(457), "", 0, 29f);
+   483					break;
+   484				}
+   485			}
+   486		}
+   487	
+   488		public static void Draw()
+   489		{
+   490			WorldEventsMgr.Draw();
+   491			if (uberDeadFrame >= 1f)
+   492			{
+   493				int screen = 0;
+   494				Character mainCharacter = GetMainCharacter();
+   495				if (mainCharacter != null)
+   496				{
+   497					int layer = CharCols.GetLayer(mainCharacter.loc + new Vector2(0f, -10f));
+   498					if ((uint)(layer - 6) <= 1u)
+   499					{
+   500						screen = 2;
+   501					}
+   502				}
+   503				DrawScreen(screen, uberDeadFrame);
+   504			}
+   505			if (vanquishedFrame >= 1f)
+   506			{
+   507				DrawScreen(1, vanquishedFrame);
+   508			}
+   509			if (wordsFrame > 0f)
+   510			{
+   511				DrawWordsScreen();
+   512			}
+   513		}
+   514	
+   515		public static void DrawObliteratedWords(float frame)
+   516		{
+   517			if (obliteratedStr == null)
+   518			{
+   519				return;
+   520			}
+   521			for (int i = 0; i < obliteratedStr.Length; i++)
+   522			{
+   523				float num = frame;
+   524				num -= (float)i * 0.5f + 2.5f;
+   525				if (i == obliteratedStr.Length - 1 && i > 2)
+   526				{
+   527					num = frame - 4.5f;
+   528				}
+   529				num *= 2f;
+   530				float num2 = num;
+   531				if (num > 1f)
+   532				{
+   533					num = 1f;
+   534				}
+   535				if (frame > 8f)
+   536				{
+   537					num -= frame - 8f;
+   538				}
+   539				if (num2 > 5f)
+   540				{
+   541					num -= (num2 - 5f) * 0.25f;
+   542				}
+   543				float hdFactor = ScrollManager.GetHdFactor();
+   544				if (num > 0f && obliteratedStr[i] != null)
+   545				{
+   546					Vector2 loc = ScrollManager.totalScreenSize / 2f + new Vector2(0f, 180f + (float)i * 40f) * hdFactor;
+   547					Textures.tex[ParticleManager.spritesTexIdx].Draw(loc, 0, new Vector2(5f, 0.7f) * hdFactor, 0f, 0f, 0f, 0f, num * 0.5f);
+   548					float num3 = 1f;
+   549					if (i == 0 && obliteratedStr.Length == 5)
+   550					{
+   551						num3 = 0f;
+   552					}
+   553					Text.DrawText(obliteratedStr[i], loc, new Color(1f, num3, num3, num), 0.55f * hdFactor, 1);
+   554				}
+   555			}
+   556		}
+   557	
+   558		private static void DrawWordsScreen()
+   559		{
+   560			Player mainPlayer = GetMainPlayer();
+   561			float hdFactor = ScrollManager.GetHdFactor();
+   562			switch (wordsMode)
+   563			{
+   564			case 0:
+   565				if (wordsIntro1 == null)
+   566				{
+   567					int width2 = (int)(50f * hdFactor);
+   568					wordsIntro1 = new StringBuilder[4][];
+   569					wordsIntro1[0] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(431), width2, 6);
+   570					wordsIntro1[1] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(432), width2, 6);
+   571					wordsIntro1[2] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(433), width2, 6);
+   572					wordsIntro1[3] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(434), width2, 6);
+   573				}
+   574				DrawWords(0, wordsIntro1, 4, 24f);
+   575				break;
+   576			case 1:
+   577				if (wordsIntro2 == null)
+   578				{
+   579					int width = (int)(50f * hdFactor);
+   580					wordsIntro2 = new StringBuilder[3][];
+   581					wordsIntro2[0] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(435), width, 6);
+   582					wordsIntro2[1] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(436), width, 6);
+   583					wordsIntro2[2] = WordWrap.Wrap(mainPlayer, LocStrings.GetLocStr(437), width, 6);
+   584				}
+   585				if (wordsFrame <= 20f)
+   586				{
+   587					DrawWords(1, wordsIntro2, 3, 20f);
+   588				}
+   589				break;
+   590			}
+   591		}
+   592	
+   593		private static void DrawWords(int type, StringBuilder[][] wordsIntro1, int lines, float totalTime)
+   594		{
+   595			float num = 1f;
+   596			float hdFactor = ScrollManager.GetHdFactor();
+   597			if (type == 0)
+   598			{
+   599				float num2 = wordsFrame - (totalTime - 1f);
+   600				if (num2 < 0f)
+   601				{
+   602					num2 = 0f;
+   603				}
+   604				float num3 = wordsFrame / 4f;
+   605				if (num3 > 1f)
+   606				{
+   607					num3 = 1f;
+   608				}
+   609				SpriteTools.sprite.Draw(Game1.nullTex, new Rectangle(0, 0, (int)ScrollManager.totalScreenSize.X, (int)ScrollManager.totalScreenSize.Y), new Color(num2, num2, num2, num3));
+   610			}
+   611			if (type == 1)
+   612			{
+   613				float num4 = wordsFrame / 4f;
+   614				if (num4 > 1f)
+   615				{
+   616					num4 = 1f;
+   617					float num5 = (totalTime - wordsFrame) / 4f;
+   618					if (num5 < 0f)
+   619					{
+   620						num5 = 0f;
+   621					}
+   622					num4 *= num5;
+   623				}
+   624				num = 0f;
+   625				SpriteTools.sprite.Draw(Game1.nullTex, new Rectangle(0, 0, (int)ScrollManager.totalScreenSize.X, (int)ScrollManager.totalScreenSize.Y), new Color(1f, 1f, 1f, num4));
+   626			}
+   627			float num6 = totalTime - wordsFrame;
+   628			if (num6 > 1f)
+   629			{
+   630				float num7 = (float)lines + 0.5f;
+   631				for (int i = 0; i < lines; i++)
+   632				{
+   633					num7 += (float)wordsIntro1[i].Length;
+   634				}
+   635				float num8 = 0f;
+   636				for (int j = 0; j < lines; j++)
+   637				{
+   638					float num9 = (num6 - 1f - (float)j * 4f) * 0.35f;
+   639					if (!(num9 > 0f))
+   640					{
+   641						continue;
+   642					}
+   643					if (j == lines - 1 && wordsMode == 0)
+   644					{
+   645						if (wordsFrame < 5f)
+   646						{
+   647							num9 = wordsFrame / 5f;
+   648						}
+   649					}
+   650					else if (num9 > 2f)
+   651					{
+   652						num9 = 3f - num9;
+   653					}
+   654					if (num9 > 1f)
+   655					{
+   656						num9 = 1f;
+   657					}
+   658					float num10 = 1f * hdFactor;
+   659					for (int k = 0; k < wordsIntro1[j].Length; k++)
+   660					{
+   661						if (num9 > 0f)
+   662						{
+   663							Text.DrawText(wordsIntro1[j][k], new Vector2(ScrollManager.screenSize.X * 0.2f + (float)j * 50f * num10, ScrollManager.screenSize.Y / 2f - num7 * 32f * num10 / 2f + num8 * 38f * num10), new Color(num, num, num, num9), 0.6f * num10, 0);
+   664						}
+   665						num8++;
+   666					}
+   667					num8 += 2f;
+   668				}
+   669			}
+   670			if (wordsExitFrame > 1f && wordsExitFrame < 4f)
+   671			{
+   672				float num11 = 0f;
+   673				if (wordsExitFrame < 2f)
+   674				{
+   675					num11 = wordsExitFrame - 1f;
+   676				}
+   677				else if (wordsExitFrame == 2f)
+   678				{
+   679					num11 = 1f;
+   680				}
+   681				else if (wordsExitFrame < 4f)
+   682				{
+   683					num11 = 4f - wordsExitFrame;
+   684				}
+   685				if (num11 > 0f)
+   686				{
+   687					Text.DrawText(wordsExitStr[1], ScrollManager.screenSize - new Vector2(80f, 80f) * hdFactor, new Color(num, num, num, num11), 0.6f * hdFactor, 2, null, 1);
+   688					Text.DrawText(wordsExitStr[0], ScrollManager.screenSize - new Vector2(80f + Text.GetStringSpace(wordsExitStr[1], 0.48000002f, null, 1) + 12f, 80f) * hdFactor, new Color(1f, 1f, 1f, num11), 0.6f * hdFactor, 2, null, 1);
+   689				}
+   690			}
+   691		}
+   692	
+   693		private static void DrawScreen(int screen, float frame)
+   694		{
+   695			if (!(frame >= 1f))
+   696			{
+   697				return;
+   698			}
+   699			int y = 576;
+   700			int height = 192;
+   701			if (screen == 1)
+   702			{
+   703				y = 768;
+   704				height = 256;
+   705				if (vanquishedMode == 1)
+   706				{
+   707					y = 1792;
+   708				}
+   709			}
+   710			float hdFactor = ScrollManager.GetHdFactor();
+   711			Vector2 vector = ScrollManager.totalScreenSize / 2f + new Vector2(0f, -50f) * hdFactor;
+   712			float num = 1f;
+   713			if (frame < 2f)
+   714			{
+   715				num = frame - 1f;
+   716			}
+   717			if (screen == 0)
+   718			{
+   719				SpriteTools.sprite.Draw(Game1.nullTex, new Rectangle(0, 0, (int)ScrollManager.totalScreenSize.X, (int)ScrollManager.totalScreenSize.Y), new Color(0.2f, 0f, 0f, 0.5f * num));
+   720				SpriteTools.End();
+   721				SpriteTools.BeginSubtractive();
+   722			}
+   723			if (screen == 2)
+   724			{
+   725				SpriteTools.sprite.Draw(Game1.nullTex, new Rectangle(0, 0, (int)ScrollManager.totalScreenSize.X, (int)ScrollManager.totalScreenSize.Y), new Color(1f, 1f, 1f, num));
+   726				return;
+   727			}
+   728			float num2 = num;
+   729			if (frame > 2f)
+   730			{
+   731				num = frame - 2f;
+   732				if (num > 1f)
+   733				{
+   734					num = 1f + (num - 1f) * 0.3f;
+   735				}
+   736				float num3 = 500f;
+   737				float num4 = 100f;
+   738				float num5 = 64f;
+   739				float num6 = num;
+   740				if (frame >= 3f)
+   741				{
+   742					num6 += (frame - 3f) * 0.1f;
+   743				}
+   744				float num7 = 1f + num6 * 0.2f;
+   745				num3 *= 0.9f + num6 * 0.1f;
+   746				num4 *= 0.9f + num6 * 0.1f;
+   747				float num8 = 0.3f * num;
+   748				float num9 = 0.78f;
+   749				float num10 = 0.8f;
+   750				float num11 = 0.8f;
+   751				float r = 1f;
+   752				float g = 1f;
+   753				float b = 1f;
+   754				float num12 = 0.1f;
+   755				float num13 = ((screen == 0) ? 1f : 0f);
+   756				float num14 = ((screen == 0) ? 0.18f : 0.8f);
+   757				float num15 = 1f;
+   758				num2 = num;
+   759				if (screen == 1)
+   760				{
+   761					SpriteTools.End();
+   762					SpriteTools.BeginAlpha();
+   763					num9 = 0.98f;
+   764					num10 = 1f;
+   765					num11 = 1f;
+   766					if (vanquishedMode == 1)
+   767					{
+   768						num9 = 1f;
+   769						num10 = 0.9f;
+   770						num11 = 0.9f;
+   771					}
+   772					if (frame > 4.5f)
+   773					{
+   774						num *= (5f - frame) * 2f;
+   775						num14 *= (5f - frame) * 2f;
+   776						num8 *= (5f - frame) * 2f;
+   777						num15 *= (5f - frame) * 2f;
+   778					}
+   779					r = 0.9f;
+   780					num12 = 0.3f;
+   781				}
+   782				SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector, new Rectangle(576, 256, 384, 256), new Color(num13, num13, num13, num8 * num14), 0f, new Vector2(192f, 128f), new Vector2(3.4f, 1.4f) * hdFactor, SpriteEffects.None, 1f);
+   783				for (int i = 0; i < wisp.Length; i++)
+   784				{
+   785					float num16 = 1.5f;
+   786					if (screen == 1)
+   787					{
+   788						if (i < wisp.Length / 2)
+   789						{
+   790							r = 0f;
+   791							g = 0f;
+   792							b = 0f;
+   793						}
+   794						else
+   795						{
+   796							r = 0.8f;
+   797							g = 0.8f;
+   798							b = 0.85f;
+   799							if (vanquishedMode == 1)
+   800							{
+   801								r = 0.85f;
+   802								g = 0.8f;
+   803								b = 0.8f;
+   804							}
+   805						}
+   806					}
+   807					Textures.tex[ParticleManager.spritesTexIdx].Draw(vector + wisp[i] * frame, i % 9 + 41, new Vector2(1f, 1f) * num16 * hdFactor, (i % 2 == 0) ? frame : (0f - frame), r, g, b, num * num12);
+   808					Textures.tex[ParticleManager.spritesTexIdx].DrawFlipped(vector + wisp[i] * frame * new Vector2(-1f, 1f), i % 9 + 41, new Vector2(1f, 1f) * num16 * hdFactor, ((i % 2 == 0) ? frame : (0f - frame)) * -1f, r, g, b, num * num12);
+   809					Textures.tex[ParticleManager.spritesTexIdx].DrawFlipped(vector + wisp[i] * frame * new Vector2(1f, -1f), i % 9 + 41, new Vector2(1f, 1f) * num16 * hdFactor, (float)Math.PI + ((i % 2 == 0) ? frame : (0f - frame)) * -1f, r, g, b, num * num12);
+   810					Textures.tex[ParticleManager.spritesTexIdx].Draw(vector + wisp[i] * frame * new Vector2(-1f, -1f), i % 9 + 41, new Vector2(1f, 1f) * num16 * hdFactor, (float)Math.PI + ((i % 2 == 0) ? frame : (0f - frame)), r, g, b, num * num12);
+   811				}
+   812				if (screen == 1)
+   813				{
+   814					SpriteTools.End();
+   815					SpriteTools.BeginAdditive();
+   816					if (vanquishedMode == 0)
+   817					{
+   818						num9 *= 0.8f;
+   819					}
+   820					else
+   821					{
+   822						num10 *= 0.48f;
+   823						num11 *= 0.48f;
+   824					}
+   825				}
+   826				for (int j = 0; j < 3; j++)
+   827				{
+   828					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector + new Vector2(0f - num3, 0f - num4), new Rectangle(128, 128, 448, 320), new Color(num9, num10, num11, num8), 0f, new Vector2(num5, num5), new Vector2(1f, 0.85f) * num7, SpriteEffects.None, 1f);
+   829					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector + new Vector2(num3, 0f - num4), new Rectangle(128, 128, 448, 320), new Color(num9, num10, num11, num8), 0f, new Vector2(448f - num5, num5), new Vector2(1f, 0.85f) * num7, SpriteEffects.FlipHorizontally, 1f);
+   830					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector + new Vector2(num3, num4), new Rectangle(128, 128, 448, 320), new Color(num9, num10, num11, num8), (float)Math.PI, new Vector2(num5, num5), new Vector2(1f, 0.85f) * num7, SpriteEffects.None, 1f);
+   831					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector + new Vector2(0f - num3, num4), new Rectangle(128, 128, 448, 320), new Color(num9, num10, num11, num8), (float)Math.PI, new Vector2(448f - num5, num5), new Vector2(1f, 0.85f) * num7, SpriteEffects.FlipHorizontally, 1f);
+   832					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector + new Vector2(0f, 0f - num4), new Rectangle(576, 192, 384, 64), new Color(num9, num10, num11, num8), 0f, new Vector2(192f, 32f), new Vector2(1f, num7) * num7, SpriteEffects.None, 1f);
+   833					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector + new Vector2(0f, num4), new Rectangle(576, 192, 384, 64), new Color(num9, num10, num11, num8), (float)Math.PI, new Vector2(192f, 32f), new Vector2(1f, num7) * num7, SpriteEffects.None, 1f);
+   834					SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector, new Rectangle(0, y, 960, height), new Color(1f, 1f, 1f, num8 * 0.5f), 0f, new Vector2(458f, 100f), (1f + 0.1f * num2) * 0.8f * ((float)j * 0.05f + 1.02f), SpriteEffects.None, 1f);
+   835					num3 += 20f;
+   836					num4 += 10f;
+   837					num8 *= 0.1f;
+   838				}
+   839			}
+   840			SpriteTools.End();
+   841			SpriteTools.BeginAlpha();
+   842			if (screen == 0)
+   843			{
+   844				if (frame > 4f)
+   845				{
+   846					SpriteTools.sprite.Draw(Game1.nullTex, new Rectangle(0, 0, (int)ScrollManager.totalScreenSize.X, (int)ScrollManager.totalScreenSize.Y), new Color(0f, 0f, 0f, (frame - 4f) * 2f));
+   847				}
+   848				DrawObliteratedWords(frame);
+   849			}
+   850			if (frame > 2f)
+   851			{
+   852				float num17 = ((screen == 1) ? 2f : 1f);
+   853				SpriteTools.sprite.Draw(InterfaceRender.interfaceTex, vector, new Rectangle(0, y, 960, height), new Color(1f, 1f, 1f, num17 * ((frame - 2f) * 0.35f) * ((frame > 4f) ? (5f - frame) : 1f)), 0f, new Vector2(458f, 100f), (1f + 0.1f * num2) * 0.8f * hdFactor, SpriteEffects.None, 1f);
+   854			}
+   855		}
+   856	
+   857		internal static void Vanquish()
+   858		{
+   859			vanquishedMode = 0;
+   860			vanquishedFrame = 2f;
+   861			Sound.PlaySnd("vanquished");
+   862			RandomWisps();
+   863			if (demoMode)
+   864			{
+   865				quitGameFrame = 1f;
+   866			}
+   867		}
+   868	
+   869		internal static void Expunge()
+   870		{
+   871			vanquishedMode = 1;
+   872			vanquishedFrame = 2f;
+   873			Sound.PlaySnd("vanquished");
+   874			RandomWisps();
+   875		}
+   876	
+   877		internal static void FlashingEnd()
+   878		{
+   879			flashingEndFrame = 3f;
+   880		}
+   881	}

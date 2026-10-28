@@ -1,0 +1,280 @@
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:13:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:15:import atexit
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:16:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:17:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:18:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:19:import shlex
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:20:import shutil
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:21:import signal
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:22:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:23:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:24:import threading
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:25:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:26:import uuid
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:27:from collections import Counter
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:28:from dataclasses import dataclass
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:29:from datetime import datetime, timedelta
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:30:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:33:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:34:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:35:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:36:import worktree_hygiene as WH  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:37:import blind  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:38:import downtime  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:39:import notify  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:40:import routes as ROUTES  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:41:import report as REPORT  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:281:        import ci_watch
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:284:        import ci_watch
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:287:        import merge_rule
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:290:        import lifewatch
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:611:        import winsound
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:1208:            import ctypes
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:1209:            from ctypes import wintypes
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:1887:        from zoneinfo import ZoneInfo
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\dispatch.py:2725:        import signal
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\downtime.py:4:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\downtime.py:6:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:35:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:37:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:38:import hashlib
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:39:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:40:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:41:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:42:import shlex
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:43:import shutil
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:44:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:45:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:46:import tempfile
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:47:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:48:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:51:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:52:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\errors.py:189:            import dispatch
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\hide.py:2:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\hide.py:4:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\hide.py:5:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:23:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:25:import hashlib
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:26:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:27:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:28:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:29:import tempfile
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:30:import threading
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:31:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:32:from contextlib import contextmanager
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:33:from dataclasses import dataclass
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:34:from datetime import datetime, timezone, timedelta
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:35:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:38:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:41:    import msvcrt
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:45:    import fcntl
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:234:    import difflib
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ticket.py:550:        import haiku_aux
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:10:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:12:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:13:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:14:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:15:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:16:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:17:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:18:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:19:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:22:import notify  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:23:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\supervise.py:24:import start as S  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:5:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:7:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:8:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:9:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:10:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:11:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:12:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:13:from collections import Counter
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:14:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:15:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:18:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:19:import start as S  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:20:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:21:import supervise as SV  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:22:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:23:import worktree_hygiene as WH  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\doctor.py:141:    import downtime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:7:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:9:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:10:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:11:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:12:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:13:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:14:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:15:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:18:import dispatch as D  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:19:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:20:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:21:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:203:        import atexit
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\ci_watch.py:209:            import merge_rule
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:21:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:23:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:24:import contextlib
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:25:import hashlib
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:26:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:27:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:28:import shlex
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:29:import shutil
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:30:import signal
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:31:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:32:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:33:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:34:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:35:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:38:import dispatch as D  # noqa: E402 — _pid_alive/_pid_kill; импорт ничего не создаёт
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:39:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:40:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\start.py:275:        import ctypes
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:22:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:24:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:25:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:26:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:27:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:28:import shutil
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:29:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:30:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:31:import tempfile
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:32:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:33:from dataclasses import dataclass, field
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:34:from datetime import datetime, timedelta, timezone
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:35:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:38:import registry  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\overseer.py:39:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\usage.py:4:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\usage.py:5:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\usage.py:6:from collections import defaultdict
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\usage.py:7:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:13:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:15:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:16:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:17:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:18:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:93:            import ctypes
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:94:            from ctypes import wintypes as w
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\project.py:130:        import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:7:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:9:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:10:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:11:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:12:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:13:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\release.py:14:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:11:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:13:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:14:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:15:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:16:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:17:import urllib.error
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:18:import urllib.request
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:19:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:20:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\notify.py:23:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:20:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:22:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:23:import difflib
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:24:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:25:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:26:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:27:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:28:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:29:import tempfile
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:30:from collections import Counter
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:31:from dataclasses import dataclass
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:32:from datetime import datetime, timedelta
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:33:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:36:import downtime  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:37:import errors as errors_mod  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:38:import haiku_aux as HA  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:39:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:40:import notify  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:41:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:42:import registry  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:43:import routes  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\report.py:44:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:44:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:46:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:47:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:48:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:49:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:50:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:51:from datetime import datetime, timedelta
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:52:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:55:import dispatch as D  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:56:import errors as errors_mod  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:57:import registry as registry_mod  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:58:import routes as routes_mod  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:59:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:202:    import routes
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:559:    import merge_rule
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\tickets.py:560:    import routes
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:18:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:20:import atexit
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:21:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:22:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:23:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:24:import socket
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:25:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:26:import time
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:27:from dataclasses import dataclass
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:28:from datetime import datetime, timedelta
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:29:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:32:import lifewatch as LW  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:33:import dispatch as D  # noqa: E402 — переиспользуем пути/константы/append_ceo_inbox/_pid_alive
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:34:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:35:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:36:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:399:        import ci_watch
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\watch.py:761:        import signal
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:9:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:11:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:12:import shlex
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:13:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:14:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:15:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:18:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:19:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:20:import hide  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\lifewatch.py:65:        import haiku_aux
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\blind.py:5:import threading
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:20:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:22:import argparse
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:23:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:24:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:25:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:26:from datetime import datetime
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:27:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\registry.py:30:import project as P  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:7:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:9:import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:10:import os
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:11:import shutil
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:12:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:13:import tempfile
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\haiku_aux.py:15:import hide
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:6:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:8:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:9:import sys
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:10:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:13:import ci_watch as C  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:14:import dispatch as D  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:15:import ticket as T  # noqa: E402
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:27:    import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\merge_rule.py:35:    import json
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\worktree_hygiene.py:6:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\worktree_hygiene.py:8:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\worktree_hygiene.py:9:import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\worktree_hygiene.py:10:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\worktree_hygiene.py:12:import hide
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\routes.py:3:from __future__ import annotations
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\routes.py:5:import re
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\routes.py:6:from pathlib import Path
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\routes.py:114:        import ticket as T
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\routes.py:122:    import subprocess
+C:\Users\Георгий\AppData\Local\Temp\tmp.8wQt3IOS9q\.claude\dispatcher\routes.py:143:    import ticket as T

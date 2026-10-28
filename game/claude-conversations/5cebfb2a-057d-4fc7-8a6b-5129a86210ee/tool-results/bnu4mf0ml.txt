@@ -1,0 +1,1053 @@
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+public class Dove : Enemy
+{
+	public class DoveIdleState : State<Dove>
+	{
+		public DoveIdleState(string stateName, FSM parentFSM, Dove parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			parent.anim.Play("Idle");
+		}
+		public override void Update()
+		{
+			parent.closestTargetInfo = Entity.GetClosestTarget(parent.targetGroup, parent.transform.position, 4.5f);
+			if (parent.closestTargetInfo != null)
+			{
+				parent.fsm.ChangeState("Fly");
+			}
+			else if (!parent.disableRoam && ChaosStopwatch.Check(parent.hopStopwatchID) && Random.value <= 0.25f)
+			{
+				parent.hopCounter = Random.Range(1, 4);
+				parent.movement.moveVector = parent.GetRandomMoveVector();
+				parent.FaceTarget(parent.transform.position + (Vector3)parent.movement.moveVector, 2);
+				parent.fsm.ChangeState("Roam");
+			}
+			else
+			{
+				if (parent.disableRandomTurn || !ChaosStopwatch.Check(parent.turnStopwatchID))
+				{
+					return;
+				}
+				parent.turnStopwatchID = ChaosStopwatch.Begin(parent.turnCooldown);
+				if (Random.value <= 0.2f)
+				{
+					if (parent.facingDirection == FacingDirection.Right)
+					{
+						parent.facingDirection = FacingDirection.Left;
+					}
+					else
+					{
+						parent.facingDirection = FacingDirection.Right;
+					}
+				}
+			}
+		}
+	}
+	public class DoveRoamState : State<Dove>
+	{
+		private bool firstFrame;
+		public DoveRoamState(string stateName, FSM parentFSM, Dove parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			parent.anim.Play("Hop", -1, 0f);
+			firstFrame = true;
+		}
+		public override void Update()
+		{
+			if (firstFrame)
+			{
+				firstFrame = false;
+			}
+			else if (parent.anim.AnimPlayed())
+			{
+				parent.hopCounter--;
+				if (parent.hopCounter <= 0)
+				{
+					parent.hopStopwatchID = ChaosStopwatch.Begin(parent.hopCooldown);
+					parent.fsm.ChangeState("Idle");
+				}
+				else
+				{
+					parent.fsm.ChangeState("Roam", allowSelfTransition: true);
+				}
+			}
+			else
+			{
+				parent.movement.MoveToMoveVector();
+			}
+		}
+		public override void OnExit()
+		{
+			parent.movement.EndMovement();
+		}
+	}
+	public class DoveFlyState : State<Dove>
+	{
+		private NumVarStatMod flyMoveSpeedMod;
+		private ChaosQuickStopwatch flyTimer;
+		private float maxFlyTime = 6f;
+		public DoveFlyState(string stateName, FSM parentFSM, Dove parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			flyMoveSpeedMod = new NumVarStatMod("FlyMoveSpeed", Random.Range(0.6f, 1.4f), 10, VarStatModType.Multiplicative);
+		}
+		public override void OnEnter()
+		{
+			parent.anim.Play("Fly");
+			parent.spriteSorter.enabled = false;
+			parent.spriteRenderer.sortingLayerName = "OverlayDoodad";
+			parent.spriteRenderer.sortingOrder = 10;
+			float num = 1f;
+			float num2 = 1f;
+			if (parent.closestTargetInfo != null)
+			{
+				if (parent.transform.position.y < parent.closestTargetInfo.transform.position.y)
+				{
+					num = -1f;
+				}
+				if (parent.transform.position.x < parent.closestTargetInfo.transform.position.x)
+				{
+					num2 = -1f;
+				}
+			}
+			else
+			{
+				num = ((!(Random.value > 0.5f)) ? 1f : (-1f));
+				num2 = ((!(Random.value > 0.5f)) ? 1f : (-1f));
+			}
+			parent.movement.moveVector = new Vector3(Random.Range(0.75f, 1f) * num2, Random.Range(0.25f, 0.66f) * num);
+			parent.movement.moveSpeedStat.AddMod(flyMoveSpeedMod);
+			parent.FaceTarget(parent.transform.position + (Vector3)parent.movement.moveVector, 2);
+			flyTimer = new ChaosQuickStopwatch(maxFlyTime);
+			flyTimer.IsRunning = true;
+		}
+		public override void Update()
+		{
+			float num = 18f;
+			if (parent.closestTargetInfo != null)
+			{
+				num = ((!(parent.closestTargetInfo.transform != null)) ? Vector3.Distance(parent.closestTargetInfo.position, parent.transform.position) : Vector3.Distance(parent.closes
+			}
+			if (!flyTimer.IsRunning || num >= 18f)
+			{
+				Object.Destroy(parent.gameObject);
+			}
+			else
+			{
+				parent.movement.MoveToMoveVector();
+			}
+		}
+		public override void OnExit()
+		{
+			base.OnExit();
+			parent.movement.moveSpeedStat.RemoveMod(flyMoveSpeedMod.ID);
+		}
+	}
+	private static GameObject prefab;
+	private float turnCooldown = 1f;
+	private float hopCooldown = 3f;
+	private int turnStopwatchID = -1;
+	private int hopStopwatchID = -1;
+	public bool disableRoam;
+	public bool disableRandomTurn;
+	[HideInInspector]
+	public int hopCounter;
+	[HideInInspector]
+	public SortSpriteLayer spriteSorter;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Enemies/Dove.prefab"));
+	public override void Awake()
+	{
+		disablePreventFallCollider = true;
+		base.Awake();
+		facingDirection = FacingDirection.Right;
+	}
+	public override void InitComponents()
+	{
+		base.InitComponents();
+		spriteSorter = GetComponent<SortSpriteLayer>();
+	}
+	public override void InitAudio()
+	{
+	}
+	public override void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Idle";
+		fsm.AddState(new DoveRoamState("Roam", fsm, this));
+		fsm.AddState(new DoveIdleState("Idle", fsm, this));
+		fsm.AddState(new DoveFlyState("Fly", fsm, this));
+		fsm.AddState(new DoveFlyState("Fall", fsm, this));
+		fsm.AddState(new EnemyDeadState("Dead", fsm, this));
+		fsm.ChangeState(fsm.defaultStateName);
+	}
+	public override void Start()
+	{
+		base.Start();
+		GameController.enemies.Remove(gameObject);
+	}
+	public void OnTriggerEnter2D(Collider2D col)
+	{
+		if ((col.gameObject.name.Contains("FloorContact") && col.gameObject.tag == "Player") || col.gameObject.tag == "Enemy")
+		{
+			AttackInfo attackInfo = new AttackInfo();
+			attackInfo.skillID = "Step";
+			attackInfo.damage = 1;
+			health.TakeDamage(attackInfo);
+		}
+	}
+	public Vector2 GetRandomMoveVector()
+	{
+		Vector3 vector = Entity.GetAvailableNearbyLocation(transform.position, excludeOrigin: true);
+		Vector2 vector2 = (vector - transform.position).normalized;
+		vector2 = new Vector2(vector2.x + Random.Range(-0.2f, 0.2f), vector2.y + Random.Range(-0.2f, 0.2f));
+		FaceTarget(transform.position + (Vector3)vector2);
+		return vector2;
+	}
+}
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+public class Rat : Enemy
+{
+	public class RatRoamState(string stateName, FSM parentFSM, Rat parentEntity) : State<Rat>(stateName, parentFSM, parentEntity)
+	{
+		private int roamStopwatchID;
+		private float roamMinTime = 0.5f;
+		private float roamMaxTime = 5f;
+		private float obstructionCheckTime = 0.2f;
+		private int obstructionStopwatchID;
+		private Vector2 moveVector;
+		public override void OnEnter()
+		{
+			SetRandomRoamTime();
+			SetRandomMoveVector();
+		}
+		public override void Update()
+		{
+			if (ChaosStopwatch.Check(roamStopwatchID))
+			{
+				SetRandomRoamTime();
+				SetRandomMoveVector();
+			}
+			if (ChaosStopwatch.Check(obstructionStopwatchID))
+			{
+				obstructionStopwatchID = ChaosStopwatch.Begin(obstructionCheckTime);
+				if (IsMoveVectorObstructed())
+				{
+					SetRandomRoamTime();
+					SetRandomMoveVector();
+				}
+			}
+			parent.movement.moveVector = moveVector;
+			parent.movement.MoveToMoveVector();
+		}
+		public bool IsMoveVectorObstructed()
+		{
+			return Entity.IsPathObstructed(parent.transform.position, moveVector, 0.5f);
+		}
+		public void SetRandomRoamTime()
+		{
+			roamStopwatchID = ChaosStopwatch.Begin(Random.Range(roamMinTime, roamMaxTime));
+		}
+		public void SetRandomMoveVector()
+		{
+			Vector2 availableNearbyLocation = Entity.GetAvailableNearbyLocation(parent.transform.position, excludeOrigin: true);
+			moveVector = (availableNearbyLocation - (Vector2)parent.transform.position).normalized;
+			moveVector = new Vector2(moveVector.x + Random.Range(-0.2f, 0.2f), moveVector.y + Random.Range(-0.2f, 0.2f));
+			parent.FaceTarget(parent.transform.position + (Vector3)moveVector);
+			parent.anim.PlayDirectional("Run" + parent.facingDirection);
+		}
+	}
+	public override void Awake()
+	{
+		base.Awake();
+		health.SetInvulnerabilityDuration(0.25f, showMsg: false);
+	}
+	public override void InitAudio()
+	{
+		minPitch = 0.8f;
+		maxPitch = 1.1f;
+	}
+	public override void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Roam";
+		fsm.AddState(new RatRoamState("Roam", fsm, this));
+		fsm.AddState(new EnemyDeadState("Dead", fsm, this));
+		fsm.AddState(new EnemyFallState("Fall", fsm, this));
+		fsm.ChangeState(fsm.defaultStateName);
+	}
+	public override void Start()
+	{
+		base.Start();
+		GameController.enemies.Remove(gameObject);
+	}
+	public void OnTriggerEnter2D(Collider2D col)
+	{
+		if ((col.gameObject.name.Contains("FloorContact") && col.gameObject.tag == "Player") || col.gameObject.tag == "Enemy")
+		{
+			AttackInfo attackInfo = new AttackInfo();
+			attackInfo.skillID = "Step";
+			attackInfo.damage = 1;
+			health.TakeDamage(attackInfo);
+		}
+	}
+}
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+public class Contestant : Enemy
+{
+	public class ContestantIdleState : IdleState
+	{
+		public new Contestant parent;
+		public ContestantIdleState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			parent = parentEntity;
+			multiAnimIdle = true;
+		}
+		public override void Update()
+		{
+			base.Update();
+			parent.TrackFollowTransform();
+		}
+	}
+	public class ContestantChaseState : ChaseState
+	{
+		public new Contestant parent;
+		private float distanceToTarget;
+		private float maxChaseTime = 1f;
+		private int chaseStopwatchID = -1;
+		private bool deviatePath;
+		private float deviateTime = 0.3f;
+		private int deviateStopwatchID;
+		private Vector2 deviationDirection;
+		private Vector2 deviationOffset;
+		private Collider2D[] projectileCheck;
+		private Projectile otherProjectile;
+		private float avoidPercentage = 0.3f;
+		private float calculatedAvoidance;
+		private bool avoid;
+		public ContestantChaseState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			parent = parentEntity;
+			projectileCheck = new Collider2D[10];
+		}
+		public override void OnEnter()
+		{
+			parent.alerted = true;
+			parent.anim.PlayDirectional("Run" + parent.facingDirection);
+			calculatedAvoidance = Random.Range(0f, 1f);
+			deviatePath = false;
+			chaseStopwatchID = ChaosStopwatch.Begin(maxChaseTime);
+		}
+		public override void Update()
+		{
+			parent.closestTargetInfo = Entity.GetClosestTarget(parent.targetGroup, parent.transform.position, parent.escapeRadius, parent.onlyTargetPlayers);
+			if (parent.closestTargetInfo == null || parent.closestTargetInfo.hurtBoxTransform == null)
+			{
+				fsm.ChangeState("GoBack");
+			}
+			else
+			{
+				if (parent.HandleExtraSkills())
+				{
+					return;
+				}
+				if (Vector2.Distance(parent.closestTargetInfo.position, parent.transform.position) < parent.alertRadius && Entity.HasLineOfSight(parent.transform.position, parent
+				{
+					parent.requestPathStopwatchID = -1;
+					Physics2D.OverlapCircleNonAlloc(parent.transform.position, parent.alertRadius * 0.5f, projectileCheck);
+					for (int i = 0; i < projectileCheck.Length; i++)
+					{
+						if (!(projectileCheck[i] != null) || !(projectileCheck[i].transform.parent != null))
+						{
+							continue;
+						}
+						otherProjectile = projectileCheck[i].transform.parent.gameObject.GetComponent<Projectile>();
+						if (otherProjectile != null && otherProjectile.attackBox.atkInfo.skillCategory.Contains("Player"))
+						{
+							if (parent.tornadoReady)
+							{
+								fsm.ChangeState("Tornado");
+								return;
+							}
+							if (parent.dashAvailable && parent.CalculateDashVector(dashingTowards: false, otherProjectile.transform))
+							{
+								fsm.ChangeState("Dash");
+								return;
+							}
+						}
+					}
+					if (!deviatePath)
+					{
+						parent.PlayAnimOnFaceDirChange("Run", parent.closestTargetInfo.position);
+					}
+					distanceToTarget = parent.closestTargetInfo.distance;
+					if (distanceToTarget < parent.useTornadoRange && parent.tornadoReady)
+					{
+						fsm.ChangeState("Tornado");
+						return;
+					}
+					if (distanceToTarget < parent.useFireBallMaxRange && parent.fireballReady)
+					{
+						fsm.ChangeState("Fireball");
+						return;
+					}
+					if (distanceToTarget > parent.useSwordThrowMinRange && distanceToTarget < parent.useSwordThrowMaxRange && parent.swordThrowReady)
+					{
+						fsm.ChangeState("SwordThrow");
+						return;
+					}
+					if (distanceToTarget > 2f * parent.attackRadius && parent.dashAvailable)
+					{
+						avoid = calculatedAvoidance > avoidPercentage;
+						if (parent.CalculateDashVector(avoid))
+						{
+							fsm.ChangeState("Dash");
+							return;
+						}
+					}
+					if (deviatePath)
+					{
+						if (!ChaosStopwatch.Check(deviateStopwatchID))
+						{
+							deviationDirection = parent.transform.position + (Vector3)deviationOffset;
+							parent.PlayAnimOnFaceDirChange("Run", deviationDirection);
+							parent.movement.MoveToTarget(deviationDirection);
+							return;
+						}
+						deviatePath = false;
+						chaseStopwatchID = ChaosStopwatch.Begin(maxChaseTime);
+					}
+					if (!parent.movement.MoveToTarget(parent.closestTargetInfo.transform.position, parent.attackRadius))
+					{
+						if (ChaosStopwatch.Check(chaseStopwatchID))
+						{
+							deviatePath = true;
+							deviateStopwatchID = ChaosStopwatch.Begin(deviateTime);
+							deviationOffset = new Vector2(Random.Range(-1, 2), Random.Range(-1, 2));
+							parent.movement.EndMovement();
+						}
+					}
+					else
+					{
+						fsm.ChangeState("Attack");
+					}
+				}
+				else if (parent.DashOverPits())
+				{
+					parent.requestPathStopwatchID = -1;
+				}
+				else if (ChaosStopwatch.Check(parent.requestPathStopwatchID))
+				{
+					parent.requestPathStopwatchID = ChaosStopwatch.Begin(parent.requestPathTime);
+					parent.followingPath = false;
+					if (parent.FindAndTraversePath(parent.traversableNodeMap, parent.transform.position, parent.closestTargetInfo.position, parent.minNodeDist, "Run", appendFacingDi
+					{
+						fsm.ChangeState("GoBack");
+					}
+					else
+					{
+						parent.followingPath = true;
+					}
+				}
+				else if (parent.followingPath && parent.FindAndTraversePath(parent.traversableNodeMap, parent.transform.position, parent.closestTargetInfo.position, parent.minNod
+				{
+					parent.followingPath = false;
+					parent.HandleExitTransitions();
+				}
+			}
+		}
+	}
+	public class ContestantGoBackState : GoBackState
+	{
+		public new Contestant parent;
+		public ContestantGoBackState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			parent = parentEntity;
+		}
+		public override void OnEnter()
+		{
+			parent.anim.PlayDirectional("Run" + parent.facingDirection);
+			parent.requestPathStopwatchID = -1;
+		}
+		public override void Update()
+		{
+			parent.TrackFollowTransform();
+			parent.closestTargetInfo = Entity.GetClosestTarget(parent.targetGroup, parent.transform.position, parent.alertRadius, parent.onlyTargetPlayers);
+			if (parent.closestTargetInfo == null)
+			{
+				if (Entity.HasLineOfSight(parent.transform.position, parent.destinationVector, 999f, parent.lineOfSightLayerMask))
+				{
+					parent.requestPathStopwatchID = -1;
+					if (parent.DashOverPits())
+					{
+						return;
+					}
+					if (!parent.movement.MoveToTarget(parent.destinationVector))
+					{
+						parent.PlayAnimOnFaceDirChange("Run", parent.destinationVector, parent.animFacingDirections);
+						return;
+					}
+					parent.movement.EndMovement();
+					if (!parent.forceChaseState)
+					{
+						fsm.ChangeState("Idle");
+					}
+					else
+					{
+						parent.anim.Play("IdleDown");
+					}
+				}
+				else
+				{
+					if (parent.DashOverPits())
+					{
+						return;
+					}
+					if (ChaosStopwatch.Check(parent.requestPathStopwatchID))
+					{
+						parent.followingPath = false;
+						parent.requestPathStopwatchID = ChaosStopwatch.Begin(parent.requestPathTime);
+						if (parent.FindAndTraversePath(parent.traversableNodeMap, parent.transform.position, parent.destinationVector, parent.minNodeDist, "Run", appendFacingDirection:
+						{
+							parent.movement.EndMovement();
+							if (!parent.forceChaseState)
+							{
+								fsm.ChangeState("Idle");
+							}
+							else
+							{
+								parent.anim.Play("IdleDown");
+							}
+						}
+						else
+						{
+							parent.followingPath = true;
+						}
+					}
+					else if (parent.followingPath && parent.FindAndTraversePath(parent.traversableNodeMap, parent.transform.position, parent.destinationVector, parent.minNodeDist, "
+					{
+						parent.followingPath = false;
+						parent.movement.EndMovement();
+						if (!parent.forceChaseState)
+						{
+							fsm.ChangeState("Idle");
+						}
+						else
+						{
+							parent.anim.Play("IdleDown");
+						}
+					}
+				}
+			}
+			else
+			{
+				parent.HandleExitTransitions();
+			}
+		}
+	}
+	public new class AttackState : State<Contestant>
+	{
+		private float distanceToTarget;
+		private bool slash1;
+		public AttackState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			parent.closestTargetInfo = Entity.GetClosestTarget(parent.targetGroup, parent.transform.position, parent.escapeRadius, parent.onlyTargetPlayers);
+			if (parent.closestTargetInfo == null)
+			{
+				fsm.ChangeState("GoBack");
+				return;
+			}
+			slash1 = false;
+			parent.FaceTarget(parent.closestTargetInfo.position);
+			parent.anim.PlayDirectional("Slash1" + parent.facingDirection);
+			SoundManager.PlayAudioWithDistance("LightSlash", parent.transform.position);
+			parent.attack.SetAttackInfo("Player", "WindSlashBasic", 2);
+			parent.movement.EndMovement();
+		}
+		public override void Update()
+		{
+			float animTime = parent.anim.GetAnimTime();
+			if (!slash1 && animTime >= 0.6f)
+			{
+				slash1 = true;
+				parent.anim.PlayDirectional("Slash2" + parent.facingDirection);
+				parent.attack.ChangeAttackInfoLevel(3);
+				SoundManager.PlayAudioWithDistance("HeavySlash", parent.transform.position);
+			}
+			else
+			{
+				if (!slash1)
+				{
+					return;
+				}
+				if (animTime >= 0.6f && animTime < 0.9f)
+				{
+					parent.closestTargetInfo = Entity.GetClosestTarget(parent.targetGroup, parent.transform.position, parent.escapeRadius, parent.onlyTargetPlayers);
+					if (parent.closestTargetInfo == null)
+					{
+						fsm.ChangeState("GoBack");
+						return;
+					}
+					parent.FaceTarget(parent.closestTargetInfo.position);
+					if (parent.swordThrowReady)
+					{
+						fsm.ChangeState("SwordThrow");
+						return;
+					}
+					if (parent.fireballReady)
+					{
+						fsm.ChangeState("Fireball");
+						return;
+					}
+					if (parent.tornadoReady)
+					{
+						fsm.ChangeState("Tornado");
+						return;
+					}
+				}
+				if (animTime >= 0.9f)
+				{
+					parent.HandleExitTransitions();
+				}
+			}
+		}
+		public override void OnExit()
+		{
+			parent.movement.EndMovement();
+		}
+	}
+	public new class DashState : State<Contestant>
+	{
+		private bool dashCompleted;
+		public DashState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			dashCompleted = false;
+			parent.dashAvailable = false;
+			parent.dashCharges--;
+			parent.FaceTarget((Vector3)parent.movement.dashVector + parent.transform.position);
+			parent.anim.PlayDirectional("Dash" + parent.facingDirection);
+			SoundManager.PlayAudioWithDistance("Dash", parent.transform.position);
+			float targetAngle = Globals.Vector3AngleWithPivot(Vector3.up, Vector3.zero, new Vector3(parent.movement.dashVector.x, 0f - parent.movement.dashVector.y, 0f));
+			parent.dustEmitter.EmitDirBurst(17, targetAngle);
+			Vector3 vector = Entity.GetFacingDirectionVector(parent.facingDirection);
+			PoolManager.GetPoolItem<DashAirBurst>().Burst(parent.hurtBoxTransform.position, vector, Entity.HasLineOfSight(parent.hurtBoxTransform.position, parent.hurtBoxTrans
+			parent.TogglePreventFallCollider(status: false);
+		}
+		public override void Update()
+		{
+			if (dashCompleted)
+			{
+				parent.HandleExitTransitions();
+			}
+		}
+		public override void FixedUpdate()
+		{
+			if (parent.movement.DashToTarget())
+			{
+				dashCompleted = true;
+			}
+		}
+		public override void OnExit()
+		{
+			parent.movement.EndMovement();
+			parent.dashPauseStopwatchID = ChaosStopwatch.Begin(parent.dashPause);
+			parent.TogglePreventFallCollider(status: true);
+		}
+	}
+	public class TornadoState : State<Contestant>
+	{
+		private GameObject tornadoPrefab;
+		private Tornado tornadoScript;
+		public TornadoState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			tornadoPrefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/Tornado.prefab");
+		}
+		public override void OnEnter()
+		{
+			parent.movement.EndMovement();
+			parent.anim.PlayDirectional("Cast" + parent.facingDirection);
+			tornadoScript = Object.Instantiate(tornadoPrefab, parent.hurtBoxTransform.position, Quaternion.identity).GetComponent<Tornado>();
+			tornadoScript.attackBox.SetAttackInfo("Player", "SummonTornado");
+		}
+		public override void Update()
+		{
+			if (parent.anim.AnimPlayed(0.9f))
+			{
+				parent.HandleExitTransitions();
+			}
+		}
+		public override void OnExit()
+		{
+			parent.tornadoReady = false;
+			parent.tornadoStopwatchID = ChaosStopwatch.Begin(parent.tornadoCooldown);
+		}
+	}
+	public class SwordThrowState : State<Contestant>
+	{
+		private GameObject swordThrowPrefab;
+		private SwordThrowProjectile swordThrowScript;
+		private bool swordThrown;
+		private Vector2 targetVector;
+		public SwordThrowState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			swordThrowPrefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/SwordThrow.prefab");
+		}
+		public override void OnEnter()
+		{
+			parent.movement.EndMovement();
+			parent.anim.PlayDirectional("Cast" + parent.facingDirection);
+			swordThrown = false;
+			targetVector = ((Vector2)parent.closestTargetInfo.hurtBoxPosition - (Vector2)parent.hurtBoxTransform.position).normalized;
+		}
+		public override void Update()
+		{
+			if (parent.anim.AnimPlayed(0.2f) && !swordThrown)
+			{
+				swordThrown = true;
+				swordThrowScript = Object.Instantiate(swordThrowPrefab, parent.hurtBoxTransform.position, Quaternion.identity).GetComponent<SwordThrowProjectile>();
+				swordThrowScript.parentObject = parent.gameObject;
+				swordThrowScript.moveVector = targetVector;
+				swordThrowScript.destroyOnDisable = true;
+				swordThrowScript.attackBox.SetAttackInfo("Player", "SwordThrow");
+				SoundManager.PlayAudioWithDistance("WindBoomerang", parent.hurtBoxTransform.position);
+			}
+			else if (parent.anim.AnimPlayed(0.9f))
+			{
+				parent.HandleExitTransitions();
+			}
+		}
+		public override void OnExit()
+		{
+			parent.swordThrowReady = false;
+			parent.swordThrowStopwatchID = ChaosStopwatch.Begin(parent.swordThrowCooldown);
+		}
+	}
+	public class FireballState : State<Contestant>
+	{
+		private GameObject fireballPrefab;
+		private Projectile fireballScript;
+		private bool fireballCreated;
+		private Vector2 targetVector;
+		public FireballState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			fireballPrefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/Fireball.prefab");
+		}
+		public override void OnEnter()
+		{
+			fireballCreated = false;
+			parent.movement.EndMovement();
+			parent.anim.PlayDirectional("Cast" + parent.facingDirection);
+			targetVector = ((Vector2)parent.closestTargetInfo.hurtBoxPosition - (Vector2)parent.hurtBoxTransform.position).normalized;
+		}
+		public override void Update()
+		{
+			if (parent.anim.AnimPlayed(0.2f) && !fireballCreated)
+			{
+				fireballScript = Object.Instantiate(fireballPrefab, parent.hurtBoxTransform.position, Globals.GetRotationQuaternion(targetVector)).GetComponent<Fireball>();
+				fireballScript.gameObject.name = parent.skillCategory + "Fireball";
+				fireballScript.parentObject = parent.gameObject;
+				fireballScript.moveVector = targetVector;
+				fireballScript.attackBox.SetAttackInfo("Player", "ShootFireball");
+				fireballCreated = true;
+			}
+			else if (parent.anim.AnimPlayed(0.9f))
+			{
+				parent.HandleExitTransitions();
+			}
+		}
+		public override void OnExit()
+		{
+			parent.fireballReady = false;
+			parent.fireballStopwatchID = ChaosStopwatch.Begin(parent.fireballCooldown);
+		}
+	}
+	public class ContestantHurtState : EnemyHurtState
+	{
+		public new Contestant parent;
+		public ContestantHurtState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			parent = parentEntity;
+		}
+		public override void ExitTransition()
+		{
+			if (!(fsm.nextStateName == name))
+			{
+				if (parent.dashAvailable && parent.closestTargetInfo != null && parent.CalculateDashVector(dashingTowards: false))
+				{
+					fsm.ChangeState("Dash");
+				}
+				else
+				{
+					base.ExitTransition();
+				}
+			}
+		}
+	}
+	public class ContestantFallState : FallState
+	{
+		public new Contestant parent;
+		public ContestantFallState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			parent = parentEntity;
+		}
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.TrackFollowTransform();
+		}
+		public override void Update()
+		{
+			base.Update();
+			if (finishedFalling)
+			{
+				parent.transform.position = parent.myOrigin;
+				parent.fsm.ChangeState("Chase");
+			}
+		}
+	}
+	public class ContestantDeadState : EnemyDeadState
+	{
+		private float destroyTime = 10f;
+		private int destroyStopwatchID;
+		public new Contestant parent;
+		public ContestantDeadState(string stateName, FSM parentFSM, Contestant parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+			parent = parentEntity;
+		}
+		public override void OnEnter()
+		{
+			parent.healthBar.gameObject.SetActive(value: false);
+			if (parent.targetEnemyGroup)
+			{
+				GameController.allies.Remove(parent.gameObject);
+			}
+			destroyStopwatchID = ChaosStopwatch.Begin(destroyTime);
+			base.OnEnter();
+		}
+		public override void Update()
+		{
+			if (parent.anim.AnimPlayed() && ChaosStopwatch.Check(destroyStopwatchID))
+			{
+				base.Update();
+				parent.DestroyContestant();
+			}
+		}
+	}
+	[HideInInspector]
+	public HealthBar healthBar;
+	public bool targetEnemyGroup;
+	public bool forceChaseState;
+	private float useTornadoRange = 2.5f;
+	private float tornadoCooldown = 6f;
+	private int tornadoStopwatchID = -1;
+	private bool tornadoReady;
+	private float useSwordThrowMinRange = 5f;
+	private float useSwordThrowMaxRange = 8f;
+	private float swordThrowCooldown = 5f;
+	private int swordThrowStopwatchID = -1;
+	private bool swordThrowReady;
+	private float useFireBallMaxRange = 6f;
+	private float fireballCooldown = 8f;
+	private int fireballStopwatchID = -1;
+	private bool fireballReady;
+	private bool dashAvailable = true;
+	private int maxDashCharges = 4;
+	private int dashCharges = 4;
+	private float dashPause = 0.5f;
+	private float dashCooldown = 1.2f;
+	private float pitDashCooldown = 0.2f;
+	private int dashPauseStopwatchID = -1;
+	private int dashStopwatchID = -1;
+	private int pitDashStopwatchID = -1;
+	private Material spriteMaterial;
+	private DustEmitter dustEmitter;
+	[HideInInspector]
+	public Vector2 destinationVector;
+	[HideInInspector]
+	public Transform followTransform;
+	private RaycastHit2D[] castResults = new RaycastHit2D[1];
+	public override void Awake()
+	{
+		base.Awake();
+		multiAnimHurt = true;
+		animFacingDirections = 4;
+		healthBar = Object.Instantiate(ChaosBundle.Get("Assets/Prefabs/UI/HealthBar.prefab")).GetComponent<HealthBar>();
+		healthBar.parentTrans = transform;
+		healthBar.parentHealth = health;
+		healthBar.SetBarDimensions(0.45f, 0.46f, 0.1f, 0.01f);
+		dustEmitter = Globals.ChaosInst<DustEmitter>(DustEmitter.Prefab, transform.parent);
+		dustEmitter.Initialize(transform);
+		dustEmitter.gameObject.name = gameObject.name + "DustEmitter";
+		traversableNodeMap = Pathfinder.connectedNodeMap;
+		minNodeDist = 1f;
+		destinationVector = myOrigin;
+		chestLootTableID = "TreasureChestMiniBoss";
+	}
+	public override void InitElement()
+	{
+		spriteRenderer.material.SetFloat("_PaletteIndex", 24f);
+	}
+	public override void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Idle";
+		fsm.AddState(new ContestantIdleState("Idle", fsm, this));
+		fsm.AddState(new ContestantGoBackState("GoBack", fsm, this));
+		fsm.AddState(new ContestantChaseState("Chase", fsm, this));
+		attackSkillID = "ContestantWindSlashBasic";
+		fsm.AddState(new AttackState("Attack", fsm, this));
+		fsm.AddState(new ContestantHurtState("Hurt", fsm, this));
+		fsm.AddState(new ContestantDeadState("Dead", fsm, this));
+		fsm.AddState(new ContestantFallState("Fall", fsm, this));
+		fsm.AddState(new EnemyFrozenState("Frozen", fsm, this));
+		fsm.AddState(new DashState("Dash", fsm, this));
+		fsm.AddState(new TornadoState("Tornado", fsm, this));
+		fsm.AddState(new SwordThrowState("SwordThrow", fsm, this));
+		fsm.AddState(new FireballState("Fireball", fsm, this));
+		fsm.AddState(new BlizzardState("FrostMageSummonBlizzard", fsm, this, 0, 10, 3f, 10f, 10f)
+		{
+			disablePowerUpEffect = true,
+			windupTime = 0f,
+			maxHits = 10,
+			castingCircleColor = ((!targetEnemyGroup) ? CastingCircle.enemyColor : CastingCircle.defaultColor)
+		});
+		fsm.ChangeState(fsm.defaultStateName);
+	}
+	public override void Start()
+	{
+		base.Start();
+		lineOfSightLayerMask = ChaosCollisions.layerAllWall;
+		if (!targetEnemyGroup)
+		{
+			return;
+		}
+		base.transform.Find("EnemyHurtBox").gameObject.name = "AllyHurtBox";
+		base.transform.Find("EnemyFloorContact").gameObject.name = "AllyFloorContact";
+		skillCategory = "EnemyOnly";
+		foreach (Transform item in base.transform)
+		{
+			if (item.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+			{
+				item.gameObject.layer = LayerMask.NameToLayer("Player");
+			}
+			if (item.gameObject.layer == LayerMask.NameToLayer("EnemyFloorContact"))
+			{
+				item.gameObject.layer = LayerMask.NameToLayer("AllyFloorContact");
+			}
+		}
+		targetGroup = GameController.enemies;
+		GameController.enemies.Remove(gameObject);
+		GameController.allies.Add(gameObject);
+		dropLoot = false;
+	}
+	public override void Update()
+	{
+		base.Update();
+		HandleCooldowns();
+	}
+	private void HandleCooldowns()
+	{
+		if (!tornadoReady)
+		{
+			tornadoReady = ChaosStopwatch.Check(tornadoStopwatchID);
+		}
+		if (!swordThrowReady)
+		{
+			swordThrowReady = ChaosStopwatch.Check(swordThrowStopwatchID);
+		}
+		if (!fireballReady)
+		{
+			fireballReady = ChaosStopwatch.Check(fireballStopwatchID);
+		}
+		if (dashCharges < maxDashCharges - 1 && ChaosStopwatch.Check(dashStopwatchID))
+		{
+			dashStopwatchID = ChaosStopwatch.Begin(dashCooldown);
+			dashCharges++;
+		}
+		if (!dashAvailable && dashCharges > 0 && ChaosStopwatch.Check(dashPauseStopwatchID))
+		{
+			dashAvailable = true;
+		}
+	}
+	private bool CalculateDashVector(bool dashingTowards = true, Transform targetTransform = null)
+	{
+		Vector2 vector = new Vector2(Random.Range(-1f, 1f), Random.Range(-0.75f, 0.75f));
+		Transform transform;
+		if (targetTransform == null)
+		{
+			if (closestTargetInfo == null || !(closestTargetInfo.transform != null))
+			{
+				movement.dashVector = vector;
+				return true;
+			}
+			transform = closestTargetInfo.transform;
+		}
+		else
+		{
+			transform = targetTransform;
+		}
+		if (dashingTowards)
+		{
+			movement.dashVector = (transform.position - base.transform.position + (Vector3)vector).normalized;
+		}
+		else
+		{
+			movement.dashVector = (base.transform.position - transform.position + (Vector3)vector).normalized;
+		}
+		return Entity.HasLineOfSight(movement.dashVector * 4.8f + (Vector2)base.transform.position, movement.dashVector * 6.3f + (Vector2)base.transform.position, 8f, Chaos
+	}
+	private bool DashOverPits()
+	{
+		if (Physics2D.LinecastNonAlloc(transform.position, transform.position + (Vector3)movement.moveVector.normalized, castResults, ChaosCollisions.layerPit) > 0 && Chaos
+		{
+			pitDashStopwatchID = ChaosStopwatch.Begin(pitDashCooldown);
+			movement.dashVector = ((!(movement.moveVector == Vector2.zero)) ? movement.moveVector.normalized : Entity.GetFacingDirectionVector(facingDirection));
+			if (Entity.HasLineOfSight(movement.dashVector * 4.8f + (Vector2)transform.position, movement.dashVector * 6.3f + (Vector2)transform.position, 8f, ChaosCollisions.l
+			{
+				requestPathStopwatchID = -1;
+				fsm.QueueChangeState("Dash");
+				return true;
+			}
+		}
+		return false;
+	}
+	private void TrackFollowTransform()
+	{
+		if (followTransform != null && Vector2.Distance(transform.position, followTransform.position) > 3f)
+		{
+			destinationVector = followTransform.position;
+			fsm.ChangeState("GoBack");
+		}
+	}
+	private void DestroyContestant()
+	{
+		Object.Destroy(dustEmitter.gameObject);
+		Object.Destroy(healthBar.gameObject);
+		Object.Destroy(gameObject);
+	}
+}

@@ -1,0 +1,105 @@
+[release] claude plugin marketplace add Gogi213/role-play-vibing#v1.8.5 -> код 1: × Failed to add marketplace: Fetching the marketplace from GitHub failed on both attempts. HTTPS (https://github.com/Gogi213/role-play-vibing.git): Failed to clone marketplace repository: Git clone timed out after 120s. The repository may be too large for the current timeout. Set CLAUDE_CODE_PLUGIN_
+[release] откат не удался — возвращаю прежний маркетплейс (main)
+[release] claude plugin marketplace remove role-play-vibing -> код 1: × Failed to remove marketplace: Marketplace 'role-play-vibing' not found
+[release] 1.8.5 -> 1.8.6 (перезапустить Claude Code для применения)
+[release] claude plugin marketplace update role-play-vibing -> код 1: × Failed to update marketplace(s): Failed to refresh marketplace 'role-play-vibing': Fetching the marketplace from GitHub failed on both attempts. HTTPS (https://github.com/Gogi213/role-play-vibing.git): Failed to clone marketplace repository: Git clone timed out after 120s. The repository may be to
+[release] 1.8.7 -> 1.8.8 (перезапустить Claude Code для применения)
+[release] auto: 1.8.7 -> 1.8.8, службы живы
+[release] 1.8.8 -> 1.8.9 (перезапустить Claude Code для применения)
+[release] auto: 1.8.8 -> 1.8.9, службы живы
+[release] 1.8.9 -> 1.8.10 (перезапустить Claude Code для применения)
+[release] auto: 1.8.9 -> 1.8.10, службы живы
+[release] 1.8.10 -> 1.8.11 (перезапустить Claude Code для применения)
+[release] auto: 1.8.10 -> 1.8.11, службы живы
+[release] 1.8.11 -> 1.8.12 (перезапустить Claude Code для применения)
+[release] auto: 1.8.11 -> 1.8.12, службы живы
+[release] 1.8.12 -> 1.8.13 (перезапустить Claude Code для применения)
+[release] auto: 1.8.12 -> 1.8.13, службы живы
+[release] 1.8.13 -> 1.8.14 (перезапустить Claude Code для применения)
+[release] auto: 1.8.13 -> 1.8.14, службы живы
+[release] 1.8.14 -> 1.8.15 (перезапустить Claude Code для применения)
+[release] auto: 1.8.14 -> 1.8.15, службы живы
+[release] 1.8.15 -> 1.8.16 (перезапустить Claude Code для применения)
+[release] auto: 1.8.15 -> 1.8.16, службы живы
+[release] проверка: диспетчер: не запущен (pid-файл: нет); сердцебиение -3 с
+[release] claude plugin marketplace add Gogi213/role-play-vibing#v1.8.16 -> код 1: × Failed to add marketplace: Fetching the marketplace from GitHub failed on both attempts. HTTPS (https://github.com/Gogi213/role-play-vibing.git): Failed to move the new marketplace clone into place at C:\Users\Георгий\.claude\plugins\marketplaces\Gogi213-role-play-vibing. Please try again.
+
+Techni
+[release] откат не удался — возвращаю прежний маркетплейс (main)
+[release] claude plugin marketplace remove role-play-vibing -> код 1: × Failed to remove marketplace: Marketplace 'role-play-vibing' not found
+[release] claude plugin marketplace remove role-play-vibing -> код 1: × Failed to remove marketplace: Marketplace 'role-play-vibing' not found
+[release] claude plugin marketplace remove role-play-vibing -> код 1: × Failed to remove marketplace: Marketplace 'role-play-vibing' not found
+[release] 1.8.16 -> 1.8.17 (перезапустить Claude Code для применения)
+[release] 1.8.20 -> 1.8.21 (перезапустить Claude Code для применения)
+[release] auto: 1.8.20 -> 1.8.21, службы живы
+[release] 1.8.21 -> 1.8.22 (перезапустить Claude Code для применения)
+[release] auto: 1.8.21 -> 1.8.22, службы живы
+[release] 1.8.22 -> 1.8.23 (перезапустить Claude Code для применения)
+[release] auto: 1.8.22 -> 1.8.23, службы живы
+[release] 1.8.23 -> 1.8.24 (перезапустить Claude Code для применения)
+[release] auto: 1.8.23 -> 1.8.24, службы живы
+[release] 1.8.24 -> 1.8.25 (перезапустить Claude Code для применения)
+[release] auto: 1.8.24 -> 1.8.25, службы живы
+[release] 1.8.25 -> 1.8.26 (перезапустить Claude Code для применения)
+[release] auto: 1.8.25 -> 1.8.26, службы живы
+[release] 1.8.26 -> 1.8.27 (перезапустить Claude Code для применения)
+[release] auto: 1.8.26 -> 1.8.27, службы живы
+[release] 1.8.27 -> 1.8.28 (перезапустить Claude Code для применения)
+[release] auto: 1.8.27 -> 1.8.28, службы живы
+[release] 1.8.28 -> 1.8.29 (перезапустить Claude Code для применения)
+[release] auto: 1.8.28 -> 1.8.29, службы живы
+[release] 1.8.29 -> 1.8.30 (перезапустить Claude Code для применения)
+[release] auto: 1.8.29 -> 1.8.30, службы живы
+[release] 1.8.30 -> 1.8.31 (перезапустить Claude Code для применения)
+[release] auto: 1.8.30 -> 1.8.31, службы живы
+[release] 1.8.31 -> 1.8.32 (перезапустить Claude Code для применения)
+[release] auto: 1.8.31 -> 1.8.32, службы живы
+[release] 1.8.32 -> 1.8.33 (перезапустить Claude Code для применения)
+[release] auto: 1.8.32 -> 1.8.33, службы живы
+[release] 1.8.33 -> 1.8.34 (перезапустить Claude Code для применения)
+[release] auto: 1.8.33 -> 1.8.34, службы живы
+[release] 1.8.34 -> 1.8.35 (перезапустить Claude Code для применения)
+[release] auto: 1.8.34 -> 1.8.35, службы живы
+[release] 1.8.35 -> 1.8.36 (перезапустить Claude Code для применения)
+[release] auto: 1.8.35 -> 1.8.36, службы живы
+[release] 1.8.36 -> 1.8.37 (перезапустить Claude Code для применения)
+[release] auto: 1.8.36 -> 1.8.37, службы живы
+[release] 1.8.37 -> 1.8.38 (перезапустить Claude Code для применения)
+[release] auto: 1.8.37 -> 1.8.38, службы живы
+[release] 1.8.38 -> 1.8.39 (перезапустить Claude Code для применения)
+[release] auto: 1.8.38 -> 1.8.39, службы живы
+[release] 1.8.39 -> 1.8.40 (перезапустить Claude Code для применения)
+[release] auto: 1.8.39 -> 1.8.40, службы живы
+[release] 1.8.40 -> 1.8.41 (перезапустить Claude Code для применения)
+[release] auto: 1.8.40 -> 1.8.41, службы живы
+[release] 1.8.41 -> 1.8.42 (перезапустить Claude Code для применения)
+[release] auto: 1.8.41 -> 1.8.42, службы живы
+[release] 1.8.42 -> 1.8.43 (перезапустить Claude Code для применения)
+[release] auto: 1.8.42 -> 1.8.43, службы живы
+[release] 1.8.43 -> 1.8.44 (перезапустить Claude Code для применения)
+[release] auto: 1.8.43 -> 1.8.44, службы живы
+Traceback (most recent call last):
+  File "C:\Users\Георгий\.claude\plugins\cache\role-play-vibing\role-play-vibing\1.8.44\.claude\dispatcher\release.py", line 501, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\Георгий\.claude\plugins\cache\role-play-vibing\role-play-vibing\1.8.44\.claude\dispatcher\release.py", line 489, in main
+    return run_auto_locked(Path(pj).resolve())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Георгий\.claude\plugins\cache\role-play-vibing\role-play-vibing\1.8.44\.claude\dispatcher\release.py", line 441, in run_auto_locked
+    if not idle(project, lock):
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Георгий\.claude\plugins\cache\role-play-vibing\role-play-vibing\1.8.44\.claude\dispatcher\release.py", line 416, in wait_idle
+    while count(project):
+          ^^^^^^^^^^^^^^
+  File "C:\Users\Георгий\.claude\plugins\cache\role-play-vibing\role-play-vibing\1.8.44\.claude\dispatcher\release.py", line 406, in active_runs
+    runs = json.loads((project / ".claude" / "dispatcher" / "state.json").read_text(encoding="utf-8")).get("active_runs", {})
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Георгий\AppData\Local\Programs\Python\Python311\Lib\pathlib.py", line 1059, in read_text
+    return f.read()
+           ^^^^^^^^
+  File "<frozen codecs>", line 322, in decode
+MemoryError
+[release] 1.8.44 -> 1.8.47 (перезапустить Claude Code для применения)
+[release] auto: 1.8.44 -> 1.8.47, службы живы
+[release] 1.8.47 -> 1.8.48 (перезапустить Claude Code для применения)
+[release] auto: 1.8.47 -> 1.8.48, службы живы

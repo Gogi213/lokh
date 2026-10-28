@@ -1,0 +1,244 @@
+
+=== 2026-10-27T04:44:14+04:00 старт ci_watch.py ===
+[ci_watch] PR #112 9044a07: pending
+[ci_watch] PR #111 7307854: success
+[ci_watch] PR #110 cfa944b: success
+[ci_watch] PR #109 1c90a4b: success
+[ci_watch] PR #108 1eac93f: success
+[ci_watch] PR #107 52d4f14: success
+[ci_watch] PR #106 9ebb85e: success
+[ci_watch] PR #112 9044a07: success → judge
+[ci_watch] PR #111 d3bdd94: pending
+[ci_watch] PR #111 d3bdd94: success → judge
+[merge_rule] PR #111: влит
+[ci_watch] PR #113 8f83801: pending
+[ci_watch] PR #113 8f83801: success → judge
+[ci_watch] PR #112 fb65520: pending
+[ci_watch] PR #112 fb65520: success → judge
+[ci_watch] PR #114 e288114: pending
+[merge_rule] PR #112: влит
+[ci_watch] PR #114 e288114: success → judge
+[ci_watch] PR #115 ae4f9d5: pending
+[merge_rule] PR #114: влит
+[ci_watch] PR #115 ae4f9d5: success
+[ci_watch] PR #113 8660405: pending
+[ci_watch] PR #113 8660405: success → judge
+[merge_rule] PR #113: влит
+[ci_watch] PR #116 07fbe9c: pending
+[ci_watch] PR #116 07fbe9c: success → judge
+[merge_rule] PR #116: влит
+[ci_watch] PR #117 d0bc06e: pending
+[ci_watch] PR #117 d0bc06e: success → judge
+[ci_watch] PR #118 af6b166: pending
+[ci_watch] PR #119 79135e5: pending
+[ci_watch] PR #118 af6b166: success → judge
+[merge_rule] PR #117: влит
+[ci_watch] PR #119 e0a5a76: pending
+[ci_watch] PR #120 ca33749: pending
+[ci_watch] PR #120 ca33749: success
+[ci_watch] PR #119 e0a5a76: success → judge
+[ci_watch] PR #118 e3799e9: pending
+[ci_watch] PR #119 736d0a3: pending
+[ci_watch] PR #118 e3799e9: success
+[ci_watch] PR #119 736d0a3: success → judge
+[ci_watch] PR #121 d13c8ea: pending
+[ci_watch] PR #121 d13c8ea: success → judge
+[ci_watch] PR #119 9a6bbca: pending
+[ci_watch] PR #118 7a06e06: pending
+[ci_watch] PR #121 3021a74: pending
+[ci_watch] PR #119 9a6bbca: success → judge
+[ci_watch] PR #118 7a06e06: success → judge
+[ci_watch] PR #121 3021a74: success → judge
+[merge_rule] PR #118: влит
+[merge_rule] PR #121: влит
+[ci_watch] PR #119 837ceb9: pending
+
+=== 2026-10-27T06:32:49+04:00 старт ci_watch.py ===
+[ci_watch] PR #119 837ceb9: success → judge
+[ci_watch] PR #119 c9d27a7: pending
+[ci_watch] PR #119 c9d27a7: success
+[ci_watch] PR #119 a2a5290: pending
+[ci_watch] PR #119 a2a5290: success → judge
+[ci_watch] PR #119 d9da1f1: pending
+[ci_watch] PR #119 d9da1f1: success → judge
+[ci_watch] PR #119 2bb127a: pending
+[ci_watch] PR #119 2bb127a: success → judge
+[ci_watch] PR #119 5c49a36: pending
+[ci_watch] PR #119 5c49a36: success
+[ci_watch] PR #119 76a1200: pending
+[ci_watch] PR #119 76a1200: failure → engineer
+[ci_watch] PR #119 76a1200: pending
+[ci_watch] PR #119 76a1200: success
+[merge_rule] PR #119: влит
+[ci_watch] PR #122 c635f4a: pending
+[ci_watch] PR #123 8349fb7: pending
+[ci_watch] PR #123 8349fb7: success → judge
+[ci_watch] PR #122 a0602ee: pending
+[ci_watch] PR #122 a0602ee: success → judge
+[merge_rule] PR #123: влит
+[ci_watch] PR #124 8ab5a1e: pending
+[ci_watch] PR #124 8ab5a1e: success → judge
+[merge_rule] PR #124: влит
+[ci_watch] PR #125 16b8609: pending
+[ci_watch] PR #125 16b8609: success → judge
+[merge_rule] PR #125: влит
+[ci_watch] PR #126 f3133a6: pending
+[ci_watch] PR #126 e2647d0: pending
+[ci_watch] PR #126 e2647d0: success → judge
+[ci_watch] PR #126 c4878e7: pending
+[ci_watch] PR #126 c4878e7: success → judge
+[ci_watch] PR #126 36d777a: pending
+[ci_watch] PR #126 36d777a: success → judge
+[ci_watch] PR #126 9cd19c4: pending
+[ci_watch] PR #126 9cd19c4: success → judge
+[ci_watch] PR #126 187524b: pending
+[ci_watch] PR #126 afec526: pending
+[ci_watch] PR #126 afec526: success → judge
+[ci_watch] PR #126 55ce888: pending
+[ci_watch] PR #126 55ce888: success → judge
+[ci_watch] PR #126 302790b: pending
+[ci_watch] PR #126 302790b: failure → engineer
+[ci_watch] PR #126 a466a56: pending
+[ci_watch] PR #126 a466a56: failure → engineer
+[ci_watch] PR #126 b190f20: pending
+[ci_watch] PR #126 b190f20: success → judge
+[merge_rule] PR #126: влит
+[ci_watch] PR #128 02c2114: pending
+[ci_watch] PR #127 7497571: pending
+[ci_watch] PR #127 7497571: success → judge
+[ci_watch] PR #128 02c2114: success
+[merge_rule] PR #127: влит
+[ci_watch] PR #129 81ee387: pending
+[ci_watch] PR #130 cb07c70: pending
+[ci_watch] PR #129 81ee387: success → judge
+[ci_watch] PR #130 cb07c70: success → judge
+[ci_watch] PR #129 07baa80: pending
+[merge_rule] PR #130: влит
+[ci_watch] PR #131 b07fb29: pending
+[ci_watch] PR #129 07baa80: success → judge
+[ci_watch] PR #131 71be5b6: pending
+[ci_watch] PR #131 71be5b6: success → judge
+[ci_watch] PR #129 060e257: pending
+[ci_watch] PR #129 060e257: success → judge
+[ci_watch] PR #129 e1acd1f: pending
+[ci_watch] PR #129 e1acd1f: success → judge
+[merge_rule] PR #129: влит
+[ci_watch] PR #132 2a1544d: pending
+[ci_watch] PR #131 760e505: pending
+[ci_watch] PR #132 2a1544d: success
+[merge_rule] PR #132: влит
+[ci_watch] PR #131 760e505: success → judge
+[merge_rule] PR #131: влит
+[ci_watch] PR #133 4b3bb22: pending
+[ci_watch] PR #133 4b3bb22: success → judge
+[merge_rule] PR #133: влит
+[ci_watch] PR #134 ce222ee: pending
+[ci_watch] PR #134 ce222ee: success
+[merge_rule] PR #134: влит
+[ci_watch] PR #135 711e8d3: pending
+[ci_watch] PR #135 711e8d3: success → judge
+[merge_rule] PR #135: влит
+[ci_watch] PR #136 f4959c2: pending
+[ci_watch] PR #136 f4959c2: success
+[ci_watch] PR #137 9f0dc5d: pending
+[ci_watch] PR #137 9f0dc5d: success
+[merge_rule] PR #137: влит
+
+=== 2026-10-27T11:23:13+04:00 старт ci_watch.py ===
+[ci_watch] PR #138 62e0210: pending
+[ci_watch] PR #138 62e0210: success → judge
+[merge_rule] PR #138: влит
+[ci_watch] PR #139 a754cf7: pending
+[ci_watch] PR #139 a754cf7: success → judge
+[ci_watch] PR #139 fe029dd: pending
+[ci_watch] PR #139 fe029dd: success
+[merge_rule] PR #139: влит
+[ci_watch] PR #140 36b9d99: pending
+[ci_watch] PR #140 36b9d99: success
+[merge_rule] PR #140: влит
+
+=== 2026-10-27T12:20:56+04:00 старт ci_watch.py ===
+[ci_watch] PR #141 631d2a3: pending
+[ci_watch] PR #141 631d2a3: success
+[merge_rule] PR #141: влит
+[ci_watch] PR #142 ade68c7: pending
+[ci_watch] PR #142 ade68c7: success → judge
+[ci_watch] PR #142 f636a67: pending
+[ci_watch] PR #142 f636a67: success → judge
+[ci_watch] PR #143 f9272dc: pending
+[merge_rule] PR #142: влит
+[ci_watch] PR #143 f9272dc: success → judge
+[ci_watch] PR #144 b205ad7: pending
+[merge_rule] PR #143: влит
+[ci_watch] PR #144 b205ad7: success → judge
+[merge_rule] PR #144: конфликт → владельцу
+[ci_watch] PR #144 c839572: pending
+[ci_watch] PR #145 564081c: pending
+[ci_watch] PR #144 c839572: success → judge
+[merge_rule] PR #144: влит
+[ci_watch] PR #145 564081c: success → judge
+[merge_rule] PR #145: влит
+[ci_watch] PR #146 77bfc4b: pending
+[ci_watch] PR #146 77bfc4b: success
+[merge_rule] PR #146: влит
+[ci_watch] PR #147 9fd88df: pending
+[ci_watch] PR #147 9fd88df: success
+[ci_watch] PR #149 474532c: pending
+[ci_watch] PR #148 1a047c9: pending
+[ci_watch] PR #150 deecdb5: pending
+[ci_watch] PR #149 474532c: success → judge
+[ci_watch] PR #148 1a047c9: success → judge
+[ci_watch] PR #150 deecdb5: success → judge
+[merge_rule] PR #148: влит
+[merge_rule] PR #149: конфликт → владельцу
+[ci_watch] PR #149 dc85877: pending
+[merge_rule] PR #150: влит
+[ci_watch] PR #149 dc85877: success → judge
+[ci_watch] PR #151 3084ccd: pending
+[merge_rule] PR #149: конфликт → владельцу
+[ci_watch] PR #151 3084ccd: success → judge
+[ci_watch] PR #149 e3ed542: pending
+[merge_rule] PR #151: влит
+[ci_watch] PR #149 e3ed542: success → judge
+[merge_rule] PR #149: влит
+[ci_watch] PR #152 384c2f5: pending
+[ci_watch] PR #152 384c2f5: success → judge
+[ci_watch] PR #153 0af8c9f: pending
+[ci_watch] PR #153 0af8c9f: failure → engineer
+[ci_watch] PR #152 c4d6529: pending
+[ci_watch] PR #152 c4d6529: success → judge
+[ci_watch] PR #153 0af8c9f: pending
+[merge_rule] PR #152: влит
+[ci_watch] PR #153 0af8c9f: success
+[merge_rule] PR #153: влит
+[ci_watch] PR #154 ea0310f: pending
+
+=== 2026-10-27T19:14:36+04:00 старт ci_watch.py ===
+[ci_watch] PR #155 ad4c936: pending
+[ci_watch] PR #155 ad4c936: success
+[merge_rule] PR #155: влит
+[ci_watch] PR #156 e0e22ef: pending
+[ci_watch] PR #154 ea0310f: failure
+[ci_watch] PR #157 a03acb7: pending
+[ci_watch] PR #156 e0e22ef: success
+[merge_rule] PR #156: влит
+[ci_watch] PR #157 a03acb7: success
+[merge_rule] PR #157: база eng/tk-044-round3 → main
+[merge_rule] PR #157: влит
+[ci_watch] PR #158 d5aa4f2: pending
+[ci_watch] PR #158 d5aa4f2: success → judge
+[merge_rule] PR #158: влит
+[ci_watch] PR #159 52251ab: pending
+[ci_watch] PR #159 52251ab: success
+[merge_rule] PR #159: влит
+[ci_watch] PR #160 489ac36: pending
+[ci_watch] PR #160 489ac36: success
+[merge_rule] PR #160: влит
+[ci_watch] PR #154 ea0310f: pending
+[ci_watch] PR #107: gh: Server Error (HTTP 502)
+[ci_watch] PR #110: gh: HTTP 500
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+
+=== 2026-10-28T03:49:05+04:00 старт ci_watch.py ===
+
+=== 2026-10-28T03:59:08+04:00 старт ci_watch.py ===

@@ -1,0 +1,1002 @@
+=== VortexWave
+public class VortexWave : Wave
+{
+	private new static GameObject prefab;
+	private static Vector3 effectOffset = new Vector3(0f, 0.75f, 0f);
+	public int hitCount = 15;
+	private float hitInterval = 0.125f;
+	private int hitStopwatchID;
+	private bool attackActive;
+	private bool waveActive;
+	private ParticleSystem[] windEmitters;
+	private ParticleSystem[] dustEmitters;
+	private AudioSource loopAudio;
+	private ChaosQuickStopwatch audioStopwatch = new ChaosQuickStopwatch(0.5f);
+	public override void Start()
+	{
+		base.Start();
+		hitStopwatchID = ChaosStopwatch.Begin(hitInterval, useInterval: true, hitInterval, hitCount);
+		windEmitters = new ParticleSystem[wavePoolSize];
+		dustEmitters = new ParticleSystem[wavePoolSize];
+		for (int i = 0; i < wavePoolSize; i++)
+		{
+			windEmitters[i] = wavePoolTrans[i].Find("WindPartSys").GetComponent<ParticleSystem>();
+			dustEmitters[i] = wavePoolTrans[i].Find("DustCircleEmitter").GetComponent<ParticleSystem>();
+		}
+		waveActive = true;
+		layerMaskRadius = 0.05f;
+	}
+	public override void Update()
+	{
+		if (!waveActive)
+		{
+			base.Update();
+		}
+		else if (!audioStopwatch.IsRunning)
+		{
+			audioStopwatch.IsRunning = true;
+		}
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		switch (ChaosStopwatch.CheckInterval(hitStopwatchID))
+		{
+		case StopwatchState.Running:
+			if (!attackActive)
+			{
+				attackActive = true;
+				EnableAttackColliders(attackActive);
+			}
+			break;
+		case StopwatchState.Ready:
+			attackActive = false;
+			EnableAttackColliders(attackActive);
+			break;
+		case StopwatchState.Done:
+			EnableAttackColliders(status: false);
+			waveActive = false;
+			if (loopAudio != null)
+			{
+				loopAudio.Stop();
+				loopAudio = null;
+			}
+			break;
+		}
+	}
+	public override void ActivateWave()
+	{
+		base.ActivateWave();
+		if (!layerMaskHit)
+		{
+			PoolManager.GetPoolItem<ParticleEffect>("WindTwirlSmallEffect").Emit(1, wavePoolTrans[waveCount].position + effectOffset, ParticleEffectOverrides.FlipX, new Vector3(0f, 0f, Rand
+		}
+	}
+	public override void DestroyWave()
+	{
+		ChaosStopwatch.Stop(hitStopwatchID);
+		ChaosStopwatch.Stop(destroyStopwatchID);
+		if (!destroySequenceStarted)
+		{
+			destroySequenceStarted = true;
+			destroySequenceStopwatchID = ChaosStopwatch.Begin(0f, useInterval: true, spawnRate, wavePoolSize);
+		}
+		switch (ChaosStopwatch.CheckInterval(destroySequenceStopwatchID))
+		{
+		case StopwatchState.Ready:
+			waveCount++;
+			waveCount %= wavePoolSize;
+			if (wavePoolAttacks[waveCount] != null && wavePoolAttacks[waveCount].collider != null)
+			{
+				wavePoolAttacks[waveCount].collider.gameObject.SetActive(value: false);
+			}
+			if (wavePoolTrans[waveCount] != null)
+			{
+				windEmitters[waveCount].Stop();
+				windEmitters[waveCount].Clear();
+				dustEmitters[waveCount].Stop();
+				PoolManager.GetPoolItem<ParticleEffect>("WindTwirlSmallEffect").Emit(1, wavePoolTrans[waveCount].position + effectOffset, ParticleEffectOverrides.StartColorAlpha0p25, new Vecto
+			}
+			break;
+		case StopwatchState.Done:
+			if (!setToDestroy && gameObject != null)
+			{
+				setToDestroy = true;
+				Object.Destroy(gameObject, destroyDelay);
+			}
+			break;
+		}
+	}
+	public void EnableAttackColliders(bool status = true)
+	{
+		for (int i = 0; i < wavePoolSize; i++)
+		{
+			if (wavePoolAttacks[i] != null && wavePoolAttacks[i].collider != null)
+			{
+				wavePoolAttacks[i].collider.enabled = status;
+			}
+		}
+	}
+}
+=== Ward
+public class Ward : MonoBehaviour
+{
+	protected Vector2 spawnPosition;
+	protected Animator anim;
+	protected CircleCollider2D attackCollider;
+	protected AttackInfo attackInfo;
+	protected Health health;
+	public int startingHealth = 50;
+	public float duration = 10f;
+	protected float pulseInterval = 1f;
+	protected float dotDuration = 1.25f;
+	protected int pulseCount;
+	protected int pulseStopwatchID = -1;
+	protected bool pulseCompleted;
+	protected ElementType element = ElementType.Neutral;
+	protected float eleDmgBoost = 0.2f;
+	protected bool destroyQueued;
+	protected HealthBar healthBar;
+	protected CastBar durationBar;
+	protected GameObject hurtBoxObj;
+	protected GameObject floorContactObj;
+	protected SpriteRenderer aoeSprite;
+	protected static Color aoeMinColor = new Color(1f, 1f, 1f, 0.05f);
+	protected static Color aoeMaxColor = new Color(1f, 1f, 1f, 0.2f);
+	protected int durationStopwatchID = -1;
+	public bool isEmpowered;
+	private static Dictionary<ElementType, ElementType> addedWeakenessDict = new Dictionary<ElementType, ElementType>
+	{
+		{
+			ElementType.Fire,
+			ElementType.Water
+		},
+		{
+			ElementType.Air,
+			ElementType.Fire
+		},
+		{
+			ElementType.Earth,
+			ElementType.Air
+		},
+		{
+			ElementType.Lightning,
+			ElementType.Earth
+		},
+		{
+			ElementType.Water,
+			ElementType.Lightning
+		}
+	};
+	public virtual void Awake()
+	{
+		this.attack = transform.Find("Attack").GetComponent<Attack>();
+		attackCollider = this.attack.transform.GetComponent<CircleCollider2D>();
+		Attack attack = this.attack;
+		attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit)
+		Attack attack2 = this.attack;
+		attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetH
+		anim = GetComponent<Animator>();
+		health = GetComponent<Health>();
+		hurtBoxObj = transform.Find("AllyHurtBox").gameObject;
+		floorContactObj = transform.Find("AllyFloorContact").gameObject;
+		aoeSprite = transform.Find("AoESprite").GetComponent<SpriteRenderer>();
+	}
+	public virtual void Start()
+	{
+		spawnPosition = transform.position;
+		attackInfo = attack.atkInfo;
+		element = attackInfo.elementType;
+		pulseCount = Mathf.CeilToInt(duration / pulseInterval) + 1;
+		pulseStopwatchID = ChaosStopwatch.Begin(0f, useInterval: true, pulseInterval, pulseCount);
+		durationStopwatchID = ChaosStopwatch.Begin(pulseInterval * (float)pulseCount);
+		health.healthStat.SetInitialBaseValue(startingHealth);
+		if (SummonedEntity.useHealthOverride)
+		{
+			health.healthStat.AddMod(SummonedEntity.healthOverrideMod);
+		}
+		healthBar = Globals.ChaosInst<HealthBar>(HealthBar.Prefab);
+		healthBar.parentTrans = transform;
+		healthBar.parentHealth = health;
+		healthBar.SetBarDimensions(0.46f, 0.54f, 0.45f, 0.46f);
+		durationBar = Globals.ChaosInst<CastBar>(CastBar.Prefab);
+		durationBar.parentTrans = transform;
+		durationBar.SetBarDimensions(0.46f, 0.54f, 0.44f, 0.45f);
+		durationBar.StartCast(durationStopwatchID, givenStatus: false);
+		if (isEmpowered)
+		{
+			aoeSprite.transform.localScale = Vector3.one;
+			attackCollider.radius = 4f;
+		}
+		attackCollider.enabled = true;
+	}
+	public virtual void FixedUpdate()
+	{
+		if (destroyQueued)
+		{
+			return;
+		}
+		if (health.healthStat.CurrentValue <= 0f)
+		{
+			DestroyWard();
+			return;
+		}
+		aoeSprite.color = Color.Lerp(aoeMinColor, aoeMaxColor, Mathf.PingPong(ChaosStopwatch.GetRemainingTime(durationStopwatchID), 1f));
+		if (pulseCompleted)
+		{
+			if (ChaosStopwatch.Check(pulseStopwatchID))
+			{
+				DestroyWard();
+			}
+			return;
+		}
+		switch (ChaosStopwatch.CheckInterval(pulseStopwatchID))
+		{
+		case StopwatchState.Running:
+			attackCollider.enabled = false;
+			break;
+		case StopwatchState.Ready:
+			OnPulseActivate();
+			break;
+		case StopwatchState.Done:
+			pulseCompleted = true;
+			pulseStopwatchID = ChaosStopwatch.Begin(pulseInterval);
+			break;
+		}
+	}
+	public virtual void DestroyWard()
+	{
+		if (!destroyQueued)
+		{
+			destroyQueued = true;
+			if (hurtBoxObj != null)
+			{
+				hurtBoxObj.SetActive(value: false);
+			}
+			if (floorContactObj != null)
+			{
+				floorContactObj.SetActive(value: false);
+			}
+			if (anim != null)
+			{
+				anim.Play("Dead", -1, 0f);
+			}
+			healthBar.SetBarVisible(givenStatus: false);
+			if (this.attack != null)
+			{
+				Attack attack = this.attack;
+				attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHi
+			}
+			UnityEngine.Object.Destroy(gameObject, 1f);
+		}
+	}
+	public virtual void OnPulseActivate()
+	{
+		attackCollider.enabled = true;
+	}
+	public virtual void OnTargetHit(Entity givenEntity)
+	{
+		if (!(givenEntity == null) && !(givenEntity is Destructible) && givenEntity.dotManager != null)
+		{
+			givenEntity.dotManager.AddDot(new ElementalWeaknessDotEffect(givenEntity, element, eleDmgBoost, dotDuration));
+			if (isEmpowered)
+			{
+				givenEntity.dotManager.AddDot(new ElementalWeaknessDotEffect(givenEntity, addedWeakenessDict[element], eleDmgBoost, dotDuration));
+			}
+		}
+	}
+}
+=== WaterArcProjectile
+public class WaterArcProjectile : Projectile
+{
+	private bool markForDestroy;
+	private bool hitWall;
+	public Vector3 spawnPos;
+	public Vector2 targetVector;
+	public float arcRange;
+	public bool positiveApproach = true;
+	private int targetStopwatchID;
+	private float timePercentage;
+	private Vector2 initMoveVector;
+	private Vector2 lerpExtVector;
+	private float initTimeToTarget;
+	private float accuracyOffset = 0.707f;
+	private float rotationalAngle;
+	private Vector2 rightBound;
+	private Vector2 leftBound;
+	private Vector3 parentScale;
+	public SortSpriteLayer sortSpriteLayer;
+	private int waterDropEffectTimer = -1;
+	private float waterDropInterval = 0.1f;
+	public bool isEmpowered;
+	public override void Awake()
+	{
+		base.Awake();
+		sortSpriteLayer = transform.parent.GetComponentInChildren<SortSpriteLayer>();
+		projectileSprite = transform.parent.Find("ProjectileSprite").gameObject;
+		projectileSpriteRenderer = projectileSprite.GetComponent<SpriteRenderer>();
+	}
+	public override void Start()
+	{
+		base.Start();
+		parentScale = transform.parent.localScale;
+		anim = GetComponentInParent<Animator>();
+		if (!positiveApproach)
+		{
+			parentScale.x *= -1f;
+			transform.parent.localScale = parentScale;
+		}
+		initMoveVector = targetVector;
+		moveSpeed = Mathf.Max(1f, moveSpeed);
+		initTimeToTarget = arcRange / moveSpeed;
+		targetStopwatchID = ChaosStopwatch.Begin(initTimeToTarget);
+		rotationalAngle = Vector3.Angle(Vector3.up, initMoveVector) * ((float)Math.PI / 180f) * ((!(initMoveVector.x > 0f)) ? 1f : (-1f));
+		rightBound = new Vector2(Mathf.Cos(rotationalAngle), Mathf.Sin(rotationalAngle));
+		leftBound = new Vector2(Mathf.Cos(rotationalAngle + (float)Math.PI), Mathf.Sin(rotationalAngle + (float)Math.PI));
+		if (!isEmpowered)
+		{
+			waterDropEffectTimer = ChaosStopwatch.Begin(waterDropInterval);
+		}
+	}
+	public bool WaitForDestroy()
+	{
+		if (markForDestroy)
+		{
+			if (hitWall || anim.AnimPlayed())
+			{
+				base.ResetProjectile();
+				UnityEngine.Object.Destroy(transform.parent.gameObject);
+			}
+			return true;
+		}
+		return false;
+	}
+	public override void FixedUpdate()
+	{
+		if (!WaitForDestroy())
+		{
+			base.FixedUpdate();
+		}
+	}
+	public override void Update()
+	{
+		if (!WaitForDestroy())
+		{
+			if (timePercentage < 1f)
+			{
+				timePercentage = ChaosStopwatch.GetTimePercentage(targetStopwatchID);
+				lerpExtVector = accuracyOffset * Vector2.Lerp(rightBound, leftBound, (!positiveApproach) ? (1f - timePercentage) : timePercentage);
+				moveVector = (initMoveVector + lerpExtVector).normalized;
+			}
+			base.Update();
+			if (attackBox != null)
+			{
+				attackBox.knockbackOverwriteVector = moveVector;
+			}
+			if (!isEmpowered && ChaosStopwatch.Check(waterDropEffectTimer))
+			{
+				waterDropEffectTimer = ChaosStopwatch.Begin(waterDropInterval);
+				PoolManager.GetPoolItem<WaterDropEmitter>().Emit(2, transform.position);
+			}
+		}
+	}
+	public override void HandleWallCollision(Collider2D other)
+	{
+		hitWall = true;
+		MarkProjectileForDestroy();
+		base.HandleWallCollision(other);
+	}
+	public override void ResetProjectile()
+	{
+		if (!hitWall && !markForDestroy)
+		{
+			MarkProjectileForDestroy();
+		}
+	}
+	public void MarkProjectileForDestroy()
+	{
+		ChaosStopwatch.Stop(flyStopwatchID);
+		ChaosStopwatch.Stop(lifeStopwatchID);
+		markForDestroy = true;
+		flagForReset = false;
+		forcedReturn = false;
+		rigidbody2D.velocity = Vector3.zero;
+		Vector2 vector = transform.position;
+		if (isEmpowered)
+		{
+			IceBurst.CreateBurst(vector, attackBox.GetAtkInfoAtLevel(2), 1.5f).attack.knockbackOverwriteVector = initMoveVector;
+			PoolManager.GetPoolItem<ParticleEffect>("SnowEmitter").Emit(8, vector, ParticleEffectOverrides.Radius2p5);
+			PoolManager.GetPoolItem<ParticleEffect>("IcicleFloorBreakEffect").Emit(5, vector);
+			string audioID = "IceFormQuick";
+			Vector2? soundOrigin = vector;
+		}
+		else
+		{
+			PoolManager.GetPoolItem<ParticleEffect>("WaterExplosion").Emit(1, vector);
+			string audioID = "WaterExplode";
+			Vector2? soundOrigin = vector;
+		}
+	}
+}
+=== WaterBallProjectile
+public class WaterBallProjectile : Projectile
+{
+	public Movement movement;
+	private CircleCollider2D[] circCols;
+	private Vector3 spriteScale;
+	private Vector3 spriteMin = new Vector3(0.125f, 0.125f, 1f);
+	private Vector3 spriteMax = Vector3.one;
+	private CircleCollider2D attackCollider;
+	public ParticleSystem.ShapeModule partSysShapeMod;
+	private ParticleSystem.EmissionModule partSysEmitMod;
+	private int baseDamage;
+	private bool releaseVarsSet;
+	private Vector2 releaseVector;
+	public bool released;
+	public int maxCharge;
+	public int currentCharge;
+	public bool isUltimate;
+	private float chargeProgress;
+	private bool chargeCompleted;
+	public bool targetHit;
+	public int hitStopwatchID;
+	private float hitDelay = 0.0625f;
+	private bool hitWall;
+	public bool disableBlast;
+	private Vector3 blastRotation;
+	private Vector2 currentPosition;
+	private float slowDownMultiplier = 0.5f;
+	private float LerpValue => (float)currentCharge / (float)maxCharge;
+	public override void Awake()
+	{
+		base.Awake();
+		circCols = GetComponentsInChildren<CircleCollider2D>();
+		EnableColliders(status: false);
+		Hide();
+	}
+	public override void Start()
+	{
+		base.Start();
+		InitParticleSystem();
+		baseDamage = calculatedDamage;
+		Attack attack = attackBox;
+		attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit)
+		Attack attack2 = attackBox;
+		attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetH
+		attackCollider = attackBox.collider as CircleCollider2D;
+	}
+	public override void Update()
+	{
+		if (!releaseVarsSet)
+		{
+			if (!chargeCompleted)
+			{
+				chargeProgress = LerpValue;
+				spriteScale = Vector3.Lerp(spriteMin, spriteMax, chargeProgress);
+				projectileSprite.transform.localScale = spriteScale;
+				anim.speed = Mathf.Lerp(0.5f, 2f, chargeProgress);
+				moveSpeed = Mathf.Lerp(15f, 25f, chargeProgress);
+				attackBox.knockbackMultiplierOverride = Mathf.Lerp(15f, 30f, chargeProgress);
+				attackCollider.radius = Mathf.Lerp(0.5f, 1.25f, chargeProgress);
+				partSysEmitMod.rateOverTime = spriteScale.x * 100f;
+				partSysShapeMod.radius = Mathf.Lerp(0.5f, 1.25f, chargeProgress);
+				chargeCompleted = chargeProgress >= 1f;
+				if (!projectileSpriteRenderer.enabled)
+				{
+					Show();
+				}
+			}
+			if (!released)
+			{
+				return;
+			}
+			releaseVarsSet = true;
+			releaseVector = moveVector;
+			if (isUltimate)
+			{
+				anim.Play("IdleLarge", -1, 0f);
+				projectileSprite.transform.localScale = Globals.ScaleVec0p5;
+				transform.localScale *= 1.25f;
+				blastRotation = Globals.GetRotationVector(-releaseVector);
+				slowDownMultiplier = 0.25f;
+			}
+			EnableColliders();
+			calculatedDamage = baseDamage * currentCharge;
+		}
+		base.Update();
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		if (!targetHit)
+		{
+			return;
+		}
+		switch (ChaosStopwatch.CheckInterval(hitStopwatchID))
+		{
+		case StopwatchState.Ready:
+			currentCharge--;
+			currentPosition = transform.position;
+			if (isUltimate)
+			{
+				CreateWaterBurst(currentPosition, 2.5f);
+			}
+			else
+			{
+				attackBox.gameObject.SetActive(value: true);
+			}
+			if (hitWall)
+			{
+				PoolManager.GetPoolItem<HitSparkEmitter>().EmitSingle(HitSparkType.Small, currentPosition, currentPosition);
+			}
+			break;
+		case StopwatchState.Running:
+			attackBox.gameObject.SetActive(value: false);
+			break;
+		case StopwatchState.Done:
+			ResetProjectile();
+			break;
+		}
+	}
+	public void InitParticleSystem()
+	{
+		partSys = transform.Find("WaterEmitter").GetComponent<ParticleSystem>();
+		partSysShapeMod = partSys.shape;
+		partSysEmitMod = partSys.emission;
+	}
+	public override void ResetProjectile()
+	{
+		Attack attack = attackBox;
+		attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit)
+		partSys.Stop();
+		partSys.transform.SetParent(null);
+		UnityEngine.Object.Destroy(partSys.gameObject, 1f);
+		currentPosition = transform.position;
+		Vector3 position = currentPosition;
+		float radius = partSysShapeMod.radius;
+		WaterDropEmitter.EmitCircle(position, 2, 18, radius);
+		string audioID = "WaterArcBasic";
+		Vector2? soundOrigin = currentPosition;
+		radius = UnityEngine.Random.Range(0.85f, 0.95f);
+		base.ResetProjectile();
+		if (!released || disableBlast || !(chargeProgress >= 1f))
+		{
+			return;
+		}
+		attackBox.gameObject.SetActive(value: false);
+		attackBox.ChangeAttackInfoLevel((!isUltimate) ? 3 : 4);
+		blastRotation = Vector2.zero;
+		if (isUltimate)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				CreateWaterBurst(currentPosition + Globals.GetRotatedCircleVector(3, i, releaseVector));
+			}
+		}
+		else
+		{
+			CreateWaterBurst(currentPosition);
+		}
+	}
+	public override void HandleWallCollision(Collider2D hitCol)
+	{
+		if (!hitWall)
+		{
+			hitWall = true;
+			updateVelocity = false;
+			moveVector = Vector2.zero;
+			rigidbody2D.velocity = Vector2.zero;
+			attackBox.knockbackMultiplierOverride = -1f;
+			attackBox.atkInfo.knockbackMultiplier = -5f;
+			attackBox.atkInfo.knockbackOverwrite = false;
+			OnTargetHit(null);
+			if (Projectile.globalProjectileWallCollisionEvents != null)
+			{
+				Projectile.globalProjectileWallCollisionEvents(this);
+			}
+		}
+	}
+	public override void OnProjectileCollision(Collider2D other, Projectile otherProjectile, bool doCalculations = true)
+	{
+		if (doCalculations)
+		{
+			int num = calculatedDamage - otherProjectile.calculatedDamage;
+			otherProjectile.calculatedDamage -= calculatedDamage;
+			calculatedDamage = num;
+			otherProjectile.OnProjectileCollision(other, this, doCalculations: false);
+		}
+		if (calculatedDamage > 10)
+		{
+			currentCharge = Mathf.CeilToInt(calculatedDamage / baseDamage);
+			otherProjectile.calculatedDamage = 0;
+		}
+		else
+		{
+			currentCharge = 0;
+			calculatedDamage = 0;
+			HandleCollision(other);
+		}
+		collidedProjectiles.Add(otherProjectile);
+	}
+	public void OnTargetHit(Entity givenEnt)
+	{
+		if (!targetHit)
+		{
+			targetHit = true;
+			currentCharge--;
+			hitStopwatchID = ChaosStopwatch.Begin(hitDelay, useInterval: true, hitDelay, currentCharge);
+			if (isUltimate)
+			{
+				attackBox.gameObject.SetActive(value: false);
+				CreateWaterBurst(transform.position);
+			}
+		}
+		if (!hitWall && givenEnt != null && !(givenEnt is Destructible) && (givenEnt.health.ignoreGrab || givenEnt.health.IgnoreKnockback) && moveSpeed > 0.5f)
+		{
+			moveSpeed *= slowDownMultiplier;
+			attackBox.atkInfo.knockbackMultiplier *= slowDownMultiplier;
+			attackBox.knockbackMultiplierOverride *= slowDownMultiplier;
+		}
+	}
+	public void EnableColliders(bool status = true)
+	{
+		for (int i = 0; i < circCols.Length; i++)
+		{
+			circCols[i].enabled = status;
+		}
+	}
+	private void CreateWaterBurst(Vector2 givenPosition, float givenRadius = 3.5f)
+	{
+		givenPosition += moveVector + UnityEngine.Random.insideUnitCircle * 0.25f;
+		Attack attack = Globals.ChaosInst<Attack>(Attack.CirclePrefab, null, givenPosition);
+		attack.SetAttackInfo(attackBox.atkInfo);
+		attack.knockbackOverwriteVector = releaseVector;
+		attack.transform.localScale *= givenRadius * 2f;
+		UnityEngine.Object.Destroy(attack.gameObject, 0.125f);
+		PoolManager.GetPoolItem<AnimEffect>("WaterBombExplosion").Play(givenPosition, givenScale: givenRadius * 0.25f, localEulerAngles: blastRotation, animName: string.Empty);
+		if (isUltimate)
+		{
+			string audioID = "DelugeBomb";
+			Vector2? soundOrigin = givenPosition;
+		}
+		else
+		{
+		}
+	}
+}
+=== WaterBarrage
+public class WaterBarrage : Projectile
+{
+	public delegate void UltResetEventHandlers(Vector2 givenPosition);
+	public bool clockwise = true;
+	private Movement movement;
+	private CircleCollider2D[] circCols;
+	public float windupTime = 2f;
+	private int windupStopwatchID;
+	private float windupLerpValue;
+	private bool windupComplete;
+	private float maxOrbitSpeed = 5f;
+	private float minOrbitSpeed;
+	private float maxOrbitRadius = 2.5f;
+	private float minOrbitRadius = 1f;
+	private bool released;
+	public bool isUltimate;
+	public UltResetEventHandlers ultResetEventHandlers;
+	public override void Awake()
+	{
+		base.Awake();
+		movement = GetComponent<Movement>();
+		circCols = GetComponentsInChildren<CircleCollider2D>();
+		EnableColliders(status: false);
+	}
+	public override void Start()
+	{
+		base.Start();
+		if (followTrans != null)
+		{
+			movement.InitOrbitAngle((transform.position - followTrans.position).normalized, clockwise);
+		}
+		windupStopwatchID = ChaosStopwatch.Begin(windupTime);
+		if (isUltimate)
+		{
+			anim.Play("Frozen");
+		}
+		PlayParticleEffect();
+	}
+	public override void Update()
+	{
+		if (!released && followTrans != null)
+		{
+			movement.OrbitTarget(followTrans.position, useTransform: true);
+			return;
+		}
+		base.Update();
+		if (goThroughWalls && ChaosStopwatch.GetTimePercentage(flyStopwatchID) > 0.125f)
+		{
+			goThroughWalls = false;
+		}
+	}
+	public override void FixedUpdate()
+	{
+		if (!released && !windupComplete)
+		{
+			windupComplete = ChaosStopwatch.Check(windupStopwatchID);
+			windupLerpValue = ChaosStopwatch.GetTimePercentage(windupStopwatchID);
+			movement.orbitSpeed = Mathf.Lerp(minOrbitSpeed, maxOrbitSpeed, windupLerpValue);
+			movement.orbitRadius = Mathf.Lerp(minOrbitRadius, maxOrbitRadius, windupLerpValue);
+		}
+		else
+		{
+			base.FixedUpdate();
+		}
+	}
+	public override void ResetProjectile()
+	{
+		base.ResetProjectile();
+		PlayParticleEffect();
+		if (isUltimate && ultResetEventHandlers != null)
+		{
+			ultResetEventHandlers(transform.position);
+		}
+	}
+	public void Release(Vector3 givenLocation)
+	{
+		forcedReturn = false;
+		RefreshFlightTime();
+		released = true;
+		moveVector = (givenLocation - transform.position).normalized;
+		attackBox.knockbackOverwriteVector = moveVector;
+		EnableColliders();
+		if (isUltimate)
+		{
+			PoolManager.GetPoolItem<ParticleEffect>("IcicleBreakEffect").Emit(3, transform.position);
+			return;
+		}
+		WaterHitEffect poolItem = PoolManager.GetPoolItem<WaterHitEffect>();
+		int? particleCount = 1;
+		Vector3? position = transform.position + (Vector3)moveVector;
+		Vector3? localEulerAngles = Globals.GetRotationVector(-moveVector);
+		poolItem.EmitSingle(particleCount, position, null, localEulerAngles);
+	}
+	public void EnableColliders(bool status = true)
+	{
+		for (int i = 0; i < circCols.Length; i++)
+		{
+			circCols[i].enabled = status;
+		}
+	}
+	private void PlayParticleEffect()
+	{
+		if (isUltimate)
+		{
+			PoolManager.GetPoolItem<ParticleEffect>("IcicleBreakEffect").Emit(10, transform.position);
+		}
+		else
+		{
+			PoolManager.GetPoolItem<ParticleEffect>("WaterExplosion").Emit(1, transform.position);
+		}
+	}
+	public override void RecycleProjectile()
+	{
+		base.ResetProjectile();
+		released = false;
+		goThroughWalls = true;
+		windupComplete = false;
+		Start();
+		gameObject.SetActive(value: true);
+		anim.Play((!isUltimate) ? "Idle" : "Frozen");
+	}
+}
+=== WaterBlast
+public class WaterBlast : MonoBehaviour
+{
+	public bool destroyQueued;
+	public int blastSkillLevel = 2;
+	private ChaosQuickStopwatch lifeStopwatch = new ChaosQuickStopwatch(3f);
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+		spriteRenderer = transform.Find("Sprite").GetComponent<SpriteRenderer>();
+	}
+	private void Start()
+	{
+		lifeStopwatch.IsRunning = true;
+		string audioID = "AquaPrisonImpact";
+		Vector2? soundOrigin = transform.position;
+	}
+	private void Update()
+	{
+		if (!destroyQueued && !lifeStopwatch.IsRunning)
+		{
+			Dissipate();
+		}
+	}
+	public void Blast()
+	{
+		if (!destroyQueued)
+		{
+			destroyQueued = true;
+			anim.Play("Blast", -1, 0f);
+			if (attack.collider != null)
+			{
+				attack.collider.gameObject.SetActive(value: false);
+				attack.collider.gameObject.SetActive(value: true);
+			}
+			attack.ChangeAttackInfoLevel(blastSkillLevel);
+			PoolManager.GetPoolItem<WaterDropEmitter>().Emit(8, transform.position, WaterDropEmitter.LargeWaterExplosionOverride);
+			string audioID = "DelugeBomb";
+			Vector2? soundOrigin = transform.position;
+			Object.Destroy(gameObject, 1f);
+		}
+	}
+	public void Dissipate()
+	{
+		if (!destroyQueued)
+		{
+			destroyQueued = true;
+			Object.Destroy(gameObject, 1f);
+			anim.Play("Dissipate", -1, 0f);
+			WaterDropEmitter.EmitCircle(transform.position, 2, 18, 1.25f);
+		}
+	}
+}
+=== WaterBomb
+public class WaterBomb : ThrownItem
+{
+	public Movement movement;
+	public bool useCastCircle = true;
+	private CastingCircle castingCircle;
+	public int hitCount = 5;
+	public float hitDelay = 0.05f;
+	private int hitStopwatchID;
+	public WaterDropEmitter waterDropEmitter;
+	private static ParticleSystemOverride pSysOverride;
+	public float blastScale = 1f;
+	public override void Awake()
+	{
+		base.Awake();
+		spriteRenderer = transform.Find("Sprite").GetComponent<SpriteRenderer>();
+		spriteTrans = spriteRenderer.transform;
+		attack = transform.Find("Attack").GetComponent<Attack>();
+		movement = GetComponent<Movement>();
+		if (pSysOverride == null)
+		{
+			ParticleSystemOverride particleSystemOverride = new ParticleSystemOverride();
+			particleSystemOverride.startSpeed = 20f;
+			particleSystemOverride.startLifetime = 0.65f;
+			particleSystemOverride.radius = 3.5f;
+			pSysOverride = particleSystemOverride;
+		}
+	}
+	public override void Start()
+	{
+		waterDropEmitter.followTransform = spriteTrans;
+		base.Start();
+		attackCollider = attack.collider;
+		if (baseFlightTime > 0f)
+		{
+			PoolManager.GetPoolItem<ParticleEffect>("WaterExplosion").Emit(1, transform.position);
+		}
+	}
+	public override void InitThrow()
+	{
+		base.InitThrow();
+		if (useCastCircle)
+		{
+			castingCircle = CastingCirclePool.Spawn("Draw", targetPosition, disableWithParentVal: true, gameObject, trackParentVal: false, useCastTimeVal: true, baseFlightTime, 3.5f, 3.5f, 
+		}
+		waterDropEmitter.Play(25f, null, null, 4f);
+	}
+	public override void OnLanding()
+	{
+		base.OnLanding();
+		anim.Play("Burst", -1, 0f);
+		waterDropEmitter.Stop();
+		hitStopwatchID = ChaosStopwatch.Begin(hitDelay, useInterval: true, hitDelay, hitCount);
+		PoolManager.GetPoolItem<AnimEffect>("WaterBombExplosion").Play(transform.position, givenScale: blastScale, animName: string.Empty);
+		PoolManager.GetPoolItem<WaterDropEmitter>().Emit(60, transform.position + Vector3.up * 2f, pSysOverride);
+		if (castingCircle != null)
+		{
+			castingCircle.Reset();
+			castingCircle = null;
+		}
+		CameraController.ShakeCamera(0.8f);
+	}
+}
+=== WaterBounceProjectile
+public class WaterBounceProjectile : Projectile
+{
+	private Vector2 impactPoint;
+	public override void Start()
+	{
+		base.Start();
+		rigidbody2D.velocity = moveVector * moveSpeed;
+		transform.localEulerAngles = new Vector3(0f, 0f, 90f * (float)Random.Range(0, 4));
+	}
+	public override void HandleWallCollision(Collider2D other)
+	{
+		PoolManager.GetPoolItem<HitSparkEmitter>().EmitSingle(HitSparkType.Small, transform.position, transform.position);
+		if (Projectile.globalProjectileWallCollisionEvents != null)
+		{
+			Projectile.globalProjectileWallCollisionEvents(this);
+		}
+		ricochetCounter++;
+		if (ricochetCounter >= ricochetAmount)
+		{
+			ChaosStopwatch.Stop(flyStopwatchID);
+		}
+	}
+	public override void HandleCollision(Collider2D other)
+	{
+		if (!(other.transform.parent != null) || IsParentObject(other.gameObject))
+		{
+			return;
+		}
+		if (impactAudioID != string.Empty)
+		{
+		}
+		if (calculatedDamage == 0)
+		{
+			flagForReset = true;
+		}
+		ricochetCounter++;
+		if (ricochetCounter >= ricochetAmount)
+		{
+			ChaosStopwatch.Stop(flyStopwatchID);
+			return;
+		}
+		TargetsHitList.Add(other.transform.parent.gameObject);
+		nextTargetInfo = Entity.GetClosestTarget(targetGroup, transform.position, ricochetRadius, playerTagOnly: false, TargetsHitList, null, requireLOS: true, ChaosCollisions.layerUpper
+		if (nextTargetInfo == null)
+		{
+			TargetsHitList.Clear();
+			moveVector = Vector2.Reflect(rigidbody2D.velocity.normalized, (transform.position - other.transform.position).normalized);
+		}
+		else
+		{
+			moveVector = (nextTargetInfo.hurtBoxPosition - transform.position).normalized;
+		}
+		rigidbody2D.velocity = moveVector * moveSpeed;
+	}
+	public void LateUpdate()
+	{
+		attackBox.knockbackOverwriteVector = rigidbody2D.velocity.normalized;
+	}
+	private void OnImpact(Vector2 givenPosition, Vector2 givenVector)
+	{
+		WaterHitEffect poolItem = PoolManager.GetPoolItem<WaterHitEffect>();
+		int? particleCount = 1;
+		Vector3? position = givenPosition - rigidbody2D.velocity.normalized * 0.25f;
+		Vector3? localEulerAngles = Globals.GetRotationVector(-givenVector);
+		poolItem.EmitSingle(particleCount, position, null, localEulerAngles);
+		anim.Play("Bounce", -1, 0f);
+		transform.localEulerAngles = Globals.GetRotationVector(-givenVector);
+	}
+	public void OnCollisionEnter2D(Collision2D col)
+	{
+		impactPoint = col.contacts[0].point;
+		OnImpact(impactPoint, (impactPoint - (Vector2)transform.position).normalized);
+	}
+	public override bool OnReflect(Vector2 givenVec, float givenMod)
+	{
+		if (!base.OnReflect(givenVec, givenMod))
+		{
+			return false;
+		}
+		rigidbody2D.velocity = givenVec * moveSpeed;
+		return true;
+	}
+	public override void ResetProjectile()
+	{
+		PoolManager.GetPoolItem<ParticleEffect>("WaterExplosion").Emit(1, transform.position);
+		base.ResetProjectile();
+	}
+	public void DisableAllColliders()
+	{
+		Collider2D[] componentsInChildren = GetComponentsInChildren<Collider2D>();
+		foreach (Collider2D collider2D in componentsInChildren)
+		{
+			collider2D.enabled = false;
+		}
+	}
+}

@@ -1,0 +1,7 @@
+{
+  "role_parallel": {
+    "engineer": 3
+  },
+  "ci_repo": "Gogi213/role-play-vibing",
+  "max_parallel": 4
+}

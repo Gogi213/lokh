@@ -1,0 +1,242 @@
+assets:
+data
+fonts
+
+assets/data:
+dialog
+enemy
+export
+loot
+player
+rooms
+tilemaps
+tilesets
+ui
+NeutralLaserOrbAttack {"sameTargetImmunityTime": 0.5, "knockbackMultiplier": 25, "damage": 25}
+NeutralBlobSpit {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 3, "damage": 5}
+NeutralBlobRoll {"sameAttackImmunityTime": 1, "knockbackMultiplier": 25, "damage": 15}
+NeutralBlobAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 10, "damage": 15}
+NeutralMiniBlobAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 5, "damage": 10}
+NeutralMimicAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 25, "knockbackOverwrite": true, "damage": 
+NeutralMimicLargeAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.35, "knockbackMultiplier": 30, "knockbackOverwrite": true, "dama
+NeutralTurretFireball {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 10}
+NeutralGhoulAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 10, "damage": 15}
+NeutralGhoulLargeAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": [1, 1, 1.25], "knockbackMultiplier": [25, 25, 30], "knockbackOverw
+NeutralCoffinAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "damage": 50}
+NeutralGolemAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 50, "damage": 50}
+NeutralKnightAttack {"sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "damage": 25}
+EarthKnightAttack {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 25, "damage": 25}
+EarthKnightPoisonBolas {"elementType": "Earth", "subElementType": "Poison", "sameAttackImmunityTime": 0.5, "damage": 20, "rootChance": 1, "rootDuratio
+EarthKnightExplosionShield {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 50}
+FlameKnightAttack {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "damage": 25}
+FlameKnightFlameShield {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 20, "damage": 1
+FlameKnightCombustionWave {"elementType": "Fire", "sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": [20, 40], "kno
+FlameKnightFireWall {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 10, 
+FrostKnightAttack {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "damage": 25}
+FrostKnightIceBash {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 45, "knockbackOverwrite": 
+FrostKnightIceField {"elementType": "Water", "showDamageNumber": false, "showDamageEffect": false, "canHitStun": false, "freezeChance": 0.2, "freezeDu
+WindKnightAttack {"elementType": "Air", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 25, "damage": 25}
+WindKnightWindSlash {"elementType": "Air", "sameAttackImmunityTime": 1, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 30, "knockbackOverwrit
+WindKnightWindLunge {"elementType": "Air", "sameAttackImmunityTime": 0.03, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 25, "knockbackOverw
+ThunderKnightAttack {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "damage": 25}
+ThunderKnightThunderBoom {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 30, "knockbackOverwrite": true, "damage":
+ThunderKnightThunderShield {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 30, "damage": 20, "shockChance": 1}
+ThunderKnightThunderCharge {"elementType": "Lightning", "sameAttackImmunityTime": 1, "hitStunDurationModifier": [1.5, 1], "knockbackMultiplier": [5, 4
+NeutralLancerAttack {"sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 25}
+NeutralLancerLeapAttack {"sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 35}
+FrostLancerAttack {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 25}
+FrostLancerIceWave {"elementType": "Water", "subElementType": "Ice", "sameTargetImmunityTime": 0.03, "knockbackMultiplier": 30, "knockbackOverwrite": 
+FrostLancerIceBeam {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "knockbackMultiplier": 3, "knockbackOverwrite": tr
+FrostLancerIceLance {"elementType": "Water", "subElementType": "Ice", "showDamageNumber": [true, false, true], "sameTargetImmunityTime": 0.5, "hitStun
+EarthLancerAttack {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 25}
+EarthLancerSpearSpike {"elementType": "Earth", "sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 5, "damage": 15}
+EarthLancerDrillCharge {"elementType": "Earth", "sameAttackImmunityTime": 0.1, "knockbackMultiplier": 40, "knockbackOverwrite": true, "damage": 7}
+EarthLancerTremorLance {"elementType": "Earth", "sameAttackImmunityTime": 0.1, "hitStunDurationModifier": [2, 1], "knockbackMultiplier": [5, 3], "dama
+FlameLancerAttack {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 25}
+FlameLancerFireSpin {"elementType": "Fire", "knockbackMultiplier": [1, 25], "damage": [2, 25]}
+FlameLancerThrownFireball {"elementType": "Fire", "sameTargetImmunityTime": 0.125, "knockbackMultiplier": 15, "damage": 10, "burnChance": 1}
+FlameLancerFlameSlash {"elementType": "Fire", "sameTargetImmunityTime": 0.125, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 12, "knockbackO
+WindLancerAttack {"elementType": "Air", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 25}
+WindLancerWindLance {"elementType": "Air", "sameTargetImmunityTime": 0.5, "hitStunDurationModifier": [3, 1.25], "knockbackMultiplier": [0, -10], "knoc
+WindLancerWindFlurry {"elementType": "Air", "sameAttackImmunityTime": 0.05, "knockbackMultiplier": 5, "damage": 5}
+WindLancerWindSlam {"elementType": "Air", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 40, "damage": 35, "sl
+ThunderLancerAttack {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "damage": 25}
+ThunderLancerThunderJavelin {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": [5, 20], "damage": [10, 15], "shockCha
+ThunderLancerPiercingShock {"elementType": "Lightning", "sameAttackImmunityTime": [0.25, 0.08], "knockbackMultiplier": [60, 10], "knockbackOverwrite":
+ThunderLancerGroundShock {"elementType": "Lightning", "hitStunDurationModifier": [0.75, 1], "knockbackMultiplier": [10, 5], "knockbackOverwrite": [tru
+NeutralMageAttack {"sameTargetImmunityTime": 0.25, "knockbackMultiplier": 20, "damage": 25}
+NeutralMageDelayAttack {"sameTargetImmunityTime": 0.5, "knockbackMultiplier": 25, "damage": 25}
+OrbChargeFamiliarAttack {"sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 25, "damage": 10}
+OrbRevolveFamiliarAttack {"sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 10, "damage": 10}
+OrbShootFamiliarAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 20, "damage": 10}
+FrostMageIceShard {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": t
+FrostMageFrostBlast {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.5, "knockbackMultiplier": 35, "damage": 30, "freezeC
+FrostMageSummonBlizzard {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "canHitStun": false, "damage": 5, "freezeChan
+EarthMageShootRock {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "damage": 50}
+EarthMageThrowBoulder {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 30, "damage": 50}
+EarthMageEarthWave {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 35, "knockbackOverwrite": true, "damage": 25}
+FlameMageFireArc {"elementType": "Fire", "sameAttackImmunityTime": 0.125, "knockbackMultiplier": 8, "knockbackOverwrite": true, "damage": 8}
+FlameMageFirePillar {"elementType": "Fire", "sameTargetImmunityTime": 0.5, "knockbackMultiplier": 20, "damage": 30, "burnChance": 1}
+FlameMageIgnitionOrb {"elementType": "Fire", "sameAttackImmunityTime": 1, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 20, "b
+WindMageMultiShot {"elementType": "Air", "sameAttackImmunityTime": 1, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 25, "damage": 12}
+WindMageSummonTornado {"elementType": "Air", "sameAttackImmunityTime": 0.1, "knockbackMultiplier": [-1, 50], "damage": [8, 10]}
+WindMageSummonTwister {"elementType": "Air", "sameAttackImmunityTime": 0.1, "damage": 3, "slowChance": 1, "slowLevel": 2}
+ThunderMageIonSpread {"elementType": "Lightning", "sameAttackImmunityTime": 0.05, "sameTargetImmunityTime": 0.05, "hitStunDurationModifier": 0.5, "dam
+ThunderMageThunderWave {"elementType": "Lightning", "sameTargetImmunityTime": 1, "knockbackMultiplier": 25, "damage": 20, "shockChance": 1}
+ThunderMageThunderBlast {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 30, "damage": 10, "shockChance": 1}
+FlameSummonerAttack {"elementType": "Fire", "sameAttackImmunityTime": 0.5, "knockbackMultiplier": 20, "damage": 10, "burnChance": 1}
+FlameSummonerMinion {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 10, "knockbackOver
+FlameSummonerSeeker {"elementType": "Fire", "showDamageNumber": [false, true], "showDamageEffect": [false, true], "shakeCamera": [false, true], "knock
+WindSummonerAttack {"elementType": "Air", "sameAttackImmunityTime": 0.1, "damage": 5, "slowChance": 1}
+WindSummonerMinion {"elementType": "Air", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 10, "damage": 7}
+WindSummonerSeeker {"elementType": "Air", "showDamageNumber": [false, true], "showDamageEffect": [false, true], "shakeCamera": [false, true], "sameAtt
+EarthSummonerAttack {"elementType": "Earth", "hitStunDurationModifier": 0.5, "knockbackMultiplier": 5, "knockbackOverwrite": true, "damage": 5}
+EarthSummonerMinion {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 20, "damage": 25}
+EarthSummonerSeeker {"elementType": "Earth", "showDamageNumber": [false, true], "showDamageEffect": [false, true], "shakeCamera": [false, true], "hitS
+ThunderSummonerAttack {"elementType": "Lightning", "sameTargetImmunityTime": 1, "damage": 10, "shockChance": 1}
+ThunderSummonerMinion {"elementType": "Lightning", "knockbackMultiplier": 1, "damage": 2}
+ThunderSummonerSeeker {"elementType": "Lightning", "showDamageNumber": [true, false], "showDamageEffect": [true, false], "shakeCamera": [true, false],
+FrostSummonerAttack {"elementType": "Water", "knockbackMultiplier": 25, "knockbackOverwrite": true, "damage": 10}
+FrostSummonerMinion {"elementType": "Water", "sameAttackImmunityTime": 0.5, "knockbackMultiplier": 15, "knockbackOverwrite": true, "damage": 7}
+FrostSummonerSeeker {"elementType": "Water", "subElementType": "Ice", "sameTargetImmunityTime": 0.25, "knockbackMultiplier": 5, "knockbackOverwrite": 
+NeutralArcherAttack {"sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "knockbackOverwrite": true, "damage": 25}
+NeutralArcherDouble {"sameAttackImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 12}
+EarthArcherPoisonArrow {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 15, "damage": 20, "poisonChance": 1}
+EarthArcherPoisonBomb {"elementType": "Earth", "subElementType": "Poison", "showDamageNumber": false, "showDamageEffect": false, "sameAttackImmunityTi
+EarthArcherVineWave {"elementType": "Earth", "subElementType": "Plant", "sameTargetImmunityTime": 1, "damage": 25, "rootChance": 1, "rootDuration": 1}
+FrostArcherAttack {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "knockbackMultiplier": 10, "knockbackOverwrite": tr
+FrostArcherArrowShower {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 1.25, "knockbackMul
+FrostArcherIceTrap {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 1, "knockbackMultiplier": -3, "damage": 25, "freezeChan
+FlameArcherFireArrow {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "knockbackOverwrite": true, "damage": 12, "bur
+FlameArcherThrowFlame {"elementType": "Fire", "showDamageNumber": [true, false], "sameTargetImmunityTime": [0, 0.25], "hitStunDurationModifier": 0.75,
+FlameArcherFireBoomerang {"elementType": "Fire", "sameAttackImmunityTime": 1, "knockbackMultiplier": 25, "damage": 25}
+WindArcherChargedArrow {"elementType": "Air", "sameAttackImmunityTime": 0.1, "hitStunDurationModifier": [1, 1.25], "knockbackMultiplier": [3, 25], "kn
+WindArcherWindTrap {"elementType": "Air", "showDamageNumber": [true, true, false], "showDamageEffect": [true, true, false], "sameTargetImmunityTime": 
+WindArcherWindVolley {"elementType": "Air", "sameAttackImmunityTime": 0.1, "knockbackMultiplier": -2, "damage": 5, "slowChance": 1, "slowLevel": 2}
+ThunderArcherShockArrow {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "knockbackOverwrite": true, "damage": 
+ThunderArcherThunderAnchor {"elementType": "Lightning", "sameAttackImmunityTime": 0.05, "hitStunDurationModifier": 0.5, "damage": 1}
+ThunderArcherThunderSpread {"elementType": "Lightning", "knockbackMultiplier": 5, "knockbackOverwrite": true, "damage": 5, "shockChance": 1}
+NeutralRogueAttack {"hitStunDurationModifier": [0.75, 1.125], "knockbackMultiplier": [15, 1], "damage": 15, "criticalHitChance": [0.25, 0.35], "critic
+NeutralRogueLunge {"sameAttackImmunityTime": 1, "knockbackMultiplier": 25, "damage": 25, "criticalHitChance": 0.25, "criticalDamageModifier": 2}
+EarthRogueAttack {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 15, "p
+EarthRogueBurrowAttack {"elementType": "Earth", "sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 25, "damage": 5
+EarthRogueEarthCaltrop {"elementType": "Earth", "subElementType": "Poison", "sameTargetImmunityTime": 0.5, "hitStunDurationModifier": 0.25, "damage": 
+EarthRogueEarthDash {"elementType": "Earth", "sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 2, "damage": 10}
+FrostRogueAttack {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultipli
+FrostRogueThrowDagger {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 10, "damage": 25, "free
+FrostRogueIceDecoy {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 1, "knockbackMultiplier": 1, "damage": 25, "freezeChanc
+FrostRogueIceBomb {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 1, "knockbackMultiplier": -3, "damage": 25, "freezeChanc
+FlameRogueAttack {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 15, "bu
+FlameRogueFireShuriken {"elementType": "Fire", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "damage": 24, "burnChance": 1}
+FlameRogueFlameRush {"elementType": "Fire", "sameAttackImmunityTime": 1, "knockbackMultiplier": [40, 20], "damage": [32, 0], "burnChance": 1}
+FlameRogueFireBlast {"elementType": "Fire", "knockbackMultiplier": 25, "damage": 16, "burnChance": 1}
+WindRogueAttack {"elementType": "Air", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 15, "slow
+WindRogueWindShuriken {"elementType": "Air", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 15, "knockbackOverwrite": true, "damage": 15, "slo
+WindRogueSlicingBarrage {"elementType": "Air", "sameAttackImmunityTime": 0.05, "knockbackMultiplier": [12, 30], "knockbackOverwrite": true, "damage": 
+WindRogueBlastDash {"elementType": "Air", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 20, "slowCh
+ThunderRogueAttack {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 
+ThunderRogueTeleStab {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 5, "damage": 10, "shockChance": 1}
+ThunderRogueThunderDrop {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 25, "damage": 10}
+ThunderRogueTeleStrike {"elementType": "Lightning", "knockbackMultiplier": [15, 25], "knockbackOverwrite": true, "damage": [5, 10], "shockChance": [0,
+ThunderRogueShockBomb {"elementType": "Lightning", "knockbackMultiplier": 25, "damage": 24, "shockChance": 1}
+FlameZoneAttack {"elementType": "Fire", "sameTargetImmunityTime": 0.5, "knockbackMultiplier": 25, "damage": 20}
+FrostZoneAttack {"elementType": "Water", "subElementType": "Ice", "sameTargetImmunityTime": 0.25, "knockbackMultiplier": 35, "knockbackOverwrite": tru
+EarthZoneAttack {"elementType": "Earth", "sameAttackImmunityTime": 0.125, "hitStunDurationModifier": 1.125, "knockbackMultiplier": 15, "knockbackOverw
+WindZoneAttack {"elementType": "Air", "hitStunDurationModifier": 0.75, "knockbackMultiplier": 3, "knockbackOverwrite": true, "damage": 5}
+ThunderZoneAttack {"elementType": "Lightning", "sameTargetImmunityTime": 0.5, "knockbackMultiplier": 25, "damage": 20}
+SuperKnightAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "damage": 35}
+SuperKnightLunge {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 2, "knockbackMultiplier": 50, "damage": 75}
+SuperMageAttack {"sameTargetImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 25}
+SuperMageCircleAttack {"sameTargetImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 25}
+SuperMageQuickShot {"sameTargetImmunityTime": 0.25, "knockbackMultiplier": 30, "knockbackOverwrite": true, "damage": 25}
+SuperSummonerOrbMinion {"sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 25, "damage": 15}
+SuperRogueAttack {"sameAttackImmunityTime": 0.25, "knockbackMultiplier": 15, "damage": 25}
+SuperRogueShuriken {"sameAttackImmunityTime": 1, "knockbackMultiplier": 35, "damage": 25, "criticalHitChance": 0.35, "criticalDamageModifier": 2}
+SuperArcherAttack {"sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 3, "knockbackMultiplier": 75, "knockbackOverwrite": true, "damage": 35}
+SuperArcherStrafeShot {"sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 15, "knockbackOverwrite": true, "damage":
+SuperArcherSpreadShot {"sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 2, "knockbackMultiplier": 40, "knockbackOverwrite": true, "damage": 2
+SuperLancerAttack {"sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 45, "damage": 35}
+SuperLancerHundredLance {"sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 2, "knockbackMultiplier": 1, "knockbackOverwrite": true, "damage": 
+SuperLancerRainLance {"sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 2, "knockbackMultiplier": 25, "knockbackOverwrite": true, "damage": 7}
+SuperCoffinAttack {"sameTargetImmunityTime": [1, 0.25], "hitStunDurationModifier": 1.25, "knockbackMultiplier": [30, 10], "damage": [35, 25]}
+SuperCoffinJumpAttack {"sameAttackImmunityTime": 1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 15, "damage": 25}
+SuperBlobAttack {"sameAttackImmunityTime": 1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "damage": 50}
+IceBossIceSword {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 
+IceBossIceDash {"elementType": "Water", "subElementType": "Ice", "sameTargetImmunityTime": 0.05, "hitStunDurationModifier": 1.5, "knockbackMultiplier"
+IceBossWaterBomb {"elementType": "Water", "sameTargetImmunityTime": 0.1, "knockbackMultiplier": 40, "damage": 35}
+IceBossBlizzard {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "canHitStun": false, "damage": 10, "freezeChance": 1,
+IceBossIceLance {"elementType": "Water", "subElementType": "Ice", "showDamageNumber": [true, false, true], "sameTargetImmunityTime": 0.5, "hitStunDura
+IceBossAquaBeam {"elementType": "Water", "sameTargetImmunityTime": 0.05, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 25, "knockbackOverwri
+IceBossWaterBarrage {"elementType": "Water", "subElementType": ["Water", "Ice"], "sameTargetImmunityTime": [0, 0.1], "knockbackMultiplier": [25, 10], 
+EarthBossLeapAttack {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 3, "knockbackMultiplier": 50, "damage": 50}
+EarthBossEarthWave {"elementType": "Earth", "sameAttackImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "knockbackOverw
+EarthBossRockThrow {"elementType": "Earth", "sameAttackImmunityTime": 0.1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 50, "knockbackOverwr
+EarthBossDrillAttack {"elementType": "Earth", "hitStunDurationModifier": [3, 1], "knockbackMultiplier": [-3, 50], "knockbackOverwrite": [false, true],
+EarthBossPoisonBomb {"elementType": "Earth", "subElementType": "Poison", "showDamageNumber": false, "showDamageEffect": false, "sameTargetImmunityTime
+EarthBossEarthPillar {"elementType": "Earth", "sameTargetImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "damage": 30}
+EarthBossEarthClap {"elementType": "Earth", "sameTargetImmunityTime": 0.125, "hitStunDurationModifier": 1.5, "knockbackMultiplier": [5, 35], "knockbac
+FireBossFireTrail {"elementType": "Fire", "sameTargetImmunityTime": 0.25, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 5, "damage": 10, "bu
+FireBossFireDash {"elementType": "Fire", "sameTargetImmunityTime": 0.125, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 50, "damage": 30, "b
+FireBossFireCombo {"elementType": "Fire", "sameAttackImmunityTime": 0.125, "hitStunDurationModifier": [1.5, 1.5, 3], "knockbackMultiplier": [25, 25, 7
+FireBossVacuumExplosion {"elementType": "Fire", "sameTargetImmunityTime": 0.125, "hitStunDurationModifier": 2, "knockbackMultiplier": [-15, 35], "dama
+FireBossDragonLine {"elementType": "Fire", "sameTargetImmunityTime": 0.05, "damage": 5}
+FireBossFireBarrage {"elementType": "Fire", "sameTargetImmunityTime": 1, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 50, "damage": 50}
+FireBossFlareFade {"elementType": "Fire", "sameTargetImmunityTime": 1, "knockbackMultiplier": 35, "damage": 16, "burnChance": 1}
+FireBossHeelDrop {"elementType": "Fire", "sameTargetImmunityTime": 0.05, "hitStunDurationModifier": 1.5, "knockbackMultiplier": [20, 50], "knockbackOv
+FireBossMeteorStrike {"elementType": "Fire", "sameTargetImmunityTime": 0.5, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 35, "damage": 30}
+AirBossAirRail {"elementType": "Air", "hitStunDurationModifier": 1.5, "knockbackMultiplier": [50, 5], "knockbackOverwrite": true, "damage": [35, 7], "
+AirBossGaleBlast {"elementType": "Air", "sameTargetImmunityTime": 0.1, "hitStunDurationModifier": [1, 1.5], "knockbackMultiplier": [3, 50], "knockback
+AirBossTwisterSlide {"elementType": "Air", "sameAttackImmunityTime": 0.08, "damage": 3, "slowChance": 1}
+AirBossTornadoDash {"elementType": "Air", "sameAttackImmunityTime": 0.08, "knockbackMultiplier": [-5, 50], "damage": [8, 10]}
+AirBossVortex {"elementType": "Air", "sameAttackImmunityTime": 0.08, "knockbackMultiplier": [-3, 60], "damage": [5, 10], "slowChance": 1}
+AirBossPressureWave {"elementType": "Air", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 10}
+AirBossWindArrowBall {"elementType": "Air", "sameTargetImmunityTime": 1, "hitStunDurationModifier": [1.5, 1], "knockbackMultiplier": 25, "knockbackOve
+LightningBossTeleStrike {"elementType": "Lightning", "sameTargetImmunityTime": 0.1, "knockbackMultiplier": 30, "damage": [15, 10, 10], "shockChance": 
+LightningBossShockNet {"elementType": "Lightning", "sameTargetImmunityTime": 0.08, "knockbackMultiplier": [0, 20], "damage": [5, 25], "shockChance": [
+LightningBossShrinkBox {"elementType": "Lightning", "sameTargetImmunityTime": 0.08, "knockbackMultiplier": [0, 25], "damage": [5, 20], "shockChance": 
+LightningBossShockBlender {"elementType": "Lightning", "sameAttackImmunityTime": 0.75, "knockbackMultiplier": [40, 15], "damage": [10, 20], "shockChan
+LightningBossSkyJavelin {"elementType": "Lightning", "knockbackMultiplier": 25, "damage": [10, 25], "shockChance": [1, 0]}
+LightningBossThunderDrum {"elementType": "Lightning", "sameTargetImmunityTime": 0.5, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 40, "damag
+LightningBossChainSpin {"elementType": "Lightning", "sameTargetImmunityTime": 0.25, "knockbackMultiplier": 30, "damage": 20, "shockChance": 1}
+FinalBossFireAttack {"elementType": "Fire", "hitStunDurationModifier": 1.5, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 18, "burn
+FinalBossAirAttack {"elementType": "Air", "hitStunDurationModifier": [1.5, 1.5, 1.5, 2], "knockbackMultiplier": [20, 25, 30, 30], "knockbackOverwrite"
+FinalBossEarthAttack {"elementType": "Earth", "sameTargetImmunityTime": 0.05, "hitStunDurationModifier": 2, "knockbackMultiplier": 30, "knockbackOverw
+FinalBossLightningAttack {"elementType": "Lightning", "damage": 10, "shockChance": 1}
+FinalBossWaterAttack {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 1, "knockbackMultiplier": 35, "knockbackOverwrite": t
+FinalBossChaosWave {"elementType": "Chaos", "sameTargetImmunityTime": 0.025, "knockbackMultiplier": [-1, 50], "damage": [5, 25]}
+FinalBossChaosBeam {"elementType": "Chaos", "sameTargetImmunityTime": 0.025, "knockbackMultiplier": [1, 50], "knockbackOverwrite": true, "damage": [5,
+FinalBossChaosGrab {"elementType": "Chaos", "sameTargetImmunityTime": [3, 3, 0.025, 0.25], "hitStunDurationModifier": [4, 4, 1, 1.25], "knockbackMulti
+FinalBossChaosBall {"elementType": "Chaos", "sameTargetImmunityTime": [1, 0], "hitStunDurationModifier": [4, 1], "knockbackMultiplier": [50, 10], "kno
+FinalBossSuperScythe {"elementType": "Chaos", "sameTargetImmunityTime": 0.25, "hitStunDurationModifier": [3, 3, 1], "knockbackMultiplier": [20, 20, 40
+FinalBossSuperLunge {"elementType": "Chaos", "sameAttackImmunityTime": [0.15, 0, 0.15, 0], "hitStunDurationModifier": [3, 0.75, 3, 0.75], "knockbackMu
+FinalBossSuperCoil {"elementType": "Chaos", "sameTargetImmunityTime": 0.5, "hitStunDurationModifier": [3, 2], "knockbackMultiplier": [4, 0], "knockbac
+FinalBossSuperBeam {"elementType": "Chaos", "sameTargetImmunityTime": 0.05, "knockbackMultiplier": [1, 40], "knockbackOverwrite": true, "damage": [5, 
+FinalBossSuperSpear {"elementType": "Chaos", "sameAttackImmunityTime": [0.1, 0.1, 0.1], "hitStunDurationModifier": [2.5, 1, 1], "knockbackMultiplier":
+FinalBossSuperCluster {"elementType": "Chaos", "sameTargetImmunityTime": 0.08, "knockbackMultiplier": [-2, 30], "damage": [5, 25]}
+FinalBossSuperEraser {"elementType": "Chaos", "showDamageNumber": [false, true], "showDamageEffect": false, "shakeCamera": false, "sameTargetImmunityT
+ChaosStatus {"elementType": "Chaos", "knockbackMultiplier": 25, "damage": 5, "duration": 0.8, "damageInterval": 0.15, "isStatusEffect": true}
+BurnStatus {"elementType": "Fire", "canHitStun": false, "damage": 2, "duration": 2.05, "damageInterval": 0.25, "isStatusEffect": true}
+ShockStatus {"elementType": "Lightning", "hitStunDurationModifier": 0.25, "damage": 2, "duration": 0.7, "damageInterval": 0.125, "isStatusEffect": tru
+PoisonStatus {"elementType": "Earth", "subElementType": "Poison", "hitStunDurationModifier": 0.25, "damage": 5, "duration": 7.55, "damageInterval": 1.
+DegenStatus {"showDamageNumber": false, "showDamageEffect": false, "shakeCamera": false, "canHitStun": false, "damage": 1, "isStatusEffect": true}
+HazardExplosiveBarrel {"sameAttackImmunityTime": 1, "hitStunDurationModifier": 5, "knockbackMultiplier": 35, "damage": 25, "isStatusEffect": true}
+HazardExplosiveBarrelEnemyOnly {"sameAttackImmunityTime": 1, "hitStunDurationModifier": 5, "knockbackMultiplier": 35, "damage": 25, "isStatusEffect": 
+HazardFire {"elementType": "Fire", "sameTargetImmunityTime": 1, "knockbackMultiplier": 10, "damage": 14, "criticalHitChance": 0, "isStatusEffect": tru
+HazardFireWall {"elementType": "Fire", "sameTargetImmunityTime": 1, "hitStunDurationModifier": 0.75, "knockbackMultiplier": 15, "damage": 10, "critica
+HazardIce {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "canHitStun": false, "damage": 5, "criticalHitChance": 0, "
+HazardIceShard {"elementType": "Water", "subElementType": "Ice", "sameTargetImmunityTime": 0.5, "knockbackMultiplier": 20, "knockbackOverwrite": true,
+HazardEarth {"elementType": "Earth", "subElementType": "Poison", "showDamageNumber": false, "showDamageEffect": false, "sameTargetImmunityTime": 1, "c
+HazardBoulderDrop {"elementType": "Earth", "sameTargetImmunityTime": 1, "hitStunDurationModifier": [1, 2.5], "knockbackMultiplier": [5, 30], "damage":
+HazardAir {"elementType": "Air", "sameTargetImmunityTime": 0.5, "knockbackMultiplier": 50, "damage": 15, "criticalHitChance": 0, "isStatusEffect": tru
+FloorSpike {"sameTargetImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 25, "damage": 25, "criticalHitChance": 0, "isStatus
+FloorSpikeStatic {"sameTargetImmunityTime": 0.25, "hitStunDurationModifier": 1.5, "knockbackMultiplier": 25, "damage": 25, "criticalHitChance": 0, "is
+KnockbackWall {"elementType": "Earth", "sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 10, "damage": 25}
+KnockbackWallTargetOnly {"elementType": "Earth", "sameAttackImmunityTime": 0.5, "hitStunDurationModifier": 1.25, "knockbackMultiplier": 10, "damage": 
+EarthExplosion {"elementType": "Earth", "sameTargetImmunityTime": 0.25, "hitStunDurationModifier": 2, "knockbackMultiplier": 25, "damage": 50}
+PoisonBall {"elementType": "Earth", "subElementType": "Poison", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 10, "damage": 5, "poisonChance"
+NeutralCyclopsLaser {"sameAttackImmunityTime": 0.05, "knockbackMultiplier": 8, "damage": 5}
+RandomDisastersMeteor {"elementType": "Fire", "sameTargetImmunityTime": 0.5, "hitStunDurationModifier": 3, "knockbackMultiplier": 35, "damage": 50, "i
+RandomDisastersBlizzard {"elementType": "Water", "subElementType": "Ice", "sameAttackImmunityTime": 0.1, "canHitStun": false, "damage": 10, "isStatusE
+RandomDisastersBoulder {"elementType": "Earth", "sameTargetImmunityTime": 1, "hitStunDurationModifier": 3, "knockbackMultiplier": 5, "damage": [15, 25
+RandomDisastersPressure {"elementType": "Air", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 20, "knockbackOverwrite": true, "damage": 5, "is
+RandomDisastersThunder {"elementType": "Lightning", "sameAttackImmunityTime": 0.25, "knockbackMultiplier": 10, "damage": 20, "isStatusEffect": true, "

@@ -1,0 +1,1067 @@
+=== CooldownEntry
+using UnityEngine;
+using UnityEngine.UI;
+public class CooldownEntry
+{
+	private enum CooldownEntryState
+	{
+		Disabled,
+		Ready,
+		NotReady,
+		Cooldown
+	}
+	private GameObject skillBG;
+	public Image skillBorder;
+	private Image skillButtonImage;
+	private Image skillIcon;
+	private GameObject skillBGInactive;
+	private Image skillBGOverlay;
+	private Player.SkillState skillState;
+	private Text skillCooldownText;
+	private CooldownUI cooldownUI;
+	private float remainingChargeCD;
+	private float remainingCD;
+	private CooldownEntryState currentState;
+	public CooldownEntry(Transform parentTrans, CooldownUI newCooldownUI)
+	{
+		cooldownUI = newCooldownUI;
+		skillBG = parentTrans.Find("SkillBG").gameObject;
+		skillBorder = skillBG.GetComponent<Image>();
+		skillButtonImage = parentTrans.Find("SkillButton").GetComponent<Image>();
+		skillIcon = parentTrans.Find("SkillIcon").GetComponent<Image>();
+		skillBGInactive = parentTrans.Find("SkillBGInactive").gameObject;
+		skillBGOverlay = parentTrans.Find("SkillBGOverlay").GetComponent<Image>();
+		skillCooldownText = parentTrans.Find("SkillCooldown").GetComponent<Text>();
+		Disable();
+	}
+	public void EntryUpdate()
+	{
+		if (currentState == CooldownEntryState.Disabled || skillState == null)
+		{
+			return;
+		}
+		if (skillState.cooldownRef.IsCharging)
+		{
+			if (skillState.isChargeSkill)
+			{
+				SetChargeCooldown();
+			}
+			else
+			{
+				SetCooldown();
+			}
+		}
+		else if (skillState.IsReady())
+		{
+			SetSkillBGSprite(skillState.isSignature, skillState.IsEmpowered);
+			SetReady();
+		}
+		else
+		{
+			SetNotReady();
+		}
+	}
+	public void SetChargeCooldown()
+	{
+		currentState = CooldownEntryState.Cooldown;
+		skillBorder.fillAmount = skillState.cooldownRef.TotalChargePercentage;
+		skillBG.SetActive(value: true);
+		skillBGInactive.SetActive(value: true);
+		if (skillState.cooldownRef.Ready)
+		{
+			if (skillState.IsReady() && skillState.cooldownRef.queueCDPing)
+			{
+				skillState.cooldownRef.queueCDPing = false;
+				cooldownUI.RequestCDPing(skillState.skillID);
+			}
+			if (skillState.IsReady())
+			{
+				skillBGOverlay.enabled = false;
+				skillIcon.color = Vector4.one;
+				skillButtonImage.color = CooldownUI.fullColor;
+			}
+			else
+			{
+				skillBGOverlay.enabled = true;
+				skillIcon.color = CooldownUI.transparent;
+				skillButtonImage.color = CooldownUI.darkened;
+			}
+			skillCooldownText.text = skillState.cooldownRef.chargeCount.ToString();
+		}
+		else
+		{
+			skillBGOverlay.enabled = true;
+			skillIcon.color = CooldownUI.transparent;
+			skillButtonImage.color = CooldownUI.darkened;
+			if (skillState.cooldownRef.OnChargeDelay)
+			{
+				remainingChargeCD = skillState.cooldownRef.RemainingDelayTime;
+				skillBGOverlay.fillAmount = remainingChargeCD / skillState.cooldownRef.chargeDelayTime;
+			}
+			else
+			{
+				remainingChargeCD = skillState.cooldownRef.RemainingTime;
+				skillBGOverlay.fillAmount = remainingChargeCD / skillState.cooldownRef.MaxTime;
+			}
+			skillCooldownText.text = remainingChargeCD.ToString((!(remainingChargeCD < 10f)) ? "0" : "0.0");
+		}
+	}
+	public void SetNotReady()
+	{
+		if (currentState != CooldownEntryState.NotReady)
+		{
+			skillBG.SetActive(value: false);
+			skillBGInactive.SetActive(value: true);
+			skillIcon.color = CooldownUI.transparent;
+			skillBGOverlay.enabled = true;
+			skillBGOverlay.fillAmount = 1f;
+			skillCooldownText.text = string.Empty;
+			skillButtonImage.color = CooldownUI.darkened;
+			if (currentState == CooldownEntryState.Cooldown && skillState != null)
+			{
+				cooldownUI.RequestCDPing(skillState.skillID);
+			}
+			currentState = CooldownEntryState.NotReady;
+		}
+	}
+	public void SetSkillBGSprite(bool isSignature, bool isEmpowered)
+	{
+		if (isSignature)
+		{
+			skillBorder.sprite = cooldownUI.skillBGSprites[4];
+		}
+		else if (isEmpowered)
+		{
+			skillBorder.sprite = cooldownUI.skillBGSprites[2];
+		}
+		else
+		{
+			skillBorder.sprite = cooldownUI.skillBGSprites[0];
+		}
+	}
+	public void SetReady()
+	{
+		if (currentState != CooldownEntryState.Ready)
+		{
+			skillBG.SetActive(value: true);
+			skillBGInactive.SetActive(value: false);
+			skillIcon.color = Vector4.one;
+			skillBGOverlay.enabled = false;
+			skillBGOverlay.fillAmount = 0.01f;
+			skillButtonImage.color = CooldownUI.fullColor;
+			if (skillState.isChargeSkill)
+			{
+				skillBorder.fillAmount = skillState.cooldownRef.TotalChargePercentage;
+				skillCooldownText.text = skillState.cooldownRef.MaxChargeCount.ToString();
+			}
+			else
+			{
+				skillCooldownText.text = string.Empty;
+				skillBorder.fillAmount = 1f;
+			}
+			if (currentState == CooldownEntryState.Cooldown)
+			{
+				cooldownUI.RequestCDPing(skillState.skillID);
+			}
+			currentState = CooldownEntryState.Ready;
+		}
+	}
+	public void SetCooldown()
+	{
+		if (currentState != CooldownEntryState.Cooldown)
+		{
+			SetNotReady();
+			skillBGOverlay.enabled = true;
+			currentState = CooldownEntryState.Cooldown;
+		}
+		remainingCD = skillState.cooldownRef.RemainingTime;
+		if (remainingCD == 0f)
+		{
+			SetNotReady();
+			return;
+		}
+		skillCooldownText.text = remainingCD.ToString((!(remainingCD < 10f)) ? "0" : "0.0");
+		skillBGOverlay.fillAmount = 1f - skillState.cooldownRef.TimePercentage;
+	}
+	public void SetSkill(Player.SkillState newSkillState, ChaosInputDevice inputDev, int slot)
+	{
+		if (newSkillState == null)
+		{
+			skillState = null;
+			Disable(forceUpdate: true);
+			return;
+		}
+		skillState = newSkillState;
+		if (skillIcon != null)
+		{
+			skillIcon.sprite = IconManager.GetSkillIcon(newSkillState.skillID);
+		}
+		if (skillButtonImage != null)
+		{
+			skillButtonImage.sprite = CooldownUI.GetKeySpriteFromSkillSlot(slot, inputDev);
+			skillButtonImage.enabled = true;
+		}
+		SetSkillBGSprite(newSkillState.isSignature, newSkillState.IsEmpowered);
+		SetNotReady();
+	}
+	public void Disable(bool forceUpdate = false)
+	{
+		if (forceUpdate || currentState != CooldownEntryState.Disabled)
+		{
+			SetNotReady();
+			skillIcon.sprite = IconManager.GetSkillIcon("Disabled");
+			skillButtonImage.enabled = false;
+			skillCooldownText.text = string.Empty;
+			currentState = CooldownEntryState.Disabled;
+		}
+	}
+}
+=== CooldownManager
+using System.Collections;
+using System.Collections.Generic;
+public class CooldownManager
+{
+	public delegate void StartCDEventHandler(string cooldownID);
+	public delegate void StartChargeEventHandler(string cooldownID);
+	public Dictionary<string, Cooldown> cooldowns;
+	public StartCDEventHandler startCDEventHandlers;
+	public StartChargeEventHandler startChargeEventHandlers;
+	public CooldownManager()
+	{
+		cooldowns = new Dictionary<string, Cooldown>();
+	}
+	public void ResetCooldown(string cooldownID)
+	{
+		cooldowns[cooldownID].Reset();
+	}
+	public void ResetCooldowns()
+	{
+		foreach (Cooldown value in cooldowns.Values)
+		{
+			value.Reset();
+		}
+	}
+	public bool CheckCooldown(string cooldownID)
+	{
+		return cooldowns.ContainsKey(cooldownID) && cooldowns[cooldownID].Ready;
+	}
+	public float GetRemainingTime(string cooldownID)
+	{
+		return (!cooldowns.ContainsKey(cooldownID)) ? 0f : cooldowns[cooldownID].RemainingTime;
+	}
+	public float GetMaxTime(string cooldownID)
+	{
+		return (!cooldowns.ContainsKey(cooldownID)) ? 0f : cooldowns[cooldownID].MaxTime;
+	}
+	public float GetTotalChargeSkillProgress(string cooldownID)
+	{
+		if (!cooldowns.ContainsKey(cooldownID) || !cooldowns[cooldownID].isChargeSkill)
+		{
+			return 0f;
+		}
+		return (cooldowns[cooldownID].chargeCount != cooldowns[cooldownID].MaxChargeCount) ? cooldowns[cooldownID].TotalChargePercentage : 1f;
+	}
+	public IEnumerator StartChargeCounter(string cooldownID)
+	{
+		if (!cooldowns.ContainsKey(cooldownID))
+		{
+			yield break;
+		}
+		Cooldown cd = cooldowns[cooldownID];
+		float remainingTime = ((!cd.IsCharging) ? cd.MaxTime : ChaosStopwatch.GetRemainingTime(cd.remainingTimeStopwatchID));
+		ChaosStopwatch.Stop(cd.remainingTimeStopwatchID);
+		cd.remainingTimeStopwatchID = ChaosStopwatch.Begin(remainingTime, useInterval: true, cd.MaxTime, cd.ChargesMissing);
+		cd.IsCharging = true;
+		if (cd.chargeCount > 0 && cd.chargeDelayTime > 0f)
+		{
+			cd.delayStopwatchID = ChaosStopwatch.Begin(cd.chargeDelayTime);
+		}
+		int currentStopwatchID = cd.remainingTimeStopwatchID;
+		while (currentStopwatchID == cd.remainingTimeStopwatchID)
+		{
+			switch (ChaosStopwatch.CheckInterval(cd.remainingTimeStopwatchID))
+			{
+			case StopwatchState.Ready:
+				if (cd.chargeCount == 0)
+				{
+					cd.queueCDPing = true;
+				}
+				cd.chargeCount++;
+				break;
+			case StopwatchState.Done:
+				yield break;
+			}
+			yield return null;
+		}
+	}
+	public void LowerCoolDownTimer(string cooldownID, float reductionAmount, Player player = null, bool showCooldownPing = true, bool useNormalizedVal = false)
+	{
+		if (cooldowns.ContainsKey(cooldownID))
+		{
+			if (useNormalizedVal)
+			{
+				cooldowns[cooldownID].ReduceRemainingTime(cooldowns[cooldownID].RemainingTime / (1f - cooldowns[cooldownID].TimePercentage) * reductionAmount);
+			}
+			else
+			{
+				cooldowns[cooldownID].ReduceRemainingTime(reductionAmount);
+			}
+			if (player != null && showCooldownPing)
+			{
+				player.hud.MiscPing("HourglassUI");
+			}
+		}
+	}
+	public void LowerAllCoolDownTimers(float reductionAmount, Player player = null, bool showCooldownPing = true, bool useNormalizedVal = false)
+	{
+		foreach (string key in cooldowns.Keys)
+		{
+			string cooldownID = key;
+			bool useNormalizedVal2 = useNormalizedVal;
+			LowerCoolDownTimer(cooldownID, reductionAmount, null, showCooldownPing: true, useNormalizedVal2);
+		}
+		if (showCooldownPing && player != null)
+		{
+			player.hud.MiscPing("HourglassUI");
+		}
+	}
+	public void StartCooldownTimer(string cooldownID, float cooldownOverride = -1f)
+	{
+		if (cooldowns.ContainsKey(cooldownID))
+		{
+			cooldowns[cooldownID].remainingTimeStopwatchID = ChaosStopwatch.Begin((!(cooldownOverride > 0f)) ? cooldowns[cooldownID].MaxTime : cooldownOverride);
+			cooldowns[cooldownID].IsCharging = true;
+			AnnounceStartCDEvent(cooldownID);
+		}
+	}
+	public void Add(string givenID, float givenTime, StatData givenData = null, Player.SkillState givenSS = null)
+	{
+		cooldowns[givenID] = new Cooldown(givenID, givenTime, givenData, givenSS);
+	}
+	public void AnnounceStartCDEvent(string cooldownID)
+	{
+		if (startCDEventHandlers != null)
+		{
+			startCDEventHandlers(cooldownID);
+		}
+	}
+	public void AnnounceStartChargeEvent(string cooldownID)
+	{
+		if (startChargeEventHandlers != null)
+		{
+			startChargeEventHandlers(cooldownID);
+		}
+	}
+}
+=== CooldownUI
+using System;
+using System.Collections.Generic;
+using Chaos.ArrayExtensions;
+using UnityEngine;
+public class CooldownUI : MonoBehaviour
+{
+	public Sprite[] skillBGSprites;
+	public static Color readyBorderColor = new Color32(160, 160, 160, byte.MaxValue);
+	public static Color notReadyBorderColor = new Color32(170, 170, 170, 60);
+	public static Color signatureColor = new Color32(byte.MaxValue, 204, 0, byte.MaxValue);
+	public static Color fullColor = new Color(1f, 1f, 1f, 1f);
+	public static Color transparent = new Color(1f, 1f, 1f, 0.6f);
+	public static Color darkened = new Color(0.4f, 0.4f, 0.4f, 0.6f);
+	private CooldownEntry[] cooldownEntries;
+	private Player player;
+	public StockSkillUI stockSkill;
+	private float cooldownPingDelay = 0.5f;
+	private int cdPingStopwatchID;
+	public void Awake()
+	{
+		List<CooldownEntry> list = new List<CooldownEntry>();
+		int num = 0;
+		Transform transform = base.transform.Find("Skill" + num);
+		while (transform != null)
+		{
+			CooldownEntry item = new CooldownEntry(transform, this);
+			list.Add(item);
+			num++;
+			transform = base.transform.Find("Skill" + num);
+		}
+		cooldownEntries = list.ToArray();
+		Release();
+	}
+	public void Claim(Player newPlayer)
+	{
+		this.player = newPlayer;
+		RefreshEntries();
+		gameObject.SetActive(value: true);
+		cdPingStopwatchID = ChaosStopwatch.Begin(cooldownPingDelay);
+		Player player = this.player;
+		player.assignSkillSlotEventHandlers = (Player.AssignSkillSlotEventHandler)Delegate.Combine(player.assignSkillSlotEventHandlers, new Player.AssignSkillSlotEventHandler(AssignSkillEvent));
+	}
+	public void Release()
+	{
+		if (this.player != null)
+		{
+			Player player = this.player;
+			player.assignSkillSlotEventHandlers = (Player.AssignSkillSlotEventHandler)Delegate.Remove(player.assignSkillSlotEventHandlers, new Player.AssignSkillSlotEventHandler(AssignSkillEvent));
+		}
+		this.player = null;
+		if (gameObject != null)
+		{
+			gameObject.SetActive(value: false);
+		}
+	}
+	public void RefreshEntries()
+	{
+		if (!(player == null) && !GameController.hideUI && GameController.activePlayers.Contains(player))
+		{
+			for (int i = 0; i < player.assignedSkills.Length; i++)
+			{
+				cooldownEntries[i].SetSkill(player.assignedSkills[i], player.inputDevice, i);
+			}
+			if (stockSkill != null)
+			{
+				stockSkill.RefreshUI();
+			}
+		}
+	}
+	public void LateUpdate()
+	{
+		if (!(player == null) && !GameController.hideUI)
+		{
+			CooldownEntry[] array = cooldownEntries;
+			foreach (CooldownEntry cooldownEntry in array)
+			{
+				cooldownEntry.EntryUpdate();
+			}
+		}
+	}
+	public void RequestCDPing(string skillID)
+	{
+		if (ChaosStopwatch.Check(cdPingStopwatchID))
+		{
+			cdPingStopwatchID = ChaosStopwatch.Begin(cooldownPingDelay);
+			player.hud.CooldownPing(skillID);
+		}
+	}
+	public static Sprite GetKeySpriteFromSkillSlot(int skillSlot, ChaosInputDevice inputDev)
+	{
+		string inputName = "Slot" + skillSlot;
+		if (skillSlot < 0 || skillSlot > 5)
+		{
+			inputName = "EquipMenu";
+		}
+		return GameUI.GetInputSprite(inputDev.inputScheme, inputName);
+	}
+	public void AssignSkillEvent(Player.SkillState newSkill, int skillSlotNum)
+	{
+		if (cooldownEntries[skillSlotNum] != null)
+		{
+			if (newSkill == null)
+			{
+				cooldownEntries[skillSlotNum].SetSkillBGSprite(isSignature: false, isEmpowered: false);
+			}
+			else
+			{
+				cooldownEntries[skillSlotNum].SetSkillBGSprite(newSkill.isSignature, newSkill.IsEmpowered);
+			}
+		}
+	}
+}
+=== ElementBoostManager
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+public class ElementBoostManager : MonoBehaviour
+{
+	private static GameObject prefab;
+	public Transform followTrans;
+	private ParticleSystem particleSys;
+	private ElementType queuedElement;
+	private Dictionary<ElementType, string> elementStatusDictionary;
+	private Dictionary<ElementType, Color> elementColorDictionary;
+	private string queuedStatusString;
+	private float statusModifier;
+	private float empowerDuration;
+	private int empowerStopwatchID;
+	private bool isEmpowered;
+	private int maxLevel = 3;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Effects/ElementBoostEffect.prefab"));
+	private void Awake()
+	{
+		particleSys = GetComponent<ParticleSystem>();
+		particleSys.Stop();
+		queuedElement = ElementType.Neutral;
+		elementStatusDictionary = new Dictionary<ElementType, string>
+		{
+			{
+				ElementType.Neutral,
+				string.Empty
+			},
+			{
+				ElementType.Fire,
+				"burnChance"
+			},
+			{
+				ElementType.Air,
+				"slowChance"
+			},
+			{
+				ElementType.Earth,
+				"poisonChance"
+			},
+			{
+				ElementType.Lightning,
+				"shockChance"
+			},
+			{
+				ElementType.Water,
+				"freezeChance"
+			}
+		};
+		elementColorDictionary = new Dictionary<ElementType, Color>
+		{
+			{
+				ElementType.Neutral,
+				Color.black
+			},
+			{
+				ElementType.Fire,
+				new Color(1f, 0.5f, 0f)
+			},
+			{
+				ElementType.Air,
+				Color.white
+			},
+			{
+				ElementType.Earth,
+				new Color(0.45f, 0.75f, 0.5f)
+			},
+			{
+				ElementType.Lightning,
+				Color.yellow
+			},
+			{
+				ElementType.Water,
+				new Color(0.4f, 0.6f, 1f)
+			}
+		};
+		statusModifier = 1f;
+		empowerDuration = 2.5f;
+	}
+	private void LateUpdate()
+	{
+		if (followTrans != null)
+		{
+			transform.position = followTrans.position;
+		}
+	}
+	public void Empower(string skillID, ElementType element, StatData skillData)
+	{
+		Reset(skillID, skillData);
+		if (queuedElement != ElementType.Neutral && queuedElement != ElementType.Air && queuedElement != ElementType.Earth)
+		{
+			for (int i = 0; i < maxLevel; i++)
+			{
+				skillData.SetValue(queuedStatusString, statusModifier, i);
+			}
+		}
+		if (element == ElementType.Neutral || element == ElementType.Air || element == ElementType.Earth)
+		{
+			queuedElement = ElementType.Neutral;
+			return;
+		}
+		queuedElement = element;
+		queuedStatusString = elementStatusDictionary[queuedElement];
+	}
+	public void StartEmpowerEffect(string skillID = "", ElementType overrideElement = ElementType.Neutral)
+	{
+		if (overrideElement != ElementType.Neutral)
+		{
+			StartCoroutine(UpdateEffect(elementColorDictionary[overrideElement]));
+		}
+		else if (queuedElement != ElementType.Neutral)
+		{
+			StartCoroutine(UpdateEffect(elementColorDictionary[queuedElement]));
+		}
+	}
+	private IEnumerator UpdateEffect(Color color)
+	{
+		particleSys.startColor = color;
+		particleSys.Emit(40);
+		particleSys.Play();
+		if (!isEmpowered)
+		{
+			isEmpowered = true;
+			empowerStopwatchID = ChaosStopwatch.Begin(empowerDuration);
+			while (ChaosStopwatch.Check(empowerStopwatchID) && queuedElement != ElementType.Neutral)
+			{
+				yield return null;
+			}
+			queuedElement = ElementType.Neutral;
+			isEmpowered = false;
+			particleSys.Stop();
+		}
+	}
+	private void Reset(string skillID, StatData skillData)
+	{
+		for (int i = 0; i < maxLevel; i++)
+		{
+			skillData.SetValue("burnChance", StatManager.GetSkillData("Player", skillID).GetValue<float>("burnChance", i), i);
+			skillData.SetValue("freezeChance", StatManager.GetSkillData("Player", skillID).GetValue<float>("freezeChance", i), i);
+			skillData.SetValue("shockChance", StatManager.GetSkillData("Player", skillID).GetValue<float>("shockChance", i), i);
+		}
+	}
+}
+=== ElementEntryUI
+using UnityEngine;
+public class ElementEntryUI : MonoBehaviour
+{
+	public ElementType element;
+	public bool wasPressed;
+	public void ElementSelected()
+	{
+		wasPressed = true;
+	}
+}
+=== FlameLance
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+public class FlameLance : MonoBehaviour
+{
+	private static GameObject prefab;
+	public SpriteRenderer lanceSprite;
+	private Animator anim;
+	private CastingCircle currentCC;
+	private float attackRadius = 1.5f;
+	[HideInInspector]
+	public float delayTime = 0.5f;
+	[HideInInspector]
+	public bool delayCompleted;
+	private int delayStopwatchID;
+	private float destroyDelay = 0.5f;
+	private bool hasLanded;
+	private string skillCategory = string.Empty;
+	private string skillID = string.Empty;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/FlameLance.prefab"));
+	public void SetPaletteIndex(int paletteIndex)
+	{
+		lanceSprite.material.SetFloat("_PaletteIndex", paletteIndex);
+	}
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+	}
+	private void Start()
+	{
+		delayStopwatchID = ChaosStopwatch.Begin(delayTime);
+		currentCC = CastingCirclePool.Spawn("Draw", transform.position, parentObj: gameObject, color: CastingCircle.enemyColor, disableWithParentVal: true, trackParentVal: true, useCastTimeVal: false, castTimeVal: 0f, unitSizeX: attackRadius, unitSizeY: 0f, drawTime
+	}
+	private void FixedUpdate()
+	{
+		if (hasLanded)
+		{
+			return;
+		}
+		if (!delayCompleted)
+		{
+			if (ChaosStopwatch.Check(delayStopwatchID))
+			{
+				delayCompleted = true;
+				anim.Play("StrikeVisual", -1, 0f);
+			}
+			return;
+		}
+		if (currentCC != null)
+		{
+			currentCC.Reset();
+			currentCC = null;
+		}
+		if (!hasLanded && anim.AnimPlayed())
+		{
+			hasLanded = true;
+			OnLanding();
+			if (gameObject != null)
+			{
+				Object.Destroy(gameObject, destroyDelay);
+			}
+		}
+	}
+	private void OnLanding()
+	{
+		FireExplosion.SpawnExplosion(transform.position, 1f, 1f, 50, 50);
+		Attack attack = Globals.ChaosInst<Attack>(Attack.CirclePrefab, null, transform.position);
+		attack.SetAttackInfo(skillCategory, skillID);
+		attack.GetComponent<CircleCollider2D>().radius = attackRadius;
+		Object.Destroy(attack.gameObject, 0.1f);
+		FirePillar firePillar = Globals.ChaosInst<FirePillar>(FirePillar.Prefab, null, transform.position);
+		firePillar.attack.SetAttackInfo(skillCategory, skillID, 2);
+		firePillar.attackRadius = 2.25f;
+		firePillar.delay = destroyDelay;
+		firePillar.duration = 0.25f;
+	}
+	public void SetSkillInfo(string givenCategory, string givenID)
+	{
+		skillCategory = givenCategory;
+		skillID = givenID;
+	}
+	public void Reset()
+	{
+		if (gameObject != null)
+		{
+			Object.Destroy(gameObject);
+		}
+	}
+}
+=== IceBomb
+using System.Collections;
+using UnityEngine;
+public class IceBomb : MonoBehaviour
+{
+	private static GameObject prefab;
+	private CircleCollider2D attackCollider;
+	private CircleCollider2D bombCollider;
+	private SpriteRenderer bombSprite;
+	private SpriteRenderer bombBlastSprite;
+	private ParticleSystem particleSystem;
+	private GameObject particleSystemObj;
+	private CastingCircle castingCircle;
+	private Light bombLight;
+	private Animator anim;
+	public bool spawnCastingCircle = true;
+	public Attack attackBox;
+	public float fuseDuration = 1.5f;
+	public float explosionDuration = 0.1f;
+	public bool startHidden;
+	[HideInInspector]
+	public bool attackAllies;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Items/IceBomb.prefab"));
+	private void Awake()
+	{
+		attackCollider = transform.Find("BombAttackBox").gameObject.GetComponent<CircleCollider2D>();
+		bombCollider = transform.Find("BombCollider").gameObject.GetComponent<CircleCollider2D>();
+		attackBox = transform.Find("BombAttackBox").GetComponent<Attack>();
+		bombSprite = gameObject.GetComponent<SpriteRenderer>();
+		bombBlastSprite = transform.Find("BombBlastSprite").gameObject.GetComponent<SpriteRenderer>();
+		particleSystemObj = transform.Find("SnowParticleSystem").gameObject;
+		particleSystem = particleSystemObj.GetComponent<ParticleSystem>();
+		particleSystem.enableEmission = false;
+		anim = GetComponent<Animator>();
+		bombLight = transform.Find("BombLight").GetComponent<Light>();
+	}
+	private void Start()
+	{
+		SoundManager.PlayAudioWithDistance("IceForm2", transform.position);
+		StartCoroutine(Fuse(fuseDuration, explosionDuration));
+		anim.speed = 1f / fuseDuration;
+		if (spawnCastingCircle && !startHidden)
+		{
+			castingCircle = CastingCirclePool.Spawn("Draw", transform.position, parentObj: gameObject, color: (!attackAllies) ? CastingCircle.defaultColor : CastingCircle.enemyColor, drawTime: fuseDuration, disableWithParentVal: true, trackParentVal: true, useCastTimeV
+		}
+		if (startHidden)
+		{
+			bombSprite.enabled = false;
+		}
+	}
+	public void Explode()
+	{
+		bombSprite.enabled = false;
+		bombBlastSprite.enabled = true;
+		attackCollider.enabled = true;
+		particleSystemObj.SetActive(value: true);
+		particleSystem.enableEmission = true;
+		particleSystem.Emit(150);
+		string audioID = "IceBlast";
+		Vector2? soundOrigin = transform.position;
+		float standardPitchRange = SoundManager.StandardPitchRange;
+		SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+		audioID = "BlizzardShort";
+		soundOrigin = transform.position;
+		standardPitchRange = Random.Range(1.1f, 1.2f);
+		SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+		PoolManager.GetPoolItem<ParticleEffect>("IcicleBreakEffect").Emit(50, transform.position);
+		bombLight.intensity = 1.5f;
+		CameraController.ShakeCamera();
+		if (castingCircle != null)
+		{
+			castingCircle.Reset();
+		}
+	}
+	public IEnumerator Fuse(float fuseDuration, float explosionDuration)
+	{
+		yield return new WaitForSeconds(fuseDuration);
+		Explode();
+		yield return new WaitForSeconds(explosionDuration);
+		attackCollider.enabled = false;
+		anim.Play("Exploded");
+		float fadeTime = 1f;
+		while (fadeTime > 0f)
+		{
+			fadeTime -= Time.deltaTime;
+			bombBlastSprite.color = new Color(bombBlastSprite.color.r, bombBlastSprite.color.g, bombBlastSprite.color.b, fadeTime * 0.05f);
+			yield return null;
+		}
+		Object.Destroy(gameObject);
+	}
+}
+=== LanceWave
+using System.Collections.Generic;
+using UnityEngine;
+public class LanceWave : Wave
+{
+	public int paletteIndex;
+	private new static GameObject prefab;
+	private int castStopwatchID;
+	private float castInterval;
+	private Vector2 castVector;
+	private bool castCompleted;
+	private int castCounter;
+	private List<CastingCircle> ccList = new List<CastingCircle>();
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/LanceWave.prefab"));
+	public override void Awake()
+	{
+		base.Awake();
+		stopLayerMask = ChaosCollisions.layerAllWall;
+	}
+	public override void Start()
+	{
+		base.Start();
+		if (paletteIndex != 0)
+		{
+			for (int i = 0; i < wavePoolSize; i++)
+			{
+				wavePoolTrans[i].GetComponent<LanceStrike>().SetPaletteIndex(paletteIndex);
+			}
+		}
+		castInterval = initSpawnRate / (float)maxWaveCount;
+		castStopwatchID = ChaosStopwatch.Begin(0f, useInterval: true, castInterval, maxWaveCount);
+		castVector = moveVector * spacing;
+		castCounter = 0;
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		if (!castCompleted)
+		{
+			switch (ChaosStopwatch.CheckInterval(castStopwatchID))
+			{
+			case StopwatchState.Ready:
+			{
+				List<CastingCircle> list = ccList;
+				string animName = "Draw";
+				Vector3 spawnPos = origin + castVector * castCounter;
+				GameObject parentObj = gameObject;
+				Color? color = CastingCircle.enemyColor;
+				float drawTime = castInterval;
+				list.Add(CastingCirclePool.Spawn(animName, spawnPos, disableWithParentVal: true, parentObj, trackParentVal: false, useCastTimeVal: false, 0f, 1.5f, 0f, color, drawTime));
+				castCounter++;
+				break;
+			}
+			case StopwatchState.Done:
+				castCompleted = true;
+				break;
+			}
+		}
+	}
+	public override void ActivateWave()
+	{
+		if (ccList.Count > wavesElapsed && ccList[wavesElapsed] != null)
+		{
+			ccList[wavesElapsed].Reset();
+		}
+		base.ActivateWave();
+		if (Globals.RandBool)
+		{
+			wavePoolTrans[waveCount].localScale = new Vector3(-1f, 1f, 1f);
+		}
+	}
+	public override void DestroyWave()
+	{
+		base.DestroyWave();
+		for (int i = 0; i < ccList.Count; i++)
+		{
+			if (ccList[i] != null)
+			{
+				ccList[i].Reset();
+			}
+		}
+		ccList.Clear();
+	}
+}
+=== NewSpellRecord
+public class NewSpellRecord
+{
+	public string skillID;
+	public ElementType element;
+	public bool baseUnlocked;
+	public bool sigUnlocked;
+	public SpellBookUI.SkillEquipType skillType;
+	public NewSpellRecord(string skillID, ElementType element, bool baseUnlocked, bool sigUnlocked, SpellBookUI.SkillEquipType skillEquipType)
+	{
+		this.skillID = skillID;
+		this.element = element;
+		this.baseUnlocked = baseUnlocked;
+		this.sigUnlocked = sigUnlocked;
+		skillType = skillEquipType;
+	}
+	public bool IsSkillType(SpellBookUI.SkillEquipType testSkillType)
+	{
+		return testSkillType switch
+		{
+			SpellBookUI.SkillEquipType.Dash => skillType == SpellBookUI.SkillEquipType.Dash, 
+			SpellBookUI.SkillEquipType.Basic => skillType == SpellBookUI.SkillEquipType.Basic, 
+			SpellBookUI.SkillEquipType.Signature => sigUnlocked, 
+			SpellBookUI.SkillEquipType.Optional => baseUnlocked, 
+			_ => false, 
+		};
+	}
+}
+=== SkillJester
+using UnityEngine;
+public class SkillJester : MonoBehaviour
+{
+}
+=== SkillStatContainer
+using System;
+[Serializable]
+public class SkillStatContainer
+{
+	public SkillStats[] skillStats;
+}
+=== SkillStats
+using System;
+[Serializable]
+public class SkillStats
+{
+	public static int maxSkillLevel = 5;
+	public string[] ID;
+	public string[] elementType;
+	public string[] subElementType;
+	public bool[] showDamageNumber;
+	public bool[] showDamageEffect;
+	public bool[] shakeCamera;
+	public string[] targetNames;
+	public float[] sameTargetImmunityTime;
+	public float[] sameAttackImmunityTime;
+	public bool[] canHitStun;
+	public float[] hitStunDurationModifier;
+	public float[] knockbackMultiplier;
+	public bool[] knockbackOverwrite;
+	public int[] damage;
+	public float[] cooldown;
+	public float[] duration;
+	public int[] hitCount;
+	public float[] damageInterval;
+	public int[] spawnCount;
+	public int[] baseHealth;
+	public float[] criticalHitChance;
+	public float[] criticalDamageModifier;
+	public bool[] isStatusEffect;
+	public float[] rootChance;
+	public float[] rootDuration;
+	public float[] chaosChance;
+	public int[] chaosLevel;
+	public float[] burnChance;
+	public int[] burnLevel;
+	public float[] slowChance;
+	public int[] slowLevel;
+	public float[] poisonChance;
+	public int[] poisonLevel;
+	public float[] shockChance;
+	public int[] shockLevel;
+	public float[] freezeChance;
+	public float[] freezeDuration;
+	public float[] overdriveDamageMultiplier;
+	public float[] overdriveProgressMultiplier;
+	public bool[] overdriveSingleIncrease;
+	public void Initialize()
+	{
+		InitField(ref ID, "NoID");
+		InitField(ref elementType, "Neutral");
+		InitField(ref subElementType, elementType[0]);
+		InitField(ref showDamageNumber, givenDefault: true);
+		InitField(ref showDamageEffect, givenDefault: true);
+		InitField(ref shakeCamera, givenDefault: true);
+		InitField(ref targetNames, string.Empty, propagate: false);
+		InitField(ref sameTargetImmunityTime, 0f);
+		InitField(ref sameAttackImmunityTime, 0f);
+		InitField(ref canHitStun, givenDefault: true);
+		InitField(ref hitStunDurationModifier, 1f);
+		InitField(ref knockbackMultiplier, 0f);
+		InitField(ref knockbackOverwrite, givenDefault: false);
+		InitField(ref damage, 0);
+		InitField(ref cooldown, 0f);
+		InitField(ref duration, 0f);
+		InitField(ref hitCount, 0);
+		InitField(ref damageInterval, 0f);
+		InitField(ref spawnCount, 0);
+		InitField(ref baseHealth, 0);
+		InitField(ref criticalHitChance, 0.05f);
+		InitField(ref criticalDamageModifier, 1.5f);
+		InitField(ref isStatusEffect, givenDefault: false);
+		InitField(ref rootChance, 0f);
+		InitField(ref rootDuration, 2f);
+		InitField(ref chaosChance, 0f);
+		InitField(ref chaosLevel, 1);
+		InitField(ref burnChance, 0f);
+		InitField(ref burnLevel, 1);
+		InitField(ref slowChance, 0f);
+		InitField(ref slowLevel, 1);
+		InitField(ref poisonChance, 0f);
+		InitField(ref poisonLevel, 1);
+		InitField(ref shockChance, 0f);
+		InitField(ref shockLevel, 1);
+		InitField(ref freezeChance, 0f);
+		InitField(ref freezeDuration, 1.5f);
+		InitField(ref overdriveDamageMultiplier, 1f);
+		InitField(ref overdriveProgressMultiplier, 1f);
+		InitField(ref overdriveSingleIncrease, givenDefault: false);
+	}
+	private void InitField<T>(ref T[] givenArray, T givenDefault, bool propagate = true)
+	{
+		if (givenArray == null)
+		{
+			givenArray = new T[maxSkillLevel];
+			for (int i = 0; i < maxSkillLevel; i++)
+			{
+				givenArray[i] = givenDefault;
+			}
+			return;
+		}
+		T[] array = new T[maxSkillLevel];
+		for (int j = 0; j < maxSkillLevel; j++)
+		{
+			ref T reference = ref array[j];
+			T val;
+			if (j < givenArray.Length && givenArray[j] != null)
+			{
+				val = givenArray[j];
+			}
+			else
+			{
+				val = ((!propagate) ? givenDefault : array[j - 1]);
+			}
+			reference = val;
+		}
+		givenArray = array;
+	}
+}
+=== SpellBookArcana
+using UnityEngine;
+using UnityEngine.UI;
+public class SpellBookArcana : MonoBehaviour
+{
+	public Sprite[] arcanaBGImages;
+	public Image arcanaImg;
+	public void SetBG(int spriteIndex = 0)
+	{
+		arcanaImg.sprite = arcanaBGImages[spriteIndex];
+	}
+	public void SetIcon(int spriteIndex = 0)
+	{
+		arcanaImg.sprite = arcanaBGImages[spriteIndex];
+	}
+}
+93:	public class SkillState : State<Enemy>
+197:		public SkillState(string newName, FSM newFSM, Enemy newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD, bool newAuto = true)
+438:	public class DashState : SkillState
+630:	public class DiagonalDashState : SkillState
+823:	public class RushState : SkillState

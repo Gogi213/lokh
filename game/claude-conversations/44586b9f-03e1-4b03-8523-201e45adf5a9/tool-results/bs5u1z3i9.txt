@@ -1,0 +1,1061 @@
+=== CooldownUI
+public class CooldownUI : MonoBehaviour
+{
+	public Sprite[] skillBGSprites;
+	public static Color readyBorderColor = new Color32(160, 160, 160, byte.MaxValue);
+	public static Color notReadyBorderColor = new Color32(170, 170, 170, 60);
+	public static Color signatureColor = new Color32(byte.MaxValue, 204, 0, byte.MaxValue);
+	public static Color fullColor = new Color(1f, 1f, 1f, 1f);
+	public static Color transparent = new Color(1f, 1f, 1f, 0.6f);
+	public static Color darkened = new Color(0.4f, 0.4f, 0.4f, 0.6f);
+	private CooldownEntry[] cooldownEntries;
+	private Player player;
+	public StockSkillUI stockSkill;
+	private float cooldownPingDelay = 0.5f;
+	private int cdPingStopwatchID;
+	public void Awake()
+	{
+		List<CooldownEntry> list = new List<CooldownEntry>();
+		int num = 0;
+		Transform transform = base.transform.Find("Skill" + num);
+		while (transform != null)
+		{
+			CooldownEntry item = new CooldownEntry(transform, this);
+			list.Add(item);
+			num++;
+			transform = base.transform.Find("Skill" + num);
+		}
+		cooldownEntries = list.ToArray();
+		Release();
+	}
+	public void Claim(Player newPlayer)
+	{
+		this.player = newPlayer;
+		RefreshEntries();
+		gameObject.SetActive(value: true);
+		cdPingStopwatchID = ChaosStopwatch.Begin(cooldownPingDelay);
+		Player player = this.player;
+		player.assignSkillSlotEventHandlers = (Player.AssignSkillSlotEventHandler)Delegate.Combine(player.assignSkillSlotEventHandlers, new Player.AssignSkillSlotEventHandler(AssignSkillEvent));
+	}
+	public void Release()
+	{
+		if (this.player != null)
+		{
+			Player player = this.player;
+			player.assignSkillSlotEventHandlers = (Player.AssignSkillSlotEventHandler)Delegate.Remove(player.assignSkillSlotEventHandlers, new Player.AssignSkillSlotEventHandler(AssignSkillEvent));
+		}
+		this.player = null;
+		if (gameObject != null)
+		{
+			gameObject.SetActive(value: false);
+		}
+	}
+	public void RefreshEntries()
+	{
+		if (!(player == null) && !GameController.hideUI && GameController.activePlayers.Contains(player))
+		{
+			for (int i = 0; i < player.assignedSkills.Length; i++)
+			{
+				cooldownEntries[i].SetSkill(player.assignedSkills[i], player.inputDevice, i);
+			}
+			if (stockSkill != null)
+			{
+				stockSkill.RefreshUI();
+			}
+		}
+	}
+	public void LateUpdate()
+	{
+		if (!(player == null) && !GameController.hideUI)
+		{
+			CooldownEntry[] array = cooldownEntries;
+			foreach (CooldownEntry cooldownEntry in array)
+			{
+				cooldownEntry.EntryUpdate();
+			}
+		}
+	}
+	public void RequestCDPing(string skillID)
+	{
+		if (ChaosStopwatch.Check(cdPingStopwatchID))
+		{
+			cdPingStopwatchID = ChaosStopwatch.Begin(cooldownPingDelay);
+			player.hud.CooldownPing(skillID);
+		}
+	}
+	public static Sprite GetKeySpriteFromSkillSlot(int skillSlot, ChaosInputDevice inputDev)
+	{
+		string inputName = "Slot" + skillSlot;
+		if (skillSlot < 0 || skillSlot > 5)
+		{
+			inputName = "EquipMenu";
+		}
+		return GameUI.GetInputSprite(inputDev.inputScheme, inputName);
+	}
+	public void AssignSkillEvent(Player.SkillState newSkill, int skillSlotNum)
+	{
+		if (cooldownEntries[skillSlotNum] != null)
+		{
+			if (newSkill == null)
+			{
+				cooldownEntries[skillSlotNum].SetSkillBGSprite(isSignature: false, isEmpowered: false);
+			}
+			else
+			{
+				cooldownEntries[skillSlotNum].SetSkillBGSprite(newSkill.isSignature, newSkill.IsEmpowered);
+			}
+		}
+	}
+}
+=== CupidArrow
+public class CupidArrow : Projectile
+{
+	private static GameObject prefab;
+	public ParticleSystem heartEmitter;
+	public override void Start()
+	{
+		base.Start();
+		if (heartEmitter != null)
+		{
+			heartEmitter.Emit(10);
+		}
+		string audioID = "WindArrowStart";
+		Vector2? soundOrigin = transform.position;
+	}
+	public override void ResetProjectile()
+	{
+		if (heartEmitter != null && heartEmitter.gameObject != null)
+		{
+			heartEmitter.Emit(25);
+			heartEmitter.transform.SetParent(null);
+			Object.Destroy(heartEmitter.gameObject, 1f);
+		}
+		base.ResetProjectile();
+	}
+}
+=== CurrentBurst
+public class CurrentBurst : Projectile
+{
+	private static GameObject prefab;
+	private Vector2 currentPos;
+	private LightningStream currentLS;
+	private Transform targetTrans;
+	private bool targetHit;
+	private string skillCat;
+	private string skillID;
+	private int skillLv;
+	private bool skillUlt;
+	private int hitCount;
+	public void SetVars(string givenCat, string givenID, int givenLv, bool givenUlt, int givenCount)
+	{
+		skillCat = givenCat;
+		skillID = givenID;
+		skillLv = givenLv;
+		skillUlt = givenUlt;
+		hitCount = givenCount;
+	}
+	public override void Awake()
+	{
+		base.Awake();
+		Attack attack = attackBox;
+		attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+		Attack attack2 = attackBox;
+		attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+	}
+	public override void Start()
+	{
+		base.Start();
+		currentPos = transform.position;
+		ParticleEffect poolItem = PoolManager.GetPoolItem<ParticleEffect>("LightningAuraEffect");
+		poolItem.reqFollowTrans = true;
+		float? emissionRate = 5f;
+		Vector3? position = currentPos;
+		Transform followTransform = transform;
+		poolItem.Play(emissionRate, position, null, null, followTransform);
+		PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(5, currentPos);
+	}
+	public override void ResetProjectile()
+	{
+		Attack attack = attackBox;
+		attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+		currentPos = transform.position;
+		LightningBurst.CreateBurst(currentPos, string.Empty, string.Empty, 1, 0.5f);
+		PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(5, currentPos);
+		CameraController.ShakeCamera(0.25f);
+		if (targetHit)
+		{
+			targetHit = false;
+			FireLightningStream();
+			flyTime = 0.625f;
+			RefreshFlightTime();
+		}
+		else
+		{
+			base.ResetProjectile();
+		}
+	}
+	private void OnTargetHit(Entity givenEnt)
+	{
+		if (!targetHit && !(givenEnt == null) && !(givenEnt is Destructible))
+		{
+			targetHit = true;
+			Attack attack = attackBox;
+			attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+			attackBox.gameObject.SetActive(value: false);
+			if (givenEnt != null)
+			{
+				targetTrans = givenEnt.hurtBoxTransform;
+			}
+			updateVelocity = false;
+			rigidbody2D.velocity = -moveVector * moveSpeed * 0.125f;
+			RefreshFlightTime();
+			PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(5, transform.position);
+		}
+	}
+	private void FireLightningStream()
+	{
+		if (!(targetTrans == null))
+		{
+			currentLS = Globals.ChaosInst<LightningStream>(LightningStream.Prefab, transform.parent, transform.position);
+			currentLS.targetTrans = targetTrans;
+			currentLS.attack.SetAttackInfo(skillCat, skillID, skillLv, skillUlt);
+			currentLS.hitCount = hitCount;
+		}
+	}
+}
+=== DecoyDash
+public class DecoyDash : Entity
+{
+	public class IdleState : State<DecoyDash>
+	{
+		private float baseLightIntensity;
+		private float baseSummonDuration;
+		public IdleState(string stateName, FSM parentFSM, DecoyDash parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			parent.anim.PlayDirectional("Idle" + parent.facingDirection);
+			parent.rigidbody2D.velocity = Vector2.zero;
+			baseLightIntensity = parent.light.intensity - 1f;
+			baseSummonDuration = parent.summonDuration;
+		}
+		public override void Update()
+		{
+			parent.light.intensity = 1f + baseLightIntensity * (ChaosStopwatch.GetRemainingTime(parent.durationStopwatchID) / baseSummonDuration);
+			if (ChaosStopwatch.Check(parent.durationStopwatchID))
+			{
+				fsm.ChangeState("Dead");
+			}
+		}
+	}
+	public class DashState : State<DecoyDash>
+	{
+		private bool dashFinished;
+		public DashState(string stateName, FSM parentFSM, DecoyDash parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			parent.FaceTarget(parent.dashVector + (Vector2)parent.transform.position);
+			parent.movement.dashVector = parent.dashVector;
+			parent.anim.PlayDirectional("Dash" + parent.facingDirection);
+			dashFinished = false;
+		}
+		public override void Update()
+		{
+			if (dashFinished)
+			{
+				fsm.ChangeState("Idle");
+			}
+		}
+		public override void FixedUpdate()
+		{
+			if (!dashFinished && parent.movement.DashToTarget())
+			{
+				dashFinished = true;
+			}
+		}
+	}
+	public new class DeadState : State<DecoyDash>
+	{
+		public DeadState(string stateName, FSM parentFSM, DecoyDash parentEntity)
+			: base(stateName, parentFSM, parentEntity)
+		{
+		}
+		public override void OnEnter()
+		{
+			parent.DestroyDecoy();
+		}
+	}
+	public Player parentPlayer;
+	public float summonDuration = 3f;
+	private int durationStopwatchID;
+	public Vector2 dashVector = Vector2.zero;
+	private Light light;
+	private SpriteRenderer sprite;
+	public float paletteIndex;
+	public CastBar durationBar;
+	private int lifeStopwatchID;
+	public override void Awake()
+	{
+		base.Awake();
+		light = GetComponentInChildren<Light>();
+		sprite = transform.Find("Sprite").GetComponent<SpriteRenderer>();
+		InitFSM();
+	}
+	public override void Start()
+	{
+		base.Start();
+		GameController.allies.Add(gameObject);
+		if (parentPlayer != null)
+		{
+			parentPlayer.playerSummonsList.Add(gameObject);
+		}
+		sprite.material.SetFloat("_PaletteIndex", paletteIndex);
+		durationBar = Globals.ChaosInst<CastBar>(CastBar.Prefab, transform.parent);
+		durationBar.parentTrans = transform;
+		durationBar.SetBarDimensions(0.44f, 0.56f, 0.45f, 0.46f);
+		durationStopwatchID = ChaosStopwatch.Begin(summonDuration);
+		durationBar.StartCast(durationStopwatchID, givenStatus: false);
+		lifeStopwatchID = ChaosStopwatch.Begin(summonDuration * 2f);
+		TogglePreventFallCollider(status: false);
+		fsm.ChangeState("Dash");
+	}
+	private void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Idle";
+		fsm.AddState(new IdleState("Idle", fsm, this));
+		fsm.AddState(new DashState("Dash", fsm, this));
+		fsm.AddState(new DeadState("Dead", fsm, this));
+	}
+	public override void Update()
+	{
+		base.Update();
+		if (ChaosStopwatch.Check(lifeStopwatchID))
+		{
+			DestroyDecoy();
+		}
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		fsm.currentState.FixedUpdate();
+	}
+	public void DestroyDecoy()
+	{
+		GameController.allies.Remove(gameObject);
+		if (parentPlayer != null)
+		{
+			parentPlayer.playerSummonsList.Remove(gameObject);
+		}
+		Object.Destroy(durationBar.gameObject);
+		Object.Destroy(gameObject);
+	}
+}
+=== DragonGrade
+public class DragonGrade : MonoBehaviour
+{
+	private static GameObject prefab;
+	public Animator anim;
+	private string animStr = "Drop";
+	private string skillCat = string.Empty;
+	private string skillID = string.Empty;
+	private Vector2 kbVec;
+	public ParticleSystem lightningEffect;
+	public ParticleSystem chaosEffect;
+	public ParticleSystem chaosBodyEffect;
+	private bool resetQueued;
+	private Vector2 currentPosition;
+	public void Init(FacingDirection givenDir, string givenCat, string givenID, Vector2 givenVec)
+	{
+		switch (givenDir)
+		{
+		case FacingDirection.Right:
+			animStr = "DropRight";
+			break;
+		case FacingDirection.Left:
+			animStr = "DropRight";
+			transform.localScale = new Vector3(-1f, 1f, 1f);
+			break;
+		}
+		skillCat = givenCat;
+		skillID = givenID;
+		kbVec = givenVec;
+	}
+	private void Start()
+	{
+		if (anim != null)
+		{
+			anim.Play(animStr, -1, 0f);
+		}
+		currentPosition = transform.position;
+	}
+	public void Impact()
+	{
+		if (!resetQueued)
+		{
+			resetQueued = true;
+			PoolManager.GetPoolItem<ParticleEffect>("FloorCraterLarge").Emit(1, currentPosition);
+			CreatePillar();
+			CreateCircle();
+			CreateExplosion();
+			if (gameObject != null)
+			{
+				Object.Destroy(gameObject, 0.35f);
+			}
+			lightningEffect.emissionRate = 0f;
+			chaosEffect.emissionRate = 0f;
+			chaosBodyEffect.emissionRate = 0f;
+			chaosBodyEffect.Clear();
+			CameraController.ShakeCamera();
+		}
+	}
+	private void OnDestroy()
+	{
+	}
+	private void CreateExplosion()
+	{
+		ChaosExplosion chaosExplosion = Globals.ChaosInst<ChaosExplosion>(ChaosExplosion.Prefab, null, currentPosition);
+		chaosExplosion.attack.SetAttackInfo(skillCat, skillID);
+		chaosExplosion.attack.knockbackOverwriteVector = kbVec;
+	}
+	private void CreatePillar()
+	{
+		ChaosPillar chaosPillar = Globals.ChaosInst<ChaosPillar>(ChaosPillar.Prefab, null, currentPosition + Vector2.up * 0.625f);
+		chaosPillar.readyTime = 0.05f;
+		chaosPillar.attackDuration = 0.25f;
+		chaosPillar.useCastCircle = false;
+		chaosPillar.useChargeEffect = false;
+		chaosPillar.playFormSFX = false;
+		chaosPillar.playSFXOnInterval = false;
+		chaosPillar.SetSpriteLayer();
+	}
+	private void CreateCircle()
+	{
+		ChaosCircle chaosCircle = Globals.ChaosInst<ChaosCircle>(ChaosCircle.Prefab, null, currentPosition);
+		chaosCircle.finalAttackLevel = 1;
+		chaosCircle.attackDuration = 0.4f;
+		chaosCircle.hitInterval = 0.1f;
+		chaosCircle.maxHitCount = 4;
+	}
+}
+=== DragonStomp
+public class DragonStomp : Wave
+{
+	private static GameObject wavePrefab;
+	private Animator anim;
+	private Transform dragonHeadTrans;
+	private Transform[] spriteRotatorTrans;
+	private float angleModifier = 0.5f;
+	private Vector2 nextWavePosition;
+	private bool headExploded;
+	private bool isFlipped;
+	private Vector3 flipVector;
+	private bool moveStopped;
+	[HideInInspector]
+	public bool forceSlow;
+	public override void Start()
+	{
+		base.Start();
+		anim = GetComponent<Animator>();
+		dragonHeadTrans = transform.Find("DragonHead");
+		lastWavePosition = transform.position;
+		spriteRotatorTrans = new Transform[wavePoolSize];
+		for (int i = 0; i < wavePoolSize; i++)
+		{
+			spriteRotatorTrans[i] = wavePoolTrans[i].Find("SpriteRotator");
+		}
+		isFlipped = moveVector.x < 0f;
+		for (int j = 0; j < wavePoolSize; j++)
+		{
+			if (wavePoolAttacks[j] != null)
+			{
+				Attack obj = wavePoolAttacks[j];
+				obj.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(obj.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+				Attack obj2 = wavePoolAttacks[j];
+				obj2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(obj2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+				if (forceSlow)
+				{
+					wavePoolAttacks[j].knockbackMultiplierOverride = 5f;
+				}
+			}
+		}
+	}
+	public override void StopWave(bool stop = true)
+	{
+		if (stop)
+		{
+			anim.Play("Hidden", -1, 0f);
+			ExplodeHead();
+		}
+	}
+	public override void DestroyWave()
+	{
+		for (int i = 0; i < wavePoolSize; i++)
+		{
+			if (wavePoolAttacks[i] != null)
+			{
+				Attack obj = wavePoolAttacks[i];
+				obj.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(obj.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+			}
+		}
+		base.DestroyWave();
+	}
+	public void ExplodeHead()
+	{
+		if (!headExploded)
+		{
+			PoolManager.GetPoolItem<RockMedDebrisEmitter>().EmitSingle(1, wavePoolTrans[waveCount].transform.position, RockMedDebrisEmitter.SmallCircleExplosionOverride);
+			PoolManager.GetPoolItem<RockDebrisEmitter>().EmitSingle(4, wavePoolTrans[waveCount].transform.position, RockDebrisEmitter.CircleExplosionOverride);
+			headExploded = true;
+		}
+	}
+	public override void ActivateWave()
+	{
+		if (stopSpawning)
+		{
+			return;
+		}
+		nextWavePosition = lastWavePosition + moveVector * calculatedSpacing;
+		if (!moveStopped && !Globals.CheckCircle(nextWavePosition, 0.125f, stopLayerMask))
+		{
+			StopMovement();
+		}
+		base.ActivateWave();
+		if (moveVector != Vector2.zero)
+		{
+			dragonHeadTrans.position = nextWavePosition;
+			dragonHeadTrans.localEulerAngles = Globals.GetRotationVector(moveVector);
+			FacingDirection primaryDirection = Globals.GetPrimaryDirection(moveVector);
+			if (primaryDirection == FacingDirection.Up || primaryDirection == FacingDirection.Down)
+			{
+				anim.Play("ChompUp", -1, 0f);
+			}
+			else
+			{
+				anim.Play("Chomp", -1, 0f);
+			}
+		}
+		else
+		{
+			anim.Play("Hidden", -1, 0f);
+			ExplodeHead();
+		}
+		if (isFlipped)
+		{
+			flipVector = wavePoolTrans[waveCount].localScale;
+			flipVector.x *= -1f;
+			wavePoolTrans[waveCount].localScale = flipVector;
+			dragonHeadTrans.localScale = flipVector;
+		}
+		PoolManager.GetPoolItem<FloorCrackEmitter>().Emit(1, wavePoolTrans[waveCount].position);
+		spriteRotatorTrans[waveCount].localEulerAngles = Globals.GetRotationVector(Vector2.Lerp(Vector2.up, Vector2.right, Mathf.Abs(moveVector.x) * angleModifier));
+		DustEmitter poolItem = PoolManager.GetPoolItem<DustEmitter>();
+		int particleCount = 20;
+		float scale = 0.5f;
+		float startSpeed = 5f;
+		Vector3? emitPosition = wavePoolTrans[waveCount].position;
+		poolItem.EmitCircle(particleCount, scale, startSpeed, -1f, emitPosition);
+		CameraController.ShakeCamera(0.25f);
+		PoolManager.GetPoolItem<ParticleEffect>("EarthWaveEffect").Emit(1, wavePoolTrans[waveCount].position);
+	}
+	private void OnTargetHit(Entity givenEnt)
+	{
+		if (!moveStopped && !(givenEnt == null) && !(givenEnt.health == null) && (givenEnt.health.IgnoreKnockback || givenEnt.health.ignoreGrab))
+		{
+			moveVector *= 0.35f;
+			if (moveVector.sqrMagnitude < 0.05f)
+			{
+				StopMovement();
+			}
+		}
+	}
+	private void StopMovement()
+	{
+		moveStopped = true;
+		moveVector = Vector2.zero;
+	}
+}
+=== EarthAxe
+public class EarthAxe : ThrownItem
+{
+	private static GameObject prefab;
+	public ParticleSystem dustTrailEmitter;
+	private Attack burstAtk;
+	private EarthBurst earthBurst;
+	private static Vector3 leftRotation = new Vector3(0f, 0f, 135f);
+	private static Vector3 rightRotation = new Vector3(0f, 0f, 225f);
+	public Sprite[] spriteVars;
+	private Vector2 positionOffset = Vector2.zero;
+	private Vector2 currentPosition;
+	private string skillCat = string.Empty;
+	private string skillID = string.Empty;
+	private int skillLv = 1;
+	private bool skillUlt;
+	private bool isEmpowered;
+	private Vector2 atkVector = Vector2.zero;
+	private Vector2 atkOffset = Vector2.zero;
+	private float atkRange = 4f;
+	private float atkRadius = 2.5f;
+	private bool isFirstDrop = true;
+	private bool hitPit;
+	public bool useRedusedEffects;
+	private ChaosQuickStopwatch audioStopwatch = new ChaosQuickStopwatch();
+	private bool isFinal;
+	public override void ThrowToTargetVector(Vector2 givenPosition)
+	{
+		base.ThrowToTargetVector(givenPosition);
+		audioStopwatch.SetDelay(calcFlightTime / (rotationCount + 1f));
+		targetPosition += positionOffset;
+		reverseRotation = givenPosition.x > transform.position.x;
+		if (reverseRotation)
+		{
+			startRotation = leftRotation;
+			endRotation = rightRotation;
+			rotationCount = 0f - rotationCount;
+		}
+		else
+		{
+			startRotation = rightRotation;
+			endRotation = leftRotation;
+		}
+		endRotation.z += 360f * rotationCount;
+	}
+	public override void HandleRotateSprite()
+	{
+		base.HandleRotateSprite();
+		if (!audioStopwatch.IsRunning)
+		{
+			audioStopwatch.IsRunning = true;
+			string audioID = "StandardSpinSingle";
+			Vector2? soundOrigin = transform.position;
+		}
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		spriteTrans.transform.localEulerAngles = Vector3.Lerp(startRotation, endRotation, PercentComplete);
+	}
+	private void LateUpdate()
+	{
+		if (spriteRenderer != null)
+		{
+			spriteRenderer.sortingLayerName = ((!(heightLerpValue > 2f)) ? "Actor" : "UI");
+		}
+	}
+	public override void OnLanding()
+	{
+		currentPosition = transform.position;
+		hitPit = !Globals.CheckCircle(currentPosition, 0.25f, ChaosCollisions.layerPit);
+		enableFloorContactOnLanding = !isFirstDrop;
+		destroyAfterLanding = !isFirstDrop;
+		base.OnLanding();
+		if (destroyAfterLanding && isFinal)
+		{
+			spriteRenderer.enabled = false;
+			dustTrailEmitter.Stop();
+		}
+		if (isFirstDrop)
+		{
+			isFirstDrop = false;
+			CreateBurst(currentPosition, 1, 1.5f);
+			PlayEffects(currentPosition, useCrack: false);
+			if (isFinal)
+			{
+				baseFlightTime = 1f;
+				rotationCount = 6f;
+				throwHeight = 6f;
+			}
+			else
+			{
+				baseFlightTime = 0.3f;
+				rotationCount = 2f;
+				throwHeight = ((!isEmpowered) ? 3.5f : 4f);
+			}
+			ThrowToTargetVector(currentPosition + atkVector * atkRange + atkOffset);
+		}
+		else
+		{
+			CreateBurst(currentPosition, skillLv, atkRadius);
+			PlayEffects(currentPosition, useCrack: true);
+		}
+	}
+	private void CreateBurst(Vector2 givenPos, int givenLv, float givenRadius)
+	{
+		Vector3 givenPosition = givenPos;
+		earthBurst = EarthBurst.CreateBurst(givenPosition, string.Empty, string.Empty, 1, givenRadius);
+		if (useRedusedEffects)
+		{
+			earthBurst.skipParticleEmit = true;
+			earthBurst.Emit(2, 0, 4f, 2f);
+		}
+		burstAtk = earthBurst.attack;
+		burstAtk.SetAttackInfo(skillCat, skillID, givenLv, skillUlt);
+		burstAtk.knockbackOverwriteVector = atkVector;
+		if (isFinal && givenLv == 1)
+		{
+			burstAtk.atkInfo.hitStunDurationModifier = 4f;
+		}
+	}
+	private void PlayEffects(Vector2 givenPos, bool useCrack)
+	{
+		DustEmitter poolItem = PoolManager.GetPoolItem<DustEmitter>();
+		int particleCount = 100;
+		float scale = 1f;
+		Vector3? emitPosition = givenPos;
+		poolItem.EmitCircle(particleCount, scale, -1f, -1f, emitPosition);
+		if (!hitPit)
+		{
+			if (useCrack)
+			{
+				PoolManager.GetPoolItem<FloorCrackEmitter>().Emit(1, givenPos);
+			}
+			PoolManager.GetPoolItem<ParticleEffect>((!isEmpowered) ? "FloorCrater" : "FloorCraterLarge").Emit(1, givenPos);
+			CameraController.ShakeCamera(0.25f);
+		}
+	}
+	public void SetVars(string givenCat, string givenID, int givenLv, bool givenUlt, bool givenEmp, float givenRange, Vector2 givenVec, Vector2 givenOffset)
+	{
+		skillCat = givenCat;
+		skillID = givenID;
+		skillLv = givenLv;
+		skillUlt = givenUlt;
+		isEmpowered = givenEmp;
+		atkRange = givenRange;
+		atkVector = givenVec;
+		atkOffset = givenOffset;
+		positionOffset = -atkVector * 0.75f;
+		if (isEmpowered)
+		{
+			spriteRenderer.sprite = spriteVars[1];
+			atkRadius = 2.75f;
+		}
+	}
+	public void SetFinal()
+	{
+		isFinal = true;
+		destroyTime = 1.25f;
+		transform.localScale *= 1.5f;
+		atkRadius = 3f;
+		dustTrailEmitter.gameObject.SetActive(value: true);
+	}
+}
+=== EarthAxeBasic
+public class EarthAxeBasic : MeleeAttackObject
+{
+	private static GameObject prefab;
+	private Movement movement;
+	public Transform parentTrans;
+	public bool isEmpowered;
+	private ChaosQuickStopwatch throwStopwatch = new ChaosQuickStopwatch(0.125f);
+	private bool throwStarted;
+	private Vector2 tempPosition;
+	public override void Awake()
+	{
+		base.Awake();
+		movement = GetComponent<Movement>();
+	}
+	public void InitThrow(Vector2 givenVector, bool isClockwise)
+	{
+		if (!throwStarted)
+		{
+			throwStarted = true;
+			anim.Play("Spin", -1, 0f);
+			if (isClockwise)
+			{
+				transform.localScale = Globals.ScaleVecFlipX;
+			}
+			attack.ChangeAttackInfoLevel((!isEmpowered) ? 2 : 3);
+			negateScript.enabled = true;
+			negateScript.skillCategory = attack.atkInfo.skillCategory;
+			StartTimer();
+			throwStopwatch.IsRunning = true;
+			movement.moveVector = givenVector;
+		}
+	}
+	private void FixedUpdate()
+	{
+		if (throwStarted)
+		{
+			movement.MoveToMoveVector();
+			if (!throwStopwatch.IsRunning)
+			{
+				throwStopwatch.IsRunning = true;
+				if (!Globals.CheckCircle(transform.position, 1f, ChaosCollisions.layerUpperWall))
+				{
+					ChaosStopwatch.Stop(lifeStopwatchID);
+				}
+			}
+		}
+		else if (parentTrans != null)
+		{
+			transform.position = parentTrans.position;
+		}
+	}
+	public override void EndAttack()
+	{
+		tempPosition = transform.position;
+		RockDebrisEmitter poolItem = PoolManager.GetPoolItem<RockDebrisEmitter>();
+		for (int i = 0; i < 3; i++)
+		{
+			poolItem.EmitSingle(RockDebrisType.Dark, i * 2 + 2, transform.TransformPoint(((!throwStarted) ? Vector2.down : Vector2.up) * i), RockDebrisEmitter.SmallCircleExplosionOverride);
+		}
+		if (throwStarted && isEmpowered)
+		{
+			EarthBurst.CreateBurst(tempPosition, attack.ChangeAttackInfoLevel(4), 2.5f).attack.gameObject.AddComponent<NegateProjectiles>().skillCategory = attack.atkInfo.skillCategory;
+		}
+		string text = "DragonStomp";
+		Vector2? soundOrigin = tempPosition;
+		float overridePitch = Random.Range(0.8f, 1f);
+		base.EndAttack();
+	}
+	public void StartTimer(float givenTime = 0.3f)
+	{
+		useLifeTime = true;
+		lifeStopwatchID = ChaosStopwatch.Begin(givenTime);
+	}
+	public void FormFinish()
+	{
+		tempPosition = transform.TransformPoint(Vector2.down);
+		PoolManager.GetPoolItem<RockDebrisEmitter>().EmitSingle(RockDebrisType.Dark, 4, tempPosition, RockDebrisEmitter.SmallCircleFastExplosionOverride);
+	}
+}
+=== EarthBoomerang
+public class EarthBoomerang : Projectile
+{
+	private static GameObject prefab;
+	public static GameObject effectPrefab;
+	[HideInInspector]
+	public Transform parentTrans;
+	private static Vector3 oriScaleVec = Vector3.one;
+	private static Vector3 ultScaleVec = new Vector3(3f, 3f, 1f);
+	private static float hitDelay = 0.125f;
+	private int hitStopwatchID;
+	private bool spinDone;
+	private int expandStopwatchID;
+	private float expandLerpValue;
+	private bool expandCompleted;
+	private LeafEmitter currentEmitter;
+	private ChaosQuickStopwatch audioStopwatch = new ChaosQuickStopwatch(0.125f);
+	public bool isUltimate;
+	private List<SpinningFlower> fxList;
+	private Vector2 ultPos;
+	private Vector2 ultVec;
+	private bool firstRing;
+	public override void Start()
+	{
+		if (isUltimate)
+		{
+			rotationsPerSecond = -2f;
+		}
+		base.Start();
+		PlayEffects(transform.position);
+	}
+	public override void Update()
+	{
+		if (CheckMaxLifeTime())
+		{
+			return;
+		}
+		if (ChaosStopwatch.Check(flyStopwatchID))
+		{
+			if (parentObject == null || parentTrans == null)
+			{
+				ResetProjectile();
+				return;
+			}
+			if (!boomerangReturning)
+			{
+				ReturnBoomerang();
+				PlayEffects(transform.position);
+				return;
+			}
+			if (spinDone && Vector2.Distance(transform.position, parentTrans.position) < returningSnapDistance)
+			{
+				ResetProjectile();
+			}
+		}
+		if (!audioStopwatch.IsRunning)
+		{
+			audioStopwatch.IsRunning = true;
+		}
+	}
+	private void ReturnBoomerang()
+	{
+		moveSpeed = 0f;
+		boomerangReturning = true;
+		hitStopwatchID = ChaosStopwatch.Begin(hitDelay, useInterval: true, hitDelay, (!isUltimate) ? 5 : 16);
+		attackBox.ChangeAttackInfoLevel((!isUltimate) ? 2 : 3);
+		attackBox.collider.enabled = false;
+		attackBox.collider.enabled = true;
+		UpdateCalculatedDamage(initDamageOverride: true);
+		if (isUltimate)
+		{
+			ultPos = transform.position;
+			expandStopwatchID = ChaosStopwatch.Begin(0.25f);
+			fxList = new List<SpinningFlower>();
+			for (int i = 0; i < 8; i++)
+			{
+				CreateFlowerEffect(ultPos + Globals.GetRotatedCircleVector(8, i, moveVector) * 2.25f, 0.75f, 0.875f, 2);
+			}
+		}
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		if (!boomerangReturning)
+		{
+			return;
+		}
+		if (isUltimate && !expandCompleted)
+		{
+			expandLerpValue = ChaosStopwatch.GetTimePercentage(expandStopwatchID);
+			attackBox.transform.localScale = Vector3.Lerp(oriScaleVec, ultScaleVec, expandLerpValue);
+			expandCompleted = expandLerpValue >= 1f;
+		}
+		if (parentTrans != null)
+		{
+			moveVector = (parentTrans.position - transform.position).normalized;
+			attackBox.knockbackOverwriteVector = moveVector;
+		}
+		if (spinDone)
+		{
+			return;
+		}
+		switch (ChaosStopwatch.CheckInterval(hitStopwatchID))
+		{
+		case StopwatchState.Running:
+			attackBox.collider.enabled = true;
+			break;
+		case StopwatchState.Ready:
+			attackBox.collider.enabled = false;
+			if (isUltimate)
+			{
+				if (!firstRing)
+				{
+					firstRing = true;
+					for (int i = 0; i < 8; i++)
+					{
+						ultVec = Globals.GetRotatedCircleVector(8, i, moveVector);
+						CreateFlowerEffect(ultPos + ultVec * 4f, 0.625f, 0.75f, 1);
+						CreateFlowerEffect(ultPos + Globals.GetRotatedCircleVector(16, i * 2 + 1, moveVector) * 4f, 0.625f, 0.75f, 1);
+					}
+				}
+			}
+			else
+			{
+				PlayEffects(transform.position);
+			}
+			break;
+		case StopwatchState.Done:
+			spinDone = true;
+			moveSpeed = 30f;
+			attackBox.ChangeAttackInfoLevel(1);
+			attackBox.collider.enabled = true;
+			UpdateCalculatedDamage(initDamageOverride: true);
+			if (isUltimate)
+			{
+				ResetProjectile();
+			}
+			break;
+		}
+	}
+	public override void ResetProjectile()
+	{
+		base.ResetProjectile();
+		PlayEffects(transform.position);
+		DustEmitter poolItem = PoolManager.GetPoolItem<DustEmitter>();
+		int particleCount = 30;
+		float scale = 0.05f;
+		Vector3? emitPosition = transform.position;
+		poolItem.EmitCircle(particleCount, scale, -1f, -1f, emitPosition);
+		if (fxList == null)
+		{
+			return;
+		}
+		for (int num = fxList.Count - 1; num >= 0; num--)
+		{
+			if (!(fxList[num] == null))
+			{
+				SpinningFlower spinningFlower = fxList[num];
+				spinningFlower.EndSpin();
+				PlayEffects(spinningFlower.transform.position);
+			}
+		}
+		fxList.Clear();
+	}
+	private void PlayEffects(Vector2 givenPosition)
+	{
+		if (currentEmitter == null)
+		{
+			currentEmitter = PoolManager.GetPoolItem<LeafEmitter>("FallingLeafBurstEmitter");
+		}
+		LeafEmitter leafEmitter = currentEmitter;
+		int? particleCount = 3;
+		Vector3? position = givenPosition;
+		ParticleSystemOverride radiusOne = ParticleEffectOverrides.RadiusOne;
+		leafEmitter.EmitSingle(particleCount, position, radiusOne);
+		LeafEmitter leafEmitter2 = currentEmitter;
+		particleCount = 4;
+		position = givenPosition;
+		radiusOne = ParticleEffectOverrides.RadiusOne;
+		leafEmitter2.EmitSingle(particleCount, position, radiusOne, null, 0f, null, LeafEmitter.LeafColor.Magenta);
+	}
+	private void CreateFlowerEffect(Vector2 givenPosition, float givenScale, float givenSpeed, int spriteIndex = 0)
+	{
+		SpinningFlower spinningFlower = Globals.ChaosInst<SpinningFlower>(EffectPrefab, wallCollider.transform, givenPosition);
+		spinningFlower.transform.localScale = Vector3.one * givenScale;
+		spinningFlower.anim.speed = givenSpeed;
+		spinningFlower.spriteIndex = spriteIndex;
+		fxList.Add(spinningFlower);
+		PlayEffects(givenPosition);
+	}
+}
+=== EarthBurst
+public class EarthBurst : ElementalBurst
+{
+	private static GameObject prefab;
+	public static readonly string standardSkillID = "EarthBurst";
+	public static readonly string floorSkillID = "EarthBurstFloor";
+	private ParticleSystem partSys;
+	private ParticleSystem.MainModule partSysMain;
+	private ParticleSystem subPartSys;
+	private ParticleSystem.MainModule subPartSysMain;
+	public bool skipParticleEmit;
+	public override void Awake()
+	{
+		base.Awake();
+		Transform transform = base.transform.Find("RockEmitter");
+		partSys = transform.GetComponent<ParticleSystem>();
+		partSysMain = partSys.main;
+		subPartSys = transform.Find("SmallRockEmitter").GetComponent<ParticleSystem>();
+		subPartSysMain = subPartSys.main;
+	}
+	public override void Start()
+	{
+		base.Start();
+		if (!skipParticleEmit)
+		{
+			Emit((int)(scaleValue * 10f), (int)(scaleValue * 6f), scaleValue * 9f, scaleValue * 7f);
+		}
+	}
+	public void Emit(int emitCount = 10, int subEmitCount = 6, float startSpeed = 9f, float subStartSpeed = 7f)
+	{
+		partSysMain.startSpeed = startSpeed;
+		subPartSysMain.startSpeed = subStartSpeed;
+		partSys.Emit(emitCount);
+		subPartSys.Emit(subEmitCount);
+	}
+	public static EarthBurst CreateBurst(Vector3 givenPosition, string skillCategory = "", string skillID = "", int skillLevel = 1, float givenScale = 2f)
+	{
+		return (EarthBurst)ElementalBurst.CreateBurst(Prefab, givenPosition, skillCategory, skillID, skillLevel, givenScale);
+	}
+	public static EarthBurst CreateBurst(Vector3 givenPosition, AttackInfo givenAtkInfo, float givenScale = 2f)
+	{
+		return (EarthBurst)ElementalBurst.CreateBurst(Prefab, givenPosition, givenAtkInfo, givenScale);
+	}
+}

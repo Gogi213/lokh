@@ -1,0 +1,1162 @@
+=== Item
+using System;
+public abstract class Item
+{
+	public enum Category
+	{
+		Offense,
+		Defense,
+		Misc
+	}
+	public string ID = "UnnamedItem";
+	public Player parentPlayer;
+	public Entity parentEntity;
+	public string parentSkillCategory = string.Empty;
+	public string parentCombineID = string.Empty;
+	public string parentGroupID = string.Empty;
+	public Category category = Category.Misc;
+	public bool isCursed;
+	public bool hubOnly;
+	public bool notForSale;
+	public bool combineOnly;
+	public bool isGroupItem;
+	public bool destroyOnDrop;
+	public bool useSimpleInfo;
+	protected virtual string ExtraInfo => string.Empty;
+	public virtual string FormattedExtraInfo
+	{
+		get
+		{
+			string result;
+			if (ExtraInfo == string.Empty)
+			{
+				result = string.Empty;
+			}
+			else
+			{
+				result = ((!useSimpleInfo) ? ("\n<color=#009999>( </color><color=#00dddd>" + ExtraInfo + "</color><color=#009999> )</color>") : ("\n<color=#00dddd>" + ExtraInfo + "</color>"));
+			}
+			return result;
+		}
+	}
+	public Item()
+	{
+	}
+	protected string PercentToStr(float givenValue, string prefix = "")
+	{
+		return Globals.PercentToStr(givenValue, prefix);
+	}
+	protected string PercentToStr(NumVarStatMod givenMod, string prefix = "")
+	{
+		return Globals.PercentToStr(givenMod, prefix);
+	}
+	public virtual void Activate()
+	{
+	}
+	public virtual void Deactivate()
+	{
+	}
+	public bool GroupItemCreated(string givenID)
+	{
+		if (SetParentAsPlayer() && !parentPlayer.inventory.ContainsItem(givenID) && GroupItemManager.groupsDict.ContainsKey(givenID) && GroupItemManager.groupsDict[givenID].Contains(ID))
+		{
+			foreach (string item in GroupItemManager.groupsDict[givenID])
+			{
+				if (item != ID && parentPlayer.inventory.ContainsItem(item))
+				{
+					parentPlayer.inventory.AddItem(givenID, showNotice: false, ignoreMax: true);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	public static bool IsCursedItem(string itemID)
+	{
+		return LootManager.completeItemDict.ContainsKey(itemID) && LootManager.completeItemDict[itemID].isCursed;
+	}
+	public void SetParentSkillCategory()
+	{
+		if (parentEntity != null)
+		{
+			parentSkillCategory = parentEntity.skillCategory;
+		}
+	}
+	public virtual bool SetParentAsPlayer()
+	{
+		return (parentPlayer = parentEntity as Player) != null;
+	}
+	public virtual void UpdateItemBar(ItemStatusBar.ItemState givenState)
+	{
+		if (SetParentAsPlayer())
+		{
+			ItemStatusBar.UpdateItem(parentPlayer.playerID, ID, givenState);
+		}
+	}
+	public virtual void RemoveFromItemBar()
+	{
+		if (SetParentAsPlayer())
+		{
+			ItemStatusBar.RemoveItem(parentPlayer.playerID, ID);
+		}
+	}
+	public static Item CreateItem(string givenID)
+	{
+		return (Item)Activator.CreateInstance(LootManager.completeItemDict[givenID].GetType());
+	}
+	public static bool IsUnlocked(string givenID, bool setUnlocked = false)
+	{
+		if (setUnlocked)
+		{
+			if (!GameDataManager.gameData.CheckItemDataEntry(givenID))
+			{
+				GameDataManager.gameData.UpdateItemDataEntry(givenID);
+				GameDataManager.Save();
+				AchievementManager.UnlockAchievement(Achievement.UnlockHalfRelics);
+				AchievementManager.UnlockAchievement(Achievement.UnlockAllRelics);
+			}
+			return true;
+		}
+		return GameDataManager.gameData.CheckItemDataEntry(givenID);
+	}
+	public bool IgnoreStatusConditional(StatData givenStatData)
+	{
+		return !givenStatData.GetValue<bool>(StatData.isStatStr);
+	}
+	public bool BasicAndStatusConditional(StatData givenStatData)
+	{
+		return !givenStatData.GetValue<string>(StatData.idStr).Contains("Basic") && !givenStatData.GetValue<bool>(StatData.isStatStr);
+	}
+	public bool IgnoreBasicDashAndStatusCond(StatData givenStatData)
+	{
+		return BasicAndStatusConditional(givenStatData) && !givenStatData.GetValue<string>(StatData.idStr).Contains("Dash");
+	}
+	public static bool IsEmpowered(Player.SkillState givenSkill)
+	{
+		return givenSkill?.IsEmpowered ?? false;
+	}
+	public static bool IsNotEmpowered(Player.SkillState givenSkill)
+	{
+		return givenSkill != null && !givenSkill.IsEmpowered;
+	}
+	public static bool IsBasicSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill != null && givenSkill.isBasic && givenSkill is Player.MeleeAttackState;
+	}
+	public static bool IsDashSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill?.isDash ?? false;
+	}
+	public bool IsMovementSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill?.isMovementSkill ?? false;
+	}
+	public bool IsJumpSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill?.isJumpSkill ?? false;
+	}
+	public static bool IsMeleeSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill?.isMeleeSkill ?? false;
+	}
+	public static bool IsProjectileSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill?.isProjectileSkill ?? false;
+	}
+	public static bool IsSummonSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill?.isSummonSkill ?? false;
+	}
+	public bool IsNegBasicSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill is Player.NegMeleeState;
+	}
+	public static bool IsMinionSkill(Player.SkillState givenSkill)
+	{
+		return givenSkill != null && givenSkill is Player.UseBaseMinion;
+	}
+}
+=== OnTakeDamageItem
+using System;
+public class OnTakeDamageItem : Item
+{
+	public bool activateOnEnter;
+	public bool activateOnEvent;
+	public bool activateOnActual;
+	public bool activateOnPreShield;
+	public override void Activate()
+	{
+		SetHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetHandlers(givenStatus: false);
+	}
+	public virtual void SetHandlers(bool givenStatus)
+	{
+		if (parentEntity == null || parentEntity.health == null)
+		{
+			return;
+		}
+		if (activateOnEnter)
+		{
+			Health health = parentEntity.health;
+			health.takeDamageEnterHandlers = (Health.OnTakeDamageHandler)Delegate.Remove(health.takeDamageEnterHandlers, new Health.OnTakeDamageHandler(OnTakeDamageEnter));
+			if (givenStatus)
+			{
+				Health health2 = parentEntity.health;
+				health2.takeDamageEnterHandlers = (Health.OnTakeDamageHandler)Delegate.Combine(health2.takeDamageEnterHandlers, new Health.OnTakeDamageHandler(OnTakeDamageEnter));
+			}
+		}
+		if (activateOnEvent)
+		{
+			Health health3 = parentEntity.health;
+			health3.takeDamageEventHandlers = (Health.OnTakeDamageHandler)Delegate.Remove(health3.takeDamageEventHandlers, new Health.OnTakeDamageHandler(OnTakeDamageEvent));
+			if (givenStatus)
+			{
+				Health health4 = parentEntity.health;
+				health4.takeDamageEventHandlers = (Health.OnTakeDamageHandler)Delegate.Combine(health4.takeDamageEventHandlers, new Health.OnTakeDamageHandler(OnTakeDamageEvent));
+			}
+		}
+		if (activateOnActual)
+		{
+			Health health5 = parentEntity.health;
+			health5.takeDamageActualHandlers = (Health.OnTakeDamageHandler)Delegate.Remove(health5.takeDamageActualHandlers, new Health.OnTakeDamageHandler(OnTakeDamageActual));
+			if (givenStatus)
+			{
+				Health health6 = parentEntity.health;
+				health6.takeDamageActualHandlers = (Health.OnTakeDamageHandler)Delegate.Combine(health6.takeDamageActualHandlers, new Health.OnTakeDamageHandler(OnTakeDamageActual));
+			}
+		}
+		if (activateOnPreShield)
+		{
+			Health health7 = parentEntity.health;
+			health7.preShieldEventHandlers = (Health.OnTakeDamageHandler)Delegate.Remove(health7.preShieldEventHandlers, new Health.OnTakeDamageHandler(OnPreShieldEvent));
+			if (givenStatus)
+			{
+				Health health8 = parentEntity.health;
+				health8.preShieldEventHandlers = (Health.OnTakeDamageHandler)Delegate.Combine(health8.preShieldEventHandlers, new Health.OnTakeDamageHandler(OnPreShieldEvent));
+			}
+		}
+	}
+	public virtual void OnTakeDamageEnter(AttackInfo givenAtkInfo, Entity givenEnt)
+	{
+	}
+	public virtual void OnTakeDamageEvent(AttackInfo givenAtkInfo, Entity givenEnt)
+	{
+	}
+	public virtual void OnTakeDamageActual(AttackInfo givenAtkInfo, Entity givenEnt)
+	{
+	}
+	public virtual void OnPreShieldEvent(AttackInfo givenAtkInfo, Entity givenEnt)
+	{
+	}
+}
+=== ModWithHP
+using System;
+public class ModWithHP : Item
+{
+	protected NumVarStatMod statMod;
+	protected bool activated;
+	protected IntComparisonType comparisonType;
+	protected float HPThreshold = 0.1f;
+	protected override string ExtraInfo => PercentToStr(statMod, "+");
+	public override void Activate()
+	{
+		if (SetParentAsPlayer())
+		{
+			CheckActivatePowerup();
+			NumVarStat healthStat = parentPlayer.health.healthStat;
+			healthStat.statChangedEventHandlers = (VarStat<float>.StatChangedEventHandler)Delegate.Remove(healthStat.statChangedEventHandlers, new VarStat<float>.StatChangedEventHandler(CheckActivatePowerup));
+			NumVarStat healthStat2 = parentPlayer.health.healthStat;
+			healthStat2.statChangedEventHandlers = (VarStat<float>.StatChangedEventHandler)Delegate.Combine(healthStat2.statChangedEventHandlers, new VarStat<float>.StatChangedEventHandler(CheckActivatePowerup));
+		}
+	}
+	public override void Deactivate()
+	{
+		if (SetParentAsPlayer())
+		{
+			DeactivatePowerup();
+			NumVarStat healthStat = parentPlayer.health.healthStat;
+			healthStat.statChangedEventHandlers = (VarStat<float>.StatChangedEventHandler)Delegate.Remove(healthStat.statChangedEventHandlers, new VarStat<float>.StatChangedEventHandler(CheckActivatePowerup));
+		}
+	}
+	public virtual void CheckActivatePowerup()
+	{
+		if (parentPlayer == null || parentPlayer.health == null)
+		{
+			return;
+		}
+		if (activated)
+		{
+			if (!CheckHPThreshold())
+			{
+				DeactivatePowerup();
+			}
+		}
+		else if (CheckHPThreshold())
+		{
+			ActivatePowerup();
+		}
+	}
+	public virtual bool CheckHPThreshold()
+	{
+		return comparisonType switch
+		{
+			IntComparisonType.Equals => parentPlayer.health.HealthPercentage == HPThreshold, 
+			IntComparisonType.NotEquals => parentPlayer.health.HealthPercentage != HPThreshold, 
+			IntComparisonType.LessThan => parentPlayer.health.HealthPercentage < HPThreshold, 
+			IntComparisonType.LessThanEquals => parentPlayer.health.HealthPercentage <= HPThreshold, 
+			IntComparisonType.GreaterThan => parentPlayer.health.HealthPercentage > HPThreshold, 
+			IntComparisonType.GreaterThanEquals => parentPlayer.health.HealthPercentage >= HPThreshold, 
+			_ => false, 
+		};
+	}
+	public virtual void ActivatePowerup()
+	{
+		activated = true;
+	}
+	public virtual void DeactivatePowerup()
+	{
+		activated = false;
+	}
+}
+=== ModWithKills
+using System;
+public class ModWithKills : Item
+{
+	protected Enemy currentEnemy;
+	public override void Activate()
+	{
+		SetModStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetModStatus(givenStatus: false);
+	}
+	public virtual void SetModStatus(bool givenStatus)
+	{
+		if (SetParentAsPlayer())
+		{
+			SetExtraMods(givenStatus);
+			Player player = parentPlayer;
+			player.absEnemyKillEventHandlers = (Player.AbsEnemyKillEventHandler)Delegate.Remove(player.absEnemyKillEventHandlers, new Player.AbsEnemyKillEventHandler(OnKillEvent));
+			if (givenStatus)
+			{
+				Player player2 = parentPlayer;
+				player2.absEnemyKillEventHandlers = (Player.AbsEnemyKillEventHandler)Delegate.Combine(player2.absEnemyKillEventHandlers, new Player.AbsEnemyKillEventHandler(OnKillEvent));
+			}
+		}
+	}
+	public virtual void SetExtraMods(bool givenStatus)
+	{
+	}
+	public bool IsValidKill(Entity givenEntity, AttackInfo givenInfo)
+	{
+		currentEnemy = givenEntity as Enemy;
+		if (currentEnemy == null || (currentEnemy is Blob && ((Blob)currentEnemy).isMini))
+		{
+			return false;
+		}
+		return !currentEnemy.summoned && currentEnemy.parentSummoner == null;
+	}
+	public virtual void OnKillEvent(Entity givenEntity, AttackInfo givenInfo)
+	{
+		if (IsValidKill(givenEntity, givenInfo))
+		{
+			HandleKillEvent(givenEntity, givenInfo);
+		}
+	}
+	public virtual void HandleKillEvent(Entity givenEntity, AttackInfo givenInfo)
+	{
+	}
+}
+=== HeadgearItem
+using UnityEngine;
+public class HeadgearItem : Item
+{
+	protected GameObject headgearPrefab;
+	public Headgear curHeadgear;
+	public override void Activate()
+	{
+		if (!(headgearPrefab == null) && !(parentEntity == null))
+		{
+			curHeadgear = Globals.ChaosInst<Headgear>(headgearPrefab, (!parentEntity.headPosition) ? parentEntity.transform : parentEntity.headPosition.transform);
+			curHeadgear.Initialize(parentEntity, ID);
+		}
+	}
+	public override void Deactivate()
+	{
+		if (!(curHeadgear == null))
+		{
+			curHeadgear.Hide(destroyOnHide: true);
+		}
+	}
+}
+=== OnBasicUseItem
+using System;
+using UnityEngine;
+public class OnBasicUseItem : Item
+{
+	protected Player.MeleeAttackState currentState;
+	protected float activationChance;
+	protected Vector2 currentPosition;
+	protected Vector2 currentAtkPosition;
+	protected Vector2 currentVector;
+	public OnBasicUseItem(string givenID, float givenChance)
+	{
+		ID = givenID;
+		category = Category.Offense;
+		activationChance = givenChance;
+		parentGroupID = OnBasicUseGroupItem.staticID;
+	}
+	public override void Activate()
+	{
+		SetEventHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetEventHandlers(givenStatus: false);
+	}
+	private void SetEventHandlers(bool givenStatus)
+	{
+		if ((!givenStatus || !GroupItemCreated(OnBasicUseGroupItem.staticID)) && SetParentAsPlayer())
+		{
+			Player player = parentPlayer;
+			player.skillExecEventHandlers = (Player.SkillEventHandler)Delegate.Remove(player.skillExecEventHandlers, new Player.SkillEventHandler(OnSkillExec));
+			if (givenStatus)
+			{
+				Player player2 = parentPlayer;
+				player2.skillExecEventHandlers = (Player.SkillEventHandler)Delegate.Combine(player2.skillExecEventHandlers, new Player.SkillEventHandler(OnSkillExec));
+			}
+		}
+	}
+	private void OnSkillExec(Player.SkillState givenState)
+	{
+		currentState = givenState as Player.MeleeAttackState;
+		if (CheckActivationChance(currentState))
+		{
+			CreateItemEffect(currentState);
+		}
+	}
+	public virtual bool CheckActivationChance(Player.MeleeAttackState givenState)
+	{
+		return givenState != null && UnityEngine.Random.value < activationChance / ((float)givenState.maxComboCount + 0.5f);
+	}
+	public virtual void CreateItemEffect(Player.MeleeAttackState givenState)
+	{
+		currentPosition = parentPlayer.transform.position;
+		currentAtkPosition = parentPlayer.attackOriginTrans.position;
+		currentVector = givenState.inputVector;
+	}
+}
+=== OnParryItem
+using System;
+using UnityEngine;
+public class OnParryItem : Item
+{
+	private BoolVarStatMod parryMod;
+	public bool IsNewParry => parentPlayer != null && parentPlayer.fsm.previousStateName != Player.ParryState.staticID;
+	public override void Activate()
+	{
+		SetHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetHandlers(givenStatus: false);
+	}
+	public bool IsMeleeParry(AttackInfo givenInfo)
+	{
+		return givenInfo != null && Vector2.SqrMagnitude(givenInfo.attackerPosition - givenInfo.targetPosition) < 7f;
+	}
+	public virtual void SetHandlers(bool givenStatus)
+	{
+		if (parryMod == null)
+		{
+			parryMod = new BoolVarStatMod(ID, newModValue: true);
+		}
+		if (SetParentAsPlayer())
+		{
+			parentPlayer.SetParryCheckStatus(parryMod, givenStatus);
+			Player player = parentPlayer;
+			player.parryEventHandlers = (Player.ParryEventHandler)Delegate.Remove(player.parryEventHandlers, new Player.ParryEventHandler(OnParry));
+			if (givenStatus)
+			{
+				Player player2 = parentPlayer;
+				player2.parryEventHandlers = (Player.ParryEventHandler)Delegate.Combine(player2.parryEventHandlers, new Player.ParryEventHandler(OnParry));
+			}
+		}
+	}
+	public virtual void OnParry(AttackInfo givenInfo, Vector2 givenInputVec)
+	{
+	}
+}
+=== GroupItem
+using System;
+using System.Collections.Generic;
+public class GroupItem : Item
+{
+	public Inventory itemInven;
+	private bool updateInfoStr = true;
+	private string infoStr = string.Empty;
+	public int Count => itemInven.Count;
+	public string InfoStr
+	{
+		get
+		{
+			if (updateInfoStr)
+			{
+				updateInfoStr = false;
+				infoStr = string.Empty;
+				if (GroupItemManager.groupsDict.ContainsKey(ID))
+				{
+					foreach (string item in GroupItemManager.groupsDict[ID])
+					{
+						if (itemInven.ContainsItem(item))
+						{
+							infoStr = infoStr + "+ " + TextManager.GetItemName(item) + "\n";
+						}
+					}
+				}
+			}
+			return infoStr;
+		}
+	}
+	protected override string ExtraInfo => InfoStr;
+	public string CompletionProgStr
+	{
+		get
+		{
+			string result;
+			if (GroupItemManager.groupsDict.ContainsKey(ID))
+			{
+				result = ((GroupItemManager.groupsDict[ID].Count != itemInven.Count) ? ("  (" + itemInven.Count + "/" + GroupItemManager.groupsDict[ID].Count + ")") : " ★");
+			}
+			else
+			{
+				result = string.Empty;
+			}
+			return result;
+		}
+	}
+	public GroupItem()
+	{
+		combineOnly = true;
+		isGroupItem = true;
+		destroyOnDrop = true;
+		useSimpleInfo = true;
+	}
+	public override void Activate()
+	{
+		SetStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetStatus(givenStatus: false);
+	}
+	public virtual void SetStatus(bool givenStatus)
+	{
+		if (SetParentAsPlayer())
+		{
+			if (itemInven == null)
+			{
+				itemInven = new Inventory(parentPlayer);
+			}
+			Inventory inventory = parentPlayer.inventory;
+			inventory.inventoryChangeEventHandler = (Inventory.ItemEventHandler)Delegate.Remove(inventory.inventoryChangeEventHandler, new Inventory.ItemEventHandler(HandleGrouping));
+			Inventory inventory2 = itemInven;
+			inventory2.inventoryChangeEventHandler = (Inventory.ItemEventHandler)Delegate.Remove(inventory2.inventoryChangeEventHandler, new Inventory.ItemEventHandler(OnInternalInvenChange));
+			if (givenStatus)
+			{
+				Inventory inventory3 = parentPlayer.inventory;
+				inventory3.inventoryChangeEventHandler = (Inventory.ItemEventHandler)Delegate.Combine(inventory3.inventoryChangeEventHandler, new Inventory.ItemEventHandler(HandleGrouping));
+				Inventory inventory4 = itemInven;
+				inventory4.inventoryChangeEventHandler = (Inventory.ItemEventHandler)Delegate.Combine(inventory4.inventoryChangeEventHandler, new Inventory.ItemEventHandler(OnInternalInvenChange));
+				HandleGrouping(null, givenStatus: true);
+			}
+			else
+			{
+				HandleDrop();
+			}
+		}
+	}
+	public virtual void OnInternalInvenChange(Item givenItem, bool givenStatus)
+	{
+		parentPlayer.inventory.AnnounceItemEvent(givenItem, givenStatus);
+	}
+	public virtual void HandleGrouping(Item givenItem, bool givenStatus)
+	{
+		if (!givenStatus || !GroupItemManager.groupsDict.ContainsKey(ID))
+		{
+			return;
+		}
+		foreach (string item in GroupItemManager.groupsDict[ID])
+		{
+			if (parentPlayer.inventory.ContainsItem(item))
+			{
+				parentPlayer.inventory.RemoveItem(item);
+				if (!itemInven.ContainsItem(item))
+				{
+					itemInven.AddItem(item);
+					updateInfoStr = true;
+				}
+			}
+		}
+	}
+	public virtual void HandleDrop(bool ignoreDrop = false)
+	{
+		if (!GroupItemManager.groupsDict.ContainsKey(ID))
+		{
+			return;
+		}
+		updateInfoStr = true;
+		if (!ignoreDrop && !parentPlayer.IsDead)
+		{
+			string empty = string.Empty;
+			List<string> itemIDList = itemInven.GetItemIDList();
+			for (int num = itemIDList.Count - 1; num >= 0; num--)
+			{
+				empty = itemIDList[num];
+				itemInven.DropItem(itemIDList[num]);
+			}
+		}
+		itemInven.ClearInventory();
+	}
+}
+=== ElementalDamageUp
+public class ElementalDamageUp : Item
+{
+	protected static string eleFieldStr = "elementType";
+	protected static string subEleFieldStr = "subElementType";
+	protected ElementType element;
+	protected NumVarStatMod damageMod;
+	protected string elementStr;
+	protected string calcFieldStr;
+	protected bool useSubElement;
+	protected override string ExtraInfo => PercentToStr(damageMod, "+");
+	public ElementalDamageUp(string givenID, ElementType givenElement, float givenIncrease = 0.12f)
+	{
+		ID = givenID;
+		category = Category.Offense;
+		element = givenElement;
+		elementStr = element.ToString();
+		damageMod = new NumVarStatMod(ID, givenIncrease, 10, VarStatModType.Multiplicative);
+	}
+	public override void Activate()
+	{
+		SetModStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetModStatus(givenStatus: false);
+	}
+	public virtual void SetModStatus(bool givenStatus)
+	{
+		calcFieldStr = ((!useSubElement) ? eleFieldStr : subEleFieldStr);
+		StatManager.ModifyAllStatData(damageMod, parentSkillCategory, "damage", AppliedCondition, givenStatus);
+	}
+	public virtual bool AppliedCondition(StatData givenStatData)
+	{
+		return !givenStatData.GetValue<bool>("isStatusEffect") && givenStatData.GetValue<string>(calcFieldStr) == elementStr;
+	}
+}
+=== ElementalResistanceUp
+public class ElementalResistanceUp : Item
+{
+	private ElementType element;
+	private NumVarStatMod resistMod;
+	protected override string ExtraInfo => PercentToStr(resistMod, "+");
+	public ElementalResistanceUp(string givenID, ElementType givenElement)
+	{
+		ID = givenID;
+		category = Category.Defense;
+		parentGroupID = ResistanceUpGroupItem.staticID;
+		element = givenElement;
+		resistMod = new NumVarStatMod(ID, -0.25f, 10, VarStatModType.Multiplicative);
+	}
+	public override void Activate()
+	{
+		SetModStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetModStatus(givenStatus: false);
+	}
+	private void SetModStatus(bool givenStatus)
+	{
+		if ((!givenStatus || !GroupItemCreated(ResistanceUpGroupItem.staticID)) && parentEntity != null && parentEntity.health != null)
+		{
+			parentEntity.health.elemModDict[element].Modify(resistMod, givenStatus);
+			parentEntity.health.statusResDict[element].Modify(resistMod, givenStatus);
+		}
+	}
+}
+=== ElementalStatusUp
+public class ElementalStatusUp : Item
+{
+	private string statStr;
+	private NumVarStatMod statusEffectUpMod;
+	protected override string ExtraInfo => PercentToStr(statusEffectUpMod, "+");
+	public ElementalStatusUp(string givenID, ElementType givenElement, float givenValue = 0.0625f)
+	{
+		ID = givenID;
+		category = Category.Offense;
+		statStr = ElementToStatusEffect(givenElement);
+		statusEffectUpMod = new NumVarStatMod(ID, givenValue);
+		parentGroupID = StatusChanceUpGroupItem.staticID;
+	}
+	private string ElementToStatusEffect(ElementType element)
+	{
+		return element switch
+		{
+			ElementType.Fire => StatData.burnChStr, 
+			ElementType.Air => StatData.slowChStr, 
+			ElementType.Earth => StatData.psnChStr, 
+			ElementType.Lightning => StatData.shockChStr, 
+			ElementType.Water => StatData.frzChStr, 
+			_ => string.Empty, 
+		};
+	}
+	public override void Activate()
+	{
+		SetModStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetModStatus(givenStatus: false);
+	}
+	private void SetModStatus(bool givenStatus)
+	{
+		if ((!givenStatus || !GroupItemCreated(StatusChanceUpGroupItem.staticID)) && SetParentAsPlayer())
+		{
+			StatManager.ModifyAllStatData(statusEffectUpMod, parentSkillCategory, statStr, IgnoreStatusConditional, givenStatus);
+		}
+	}
+}
+=== ElementalStatusImmune
+public class ElementalStatusImmune : Item
+{
+	private ElementType element;
+	private BoolVarStatMod statMod;
+	public ElementalStatusImmune(string givenID, ElementType givenElement)
+	{
+		ID = givenID;
+		category = Category.Defense;
+		parentGroupID = ImmuneGroupItem.staticID;
+		element = givenElement;
+		statMod = new BoolVarStatMod(givenID, newModValue: true, 5);
+	}
+	public override void Activate()
+	{
+		SetStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetStatus(givenStatus: false);
+	}
+	private void SetStatus(bool givenStatus)
+	{
+		if ((!givenStatus || !GroupItemCreated(ImmuneGroupItem.staticID)) && !(parentEntity == null))
+		{
+			switch (element)
+			{
+			case ElementType.Fire:
+				parentEntity.health.ignoreBurn.Modify(statMod, givenStatus);
+				break;
+			case ElementType.Air:
+				parentEntity.health.ignoreSlow.Modify(statMod, givenStatus);
+				break;
+			case ElementType.Earth:
+				parentEntity.health.ignorePoison.Modify(statMod, givenStatus);
+				break;
+			case ElementType.Lightning:
+				parentEntity.health.ignoreShock.Modify(statMod, givenStatus);
+				break;
+			case ElementType.Water:
+				parentEntity.health.ignoreFreeze.Modify(statMod, givenStatus);
+				break;
+			}
+		}
+	}
+}
+=== ElementalStatusLevelUp
+public class ElementalStatusLevelUp : Item
+{
+	private ElementType element;
+	private string statusLevelStr;
+	private NumVarStatMod statusLevelUpMod;
+	public ElementalStatusLevelUp(string givenID, ElementType givenElement, int givenLevelInc = 1)
+	{
+		ID = givenID;
+		category = Category.Offense;
+		element = givenElement;
+		statusLevelStr = ElementToStatusLevel(element);
+		statusLevelUpMod = new NumVarStatMod(ID, givenLevelInc);
+	}
+	private string ElementToStatusLevel(ElementType element)
+	{
+		return element switch
+		{
+			ElementType.Fire => "burnLevel", 
+			ElementType.Air => "slowLevel", 
+			ElementType.Earth => "poisonLevel", 
+			ElementType.Lightning => "shockLevel", 
+			_ => string.Empty, 
+		};
+	}
+	public override void Activate()
+	{
+		SetModStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetModStatus(givenStatus: false);
+	}
+	private void SetModStatus(bool givenStatus)
+	{
+		StatManager.ModifyAllStatData(statusLevelUpMod, parentSkillCategory, statusLevelStr, IgnoreStatusConditional, givenStatus);
+	}
+}
+=== ChargeFamiliarItem
+using UnityEngine;
+public class ChargeFamiliarItem : Item
+{
+	private ChargeFamiliar currentFamiliar;
+	private ElementType currentElement;
+	public ChargeFamiliarItem(string givenID, ElementType givenElement)
+	{
+		ID = givenID;
+		category = Category.Misc;
+		currentElement = givenElement;
+		parentGroupID = ChargeFamiliarGroupItem.staticID;
+	}
+	public override void Activate()
+	{
+		if (!GroupItemCreated(ChargeFamiliarGroupItem.staticID) && SetParentAsPlayer())
+		{
+			currentFamiliar = Globals.ChaosInst<ChargeFamiliar>(ChargeFamiliar.Prefab, null, parentPlayer.transform.position, Quaternion.identity);
+			currentFamiliar.gameObject.name = parentPlayer.gameObject.name + currentFamiliar.gameObject.name;
+			currentFamiliar.parentEntity = parentPlayer;
+			currentFamiliar.parentTransform = parentPlayer.hurtBoxTransform;
+			parentPlayer.playerSummonsList.Add(currentFamiliar.gameObject);
+			currentFamiliar.doNotTargetList = parentPlayer.playerSummonsList;
+			currentFamiliar.HandleElement(currentElement);
+		}
+	}
+	public override void Deactivate()
+	{
+		if (!(currentFamiliar == null) && SetParentAsPlayer())
+		{
+			parentPlayer.playerSummonsList.Remove(currentFamiliar.gameObject);
+			if (currentFamiliar.fsm != null && currentFamiliar.fsm.HasState("Dead"))
+			{
+				currentFamiliar.fsm.QueueChangeState("Dead");
+			}
+			else
+			{
+				Object.Destroy(currentFamiliar.gameObject);
+			}
+		}
+	}
+}
+=== EleArcanaUnlockCountItem
+public class EleArcanaUnlockCountItem : ArcanaCountItem
+{
+	public ElementType element;
+	public float baseChance;
+	public float incChance;
+	public NumVarStatMod chanceMod;
+	protected override string ExtraInfo => PercentToStr(chanceMod, "+");
+	public EleArcanaUnlockCountItem(string givenID, ElementType givenElement, float givenBase = 0.02f, float givenIncrease = 0.005f)
+	{
+		ID = givenID;
+		element = givenElement;
+		parentGroupID = ArcanaCountGroupItem.staticID;
+		baseChance = givenBase;
+		incChance = givenIncrease;
+		chanceMod = new NumVarStatMod(givenID, baseChance);
+	}
+	public override bool ArcanaConditional(Player.SkillState givenSkill)
+	{
+		return givenSkill != null && givenSkill.isUnlocked && givenSkill.element == element;
+	}
+	public override void ApplyMods(bool givenStatus, int givenCount)
+	{
+		if (givenStatus)
+		{
+			chanceMod.modValue = baseChance + incChance * (float)givenCount;
+		}
+	}
+}
+=== DotEventItem
+using System;
+public class DotEventItem : Item
+{
+	public bool activateOnApply;
+	public bool activateOnRemove;
+	public override void Activate()
+	{
+		SetEventHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetEventHandlers(givenStatus: false);
+	}
+	public virtual void SetEventHandlers(bool givenStatus)
+	{
+		if (!SetParentAsPlayer() || parentPlayer.dotManager == null)
+		{
+			return;
+		}
+		Player player = parentPlayer;
+		player.statusApplyEventHandlers = (Entity.StatusEffectEventHandler)Delegate.Remove(player.statusApplyEventHandlers, new Entity.StatusEffectEventHandler(OnDotApply));
+		Player player2 = parentPlayer;
+		player2.statusRemoveEventHandlers = (Entity.StatusEffectEventHandler)Delegate.Remove(player2.statusRemoveEventHandlers, new Entity.StatusEffectEventHandler(OnDotRemove));
+		if (givenStatus)
+		{
+			if (activateOnApply)
+			{
+				Player player3 = parentPlayer;
+				player3.statusApplyEventHandlers = (Entity.StatusEffectEventHandler)Delegate.Combine(player3.statusApplyEventHandlers, new Entity.StatusEffectEventHandler(OnDotApply));
+			}
+			if (activateOnRemove)
+			{
+				Player player4 = parentPlayer;
+				player4.statusRemoveEventHandlers = (Entity.StatusEffectEventHandler)Delegate.Combine(player4.statusRemoveEventHandlers, new Entity.StatusEffectEventHandler(OnDotRemove));
+			}
+		}
+	}
+	public virtual void OnDotApply(ElementType givenElement)
+	{
+	}
+	public virtual void OnDotRemove(ElementType givenElement)
+	{
+	}
+}
+=== OnCCItem
+using System;
+using System.Collections.Generic;
+public class OnCCItem : Item
+{
+	public delegate bool CheckForCCEvent();
+	public Entity currentHurtEntity;
+	public List<CheckForCCEvent> ccEventList = new List<CheckForCCEvent>();
+	public bool checkCleared;
+	public override void Activate()
+	{
+		SetEventHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetEventHandlers(givenStatus: false);
+	}
+	public virtual void SetEventHandlers(bool givenStatus)
+	{
+		ccEventList.Clear();
+		Health.globalTakeDamageEnterHandlers = (Health.GlobalOnTakeDamageHandler)Delegate.Remove(Health.globalTakeDamageEnterHandlers, new Health.GlobalOnTakeDamageHandler(OnGlobalTakeDamage));
+		if (givenStatus)
+		{
+			SetCCEventList();
+			Health.globalTakeDamageEnterHandlers = (Health.GlobalOnTakeDamageHandler)Delegate.Combine(Health.globalTakeDamageEnterHandlers, new Health.GlobalOnTakeDamageHandler(OnGlobalTakeDamage));
+		}
+	}
+	public virtual void OnGlobalTakeDamage(AttackInfo givenInfo, Entity atkEntity, Entity hurtEntity)
+	{
+		if (hurtEntity == null || hurtEntity.fsm == null || hurtEntity.dotManager == null || givenInfo.skillCategory != parentSkillCategory || givenInfo.isStatusEffect)
+		{
+			return;
+		}
+		currentHurtEntity = hurtEntity;
+		checkCleared = false;
+		for (int num = ccEventList.Count - 1; num >= 0; num--)
+		{
+			if (ccEventList[num] != null && ccEventList[num]())
+			{
+				checkCleared = true;
+				break;
+			}
+		}
+		if (checkCleared)
+		{
+			ApplyEffect(givenInfo, atkEntity, hurtEntity);
+		}
+	}
+	public virtual void SetCCEventList()
+	{
+	}
+	public virtual void ApplyEffect(AttackInfo givenInfo, Entity atkEntity, Entity hurtEntity)
+	{
+	}
+	public bool BurnCheck()
+	{
+		return currentHurtEntity.dotManager.HasDot(BurnDoTEffect.burnStatusStr);
+	}
+	public bool SlowCheck()
+	{
+		return currentHurtEntity.dotManager.HasDot(SlowDotEffect.slowStatusStr);
+	}
+	public bool PoisonCheck()
+	{
+		return currentHurtEntity.dotManager.HasDot(PoisonDotEffect.poisonStatusStr);
+	}
+	public bool ShockCheck()
+	{
+		return currentHurtEntity.dotManager.HasDot(ShockDotEffect.shockStatusStr);
+	}
+	public bool FrozenCheck()
+	{
+		return currentHurtEntity.fsm.currentStateName.Contains("Frozen");
+	}
+	public bool ChaosCheck()
+	{
+		return currentHurtEntity.dotManager.HasDot(ChaosDotEffect.chaosStatusStr);
+	}
+}
+=== BasicCancelItem
+using System;
+public class BasicCancelItem : Item
+{
+	protected bool cancelToBasic = true;
+	public override void Activate()
+	{
+		SetEventHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetEventHandlers(givenStatus: false);
+	}
+	private void SetEventHandlers(bool givenStatus)
+	{
+		if (!SetParentAsPlayer())
+		{
+			return;
+		}
+		if (cancelToBasic)
+		{
+			Player player = parentPlayer;
+			player.cancelToBasicEventHandlers = (Player.SkillCancelEventHandler)Delegate.Remove(player.cancelToBasicEventHandlers, new Player.SkillCancelEventHandler(OnCancelToBasic));
+			if (givenStatus)
+			{
+				Player player2 = parentPlayer;
+				player2.cancelToBasicEventHandlers = (Player.SkillCancelEventHandler)Delegate.Combine(player2.cancelToBasicEventHandlers, new Player.SkillCancelEventHandler(OnCancelToBasic));
+			}
+		}
+		else
+		{
+			Player player3 = parentPlayer;
+			player3.cancelFromBasicEventHandlers = (Player.SkillCancelEventHandler)Delegate.Remove(player3.cancelFromBasicEventHandlers, new Player.SkillCancelEventHandler(OnCancelFromBasic));
+			if (givenStatus)
+			{
+				Player player4 = parentPlayer;
+				player4.cancelFromBasicEventHandlers = (Player.SkillCancelEventHandler)Delegate.Combine(player4.cancelFromBasicEventHandlers, new Player.SkillCancelEventHandler(OnCancelFromBasic));
+			}
+		}
+	}
+	public virtual void OnCancelToBasic(Player.SkillState basicSkill, Player.SkillState givenSkill)
+	{
+	}
+	public virtual void OnCancelFromBasic(Player.SkillState givenSkill, Player.SkillState basicSkill)
+	{
+	}
+}
+=== PreventEnemySkills
+using System;
+public class PreventEnemySkills : Item
+{
+	private static BoolVarStat inEffect = new BoolVarStat(newBaseVal: false);
+	protected BoolVarStatMod preventSkillMod = new BoolVarStatMod("PreventSkillItem", newModValue: true);
+	protected Type[] preventTypes;
+	public override void Activate()
+	{
+		SetEventHandlers(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetEventHandlers(givenStatus: false);
+	}
+	private void SetEventHandlers(bool givenStatus)
+	{
+		SetModStatus(givenStatus);
+		GameController.levelLoadEventHandlers = (GameController.LevelLoadEventHandler)Delegate.Remove(GameController.levelLoadEventHandlers, new GameController.LevelLoadEventHandler(OnLevelLoad));
+		if (givenStatus)
+		{
+			GameController.levelLoadEventHandlers = (GameController.LevelLoadEventHandler)Delegate.Combine(GameController.levelLoadEventHandlers, new GameController.LevelLoadEventHandler(OnLevelLoad));
+		}
+	}
+	private void OnLevelLoad(string a, string b)
+	{
+		SetModStatus(givenStatus: true);
+	}
+	private void SetModStatus(bool givenStatus)
+	{
+		if (preventTypes == null)
+		{
+			return;
+		}
+		if (givenStatus)
+		{
+			if (!inEffect.CurrentValue)
+			{
+				inEffect.AddMod(preventSkillMod);
+				for (int i = 0; i < preventTypes.Length; i++)
+				{
+					Enemy.PreventSkills(preventTypes[i], preventSkillMod, givenStatus: true);
+				}
+			}
+		}
+		else
+		{
+			inEffect.RemoveMod(preventSkillMod);
+			for (int j = 0; j < preventTypes.Length; j++)
+			{
+				Enemy.PreventSkills(preventTypes[j], preventSkillMod, givenStatus: false);
+			}
+		}
+	}
+}
+=== ArcanaCountItem
+public class ArcanaCountItem : Item
+{
+	public int arcanaCount;
+	public override void Activate()
+	{
+		SetStatus(givenStatus: true);
+	}
+	public override void Deactivate()
+	{
+		SetStatus(givenStatus: false);
+	}
+	public virtual bool SetStatus(bool givenStatus)
+	{
+		if (givenStatus && GroupItemCreated(ArcanaCountGroupItem.staticID))
+		{
+			return false;
+		}
+		if (!SetParentAsPlayer())
+		{
+			return false;
+		}
+		SetParentSkillCategory();
+		if (givenStatus)
+		{
+			arcanaCount = 0;
+			Player.SkillState[] skillStates = parentPlayer.skillStates;
+			foreach (Player.SkillState givenSkill in skillStates)
+			{
+				if (ArcanaConditional(givenSkill))
+				{
+					arcanaCount++;
+				}
+			}
+		}
+		ApplyMods(givenStatus, arcanaCount);
+		return true;
+	}
+	public virtual bool ArcanaConditional(Player.SkillState givenSkill)
+	{
+		return true;
+	}
+	public virtual void ApplyMods(bool givenStatus, int givenCount)
+	{
+	}
+}

@@ -1,0 +1,1722 @@
+=== EarthDecorator
+public class EarthDecorator : Decorator
+{
+	public override void InitDecorations()
+	{
+		base.InitDecorations();
+		roomDecorations.Add(new DoveDecoration());
+		roomDecorations.Add(new BarrelHorDecoration());
+		roomDecorations.Add(new BarrelVertDecoration());
+		roomDecorations.Add(new PotHorDecoration());
+		roomDecorations.Add(new PotVertDecoration());
+		roomDecorations.Add(new BannerDecoration
+		{
+			spawnChance = 0.15f
+		});
+		roomDecorations.Add(new ShieldAndSwordsDecoration());
+		roomDecorations.Add(new TreeDecoration());
+		roomDecorations.Add(new PlanterDecoration());
+		roomDecorations.Add(new BenchHorDecoration());
+		roomDecorations.Add(new BenchVertLeftWallDecoration());
+		roomDecorations.Add(new BenchVertRightWallDecoration());
+		roomDecorations.Add(new PaintingDecoration());
+		globalDecorations0.Add(new OverlayVineDecoration());
+		globalDecorations0.Add(new WallPillarDecoration());
+		globalDecorations0.Add(new EarthWallArchDeco());
+		globalDecorations0.Add(new LeafShootDeco());
+		globalDecorations0.Add(new RoseBushDeco());
+		globalDecorations0.Add(new LeafyShrubDeco());
+		globalDecorations0.Add(new HallwayPitDecoration());
+		globalDecorations1.Add(new EarthWallVineDeco());
+		globalDecorations1.Add(new EarthArchwayDecoration());
+		globalDecorations1.Add(new LeftWallCornerGrassDecoration());
+		globalDecorations1.Add(new RightWallCornerGrassDecoration());
+		globalDecorations1.Add(new LeftWallCornerGradientDecoration());
+		globalDecorations1.Add(new RightWallCornerGradientDecoration());
+		globalDecorations1.Add(new TallGrassHorDecoration());
+		globalDecorations1.Add(new TallGrassVertDecoration());
+		globalDecorations1.Add(new Grass1x1Decoration());
+		globalDecorations1.Add(new DirtPath2x2Decoration());
+		globalDecorations1.Add(new DirtPath1x1Decoration());
+		globalDecorations1.Add(new EarthSproutDecoration());
+	}
+}
+=== EarthHallwayDecorator
+public class EarthHallwayDecorator : HallwayDecorator
+{
+	public override void InitDecorations()
+	{
+		roomDecorations.Add(new EarthHallwayFloorDecoration());
+		roomDecorations.Add(new PaintingDecoration
+		{
+			spawnChance = 0.03f
+		});
+		roomDecorations.Add(new BarrelHorDecoration());
+		roomDecorations.Add(new BarrelVertDecoration());
+		roomDecorations.Add(new PotHorDecoration());
+		roomDecorations.Add(new PotVertDecoration());
+		roomDecorations.Add(new BenchHorDecoration());
+		roomDecorations.Add(new BenchVertLeftWallDecoration());
+		roomDecorations.Add(new BenchVertRightWallDecoration());
+		roomDecorations.Add(new BannerDecoration
+		{
+			spawnChance = 0.02f
+		});
+		roomDecorations.Add(new ShieldAndSwordsDecoration());
+		roomDecorations.Add(new TallGrassVertDecoration
+		{
+			spawnChance = 0.4f
+		});
+		roomDecorations.Add(new TallGrassHorDecoration
+		{
+			spawnChance = 0.4f
+		});
+	}
+}
+=== EarthHallwayFloorDecoration
+public class EarthHallwayFloorDecoration : Decoration
+{
+	public EarthHallwayFloorDecoration()
+	{
+		dimensions = new GridDimensions(1, 1, 1, 1);
+		spawnChance = 0.15f;
+		placementTests.Add(TerrainTypeTest.Floor);
+		placementTests.Add(AdjTileTest.FloorSurround);
+		placementTests.Add(PathTypeTest.None);
+		placementTests.Add(new RoomStubTest(RoomType.Hallway));
+		placementTests.Add(new ConnectionTypeTest(Tile.ConnectionType.None));
+		placementTests.Add(new AdjTileTest((Tile t) => t.connection == Tile.ConnectionType.None, MapOrdinalDirections.Everything, new OrdinalMagnitude(1)));
+		autoTilers.Add(new AutoTiler(new int[5] { 259, 260, 261, 262, 263 }, null, null, markAsDoodad: true, markAsObstacle: false, null, "FloorDoodad", markAsEnemy: false, string.Empty, flipX: true, flipY: false, 0.5f));
+	}
+}
+=== EarthSproutDecoration
+public class EarthSproutDecoration : Decoration
+{
+	public EarthSproutDecoration()
+	{
+		spawnChance = 0.03f;
+		spawnPrefab = true;
+		minDupeDistance = 10f;
+		prefabRowOffset = 0;
+		prefab = EarthSprout.Prefab;
+		prefabWorldOffsetX = 1f;
+		prefabWorldOffsetY = 1f;
+		gridDecoGroups.Add("2x2", new HasDoodadGridDecorator(new bool[2, 2]
+		{
+			{ true, true },
+			{ true, true }
+		}, "FloorDoodad"));
+		placementTests.Add(TerrainTypeTest.Floor);
+		placementTests.Add(ObstacleTest.IsNotObstacleTest);
+		placementTests.Add(AdjTileTest.FloorSurround2);
+		placementTests.Add(AdjTileTest.NoObstacleSurround2);
+		placementTests.Add(HasEnemyTest.NoEnemyTest);
+		placementTests.Add(HasDoodadTest.NoFloorDoodadSetTest);
+		placementTests.Add(RoomStubTest.NotHallway);
+		placementTests.Add(RoomStubTest.NotStart);
+		placementTests.Add(new ConnectionTypeTest(Tile.ConnectionType.None));
+	}
+}
+=== EarthWallArchDeco
+public class EarthWallArchDeco : Decoration
+{
+	public EarthWallArchDeco()
+	{
+		dimensions = new GridDimensions(3, 3, 4, 4);
+		spawnPrefab = true;
+		spawnChance = 0.07f;
+		minDupeDistance = 6f;
+		prefab = ChaosBundle.Get("Assets/Prefabs/Environment/Earth/EarthWallArch.prefab");
+		prefabWorldOffsetX = 0f;
+		prefabWorldOffsetY = 0f;
+		gridDecoGroups.Add("EarthWallArch0", new HasDoodadGridDecorator(new bool[3, 4], string.Empty, new string[3, 4]
+		{
+			{ "WallDoodad3", "WallDoodad3", "WallDoodad3", "WallDoodad3" },
+			{ "WallDoodad3", "WallDoodad3", "WallDoodad3", "WallDoodad3" },
+			{ "WallDoodad3", "WallDoodad3", "WallDoodad3", "WallDoodad3" }
+		}, setAllHasDoodad: true));
+		placementTests.Add(new AdjTileTest(AdjTileTest.WallEast)
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+		placementTests.Add(new AdjTileTest(AdjTileTest.WallWest)
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+		placementTests.Add(TerrainTypeTest.Wall);
+		placementTests.Add(TerrainTypeTest.NotPit);
+		placementTests.Add(AdjTileTest.NoPitSurround2);
+		placementTests.Add(new AdjTileTest((Tile t) => t.overlay != Tile.OverlayType.None, MapOrdinalDirections.North, new OrdinalMagnitude(3))
+		{
+			conditionalRow = 0
+		});
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad3")
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad2")
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad")
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+	}
+}
+=== EarthWallArchwayDecoration
+public class EarthWallArchwayDecoration : Decoration
+{
+	public EarthWallArchwayDecoration()
+	{
+		spawnChance = 0.15f;
+		minDupeDistance = 12f;
+		string[,] tileLayerNames = new string[3, 3]
+		{
+			{ "WallDoodad", "WallDoodad", "WallDoodad" },
+			{ "WallDoodad", "WallDoodad", "WallDoodad" },
+			{ "WallDoodad", "WallDoodad", "WallDoodad" }
+		};
+		TileSetIDGridDecoTemplate tileSetIDGridDecoTemplate = new TileSetIDGridDecoTemplate(null, null, tileLayerNames);
+		gridDecoGroups.Add("WallArchway0", tileSetIDGridDecoTemplate.Factory(new int[3, 3]
+		{
+			{ 212, 213, 214 },
+			{ 244, 245, 246 },
+			{ 276, 277, 278 }
+		}));
+		gridDecoGroups.Add("WallArchway1", tileSetIDGridDecoTemplate.Factory(new int[3, 3]
+		{
+			{ 215, 216, 217 },
+			{ 247, 248, 249 },
+			{ 279, 280, 281 }
+		}));
+		placementTests.Add(TerrainTypeTest.Wall);
+		placementTests.Add(new AdjTileTest((Tile t) => t.terrain != Tile.TerrainType.Pit, MapOrdinalDirections.Everything, new OrdinalMagnitude(2)));
+		placementTests.Add(HasDoodadTest.NoWallDoodadSetTest);
+		placementTests.Add(HasDoodadTest.NoWallDoodad2SetTest);
+		placementTests.Add(HasDoodadTest.NoWallDoodad3SetTest);
+		placementTests.Add(HasDoodadTest.NoWallDoodad4SetTest);
+	}
+}
+=== EarthWallVineDeco
+public class EarthWallVineDeco : Decoration
+{
+	public EarthWallVineDeco()
+	{
+		prefab = ChaosBundle.Get("Assets/Prefabs/Environment/Earth/EarthWallVine.prefab");
+		spawnChance = 0.12f;
+		spawnPrefab = true;
+		prefabWorldOffsetX = -0.5f;
+		prefabWorldOffsetY = 0f;
+		minDupeDistance = 2f;
+		gridDecoGroups.Add("EarthWallVine0", new HasDoodadGridDecorator(new bool[3, 1]
+		{
+			{ true },
+			{ true },
+			{ true }
+		}, tileLayerNames: new string[3, 1]
+		{
+			{ "WallDoodad3" },
+			{ "WallDoodad3" },
+			{ "FloorDoodad" }
+		}, tileLayerName: string.Empty));
+		placementTests.Add(new TerrainTypeTest(Tile.TerrainType.Floor)
+		{
+			conditionalRow = 2
+		});
+		placementTests.Add(new TerrainTypeTest(Tile.TerrainType.Wall)
+		{
+			conditionalRows = new int[2] { 0, 1 }
+		});
+		placementTests.Add(TerrainTypeTest.NotPit);
+		placementTests.Add(AdjTileTest.NoPitSurround2);
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad3")
+		{
+			conditionalRows = new int[2] { 0, 1 }
+		});
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "FloorDoodad")
+		{
+			conditionalRow = 2
+		});
+	}
+}
+=== EarthWindowDeco
+public class EarthWindowDeco : Decoration
+{
+	public EarthWindowDeco()
+	{
+		prefab = ChaosBundle.Get("Assets/Prefabs/Environment/Earth/EarthWindow.prefab");
+		spawnChance = 0.12f;
+		spawnPrefab = true;
+		prefabWorldOffsetX = 0f;
+		prefabWorldOffsetY = 0f;
+		minDupeDistance = 8f;
+		gridDecoGroups.Add("EarthWindow", new HasDoodadGridDecorator(new bool[3, 3]
+		{
+			{ true, true, true },
+			{ true, true, true },
+			{ true, true, true }
+		}, tileLayerNames: new string[3, 3]
+		{
+			{ "WallDoodad3", "WallDoodad3", "WallDoodad3" },
+			{ "WallDoodad3", "WallDoodad3", "WallDoodad3" },
+			{ "WallDoodad3", "WallDoodad3", "WallDoodad3" }
+		}, tileLayerName: string.Empty));
+		placementTests.Add(new TerrainTypeTest(Tile.TerrainType.Wall));
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad3"));
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad2"));
+		placementTests.Add(new HasDoodadTest(hasDoodad: false, null, "WallDoodad"));
+		placementTests.Add(new AdjTileTest(AdjTileTest.WallEast)
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+		placementTests.Add(new AdjTileTest(AdjTileTest.WallWest)
+		{
+			conditionalRows = new int[3] { 0, 1, 2 }
+		});
+		placementTests.Add(TerrainTypeTest.NotPit);
+		placementTests.Add(AdjTileTest.NoPitSurround2);
+		placementTests.Add(AdjTileTest.NoObstacleSouth3);
+		placementTests.Add(new AdjTileTest((Tile t) => t.overlay != Tile.OverlayType.None, MapOrdinalDirections.North, new OrdinalMagnitude(4))
+		{
+			conditionalRow = 0
+		});
+	}
+}
+=== EastWestSpikeLineDecoration
+public class EastWestSpikeLineDecoration : SpikeDecorationBase
+{
+	public EastWestSpikeLineDecoration()
+	{
+		dimensions = new GridDimensions(2, 8, 4, 40);
+		placementTests.Add(TileGridGroupTest.EastWestWall);
+		placementTests.Add(TileGridGroupTest.NorthSouthFloor);
+	}
+}
+=== EnemyAddsDecoration
+public class EnemyAddsDecoration : EnemyDecoration
+{
+	private static EnemyAddsDecoration adds1x1;
+
+	private static EnemyAddsDecoration adds4x4;
+
+	public static EnemyAddsDecoration Adds1x1 => adds1x1 ?? (adds1x1 = new EnemyAddsDecoration(1, 1, 1, 1));
+
+	public static EnemyAddsDecoration Adds4x4 => adds4x4 ?? (adds4x4 = new EnemyAddsDecoration(4, 4, 4, 4));
+
+	private EnemyAddsDecoration(int minRows, int maxRows, int minCols, int maxCols)
+		: base(minRows, maxRows, minCols, maxCols)
+	{
+		placementTests.Add(AdjTileTest.FloorPitSurround1);
+	}
+}
+=== EnemyCoreDecoration
+public class EnemyCoreDecoration : EnemyDecoration
+{
+	private static EnemyCoreDecoration core4x4;
+
+	private static EnemyCoreDecoration core6x6;
+
+	private static EnemyCoreDecoration core8x8;
+
+	public static EnemyCoreDecoration Core4x4 => core4x4 ?? (core4x4 = new EnemyCoreDecoration(4, 4, 4, 4));
+
+	public static EnemyCoreDecoration Core6x6 => core6x6 ?? (core6x6 = new EnemyCoreDecoration(6, 6, 6, 6));
+
+	public static EnemyCoreDecoration Core8x8 => core8x8 ?? (core8x8 = new EnemyCoreDecoration(8, 8, 8, 8));
+
+	private EnemyCoreDecoration(int minRows, int maxRows, int minCols, int maxCols)
+		: base(minRows, maxRows, minCols, maxCols)
+	{
+		placementTests.Add(AdjTileTest.FloorPitSurround1);
+	}
+}
+=== EnemyDecorator
+using System.Collections.Generic;
+using System.Linq;
+using Chaos.ListExtensions;
+using UnityEngine;
+
+public class EnemyDecorator : Decorator
+{
+	public class EnemyGroup
+	{
+		public const int maxCenterEnemies = 4;
+
+		private List<Enemy.EName> enemyList;
+
+		public bool allowAdds;
+
+		public int addsCount;
+
+		public bool isSurvivalRoom;
+
+		public int centerCount;
+
+		public List<Enemy.EName> EnemyList => enemyList;
+
+		public int GroupCount => enemyList.Count;
+
+		public float GroupValue
+		{
+			get
+			{
+				float num = 0f;
+				for (int i = 0; i < enemyList.Count; i++)
+				{
+					num += enemyValuesDict[enemyList[i]];
+				}
+				return num;
+			}
+		}
+
+		public EnemyGroup(int centerEnemies = 0, bool addsAllowed = true, bool survivalRoom = false)
+		{
+			enemyList = new List<Enemy.EName>();
+			centerCount = centerEnemies;
+			allowAdds = addsAllowed;
+			isSurvivalRoom = survivalRoom;
+		}
+
+		public EnemyGroup(Enemy.EName givenEnemy, int centerEnemies = 0, bool addsAllowed = true, bool survivalRoom = false)
+		{
+			enemyList = new List<Enemy.EName>();
+			enemyList.Add(givenEnemy);
+			centerCount = centerEnemies;
+			allowAdds = addsAllowed;
+			isSurvivalRoom = survivalRoom;
+		}
+
+		public EnemyGroup(List<Enemy.EName> givenList, int centerEnemies = 0, bool addsAllowed = true, bool survivalRoom = false)
+		{
+			enemyList = givenList ?? new List<Enemy.EName>();
+			centerCount = centerEnemies;
+			allowAdds = addsAllowed;
+			isSurvivalRoom = survivalRoom;
+		}
+
+		public EnemyGroup(EnemyGroup givenGroup)
+		{
+			enemyList = givenGroup.EnemyList.ToList();
+			centerCount = givenGroup.centerCount;
+			allowAdds = givenGroup.allowAdds;
+			isSurvivalRoom = givenGroup.isSurvivalRoom;
+		}
+
+		public EnemyGroup Add(Enemy.EName givenEnemy, bool isAdd = false)
+		{
+			enemyList.Add(givenEnemy);
+			if (isAdd)
+			{
+				addsCount++;
+			}
+			return this;
+		}
+
+		public EnemyGroup Add(List<Enemy.EName> givenList, bool isAdd = false)
+		{
+			if (givenList == null)
+			{
+				return this;
+			}
+			enemyList.AddRange(givenList);
+			if (isAdd)
+			{
+				addsCount += givenList.Count;
+			}
+			return this;
+		}
+
+		public EnemyGroup Remove(Enemy.EName givenEnemy)
+		{
+			enemyList.Remove(givenEnemy);
+			return this;
+		}
+
+		public EnemyGroup Remove(List<Enemy.EName> givenList)
+		{
+			if (givenList == null)
+			{
+				return this;
+			}
+			for (int i = 0; i < givenList.Count; i++)
+			{
+				enemyList.Remove(givenList[i]);
+			}
+			return this;
+		}
+
+		public bool Contains(Enemy.EName givenEnemy)
+		{
+			return enemyList.Contains(givenEnemy);
+		}
+
+		public bool IsAllowed(List<Enemy.EName> givenList)
+		{
+			if (givenList != null)
+			{
+				for (int i = 0; i < enemyList.Count; i++)
+				{
+					if (!givenList.Contains(enemyList[i]))
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	}
+
+	public static bool useRandomElementalEnemies;
+
+	private static Dictionary<Enemy.EName, float> enemyValuesDict;
+
+	protected Dictionary<EnemyDecoration, List<EnemyGroup>> enemyAddsGroupDict;
+
+	protected Dictionary<EnemyDecoration, List<EnemyGroup>> enemyCoreGroupDict;
+
+	protected Dictionary<EnemyDecoration, List<EnemyGroup>> enemySurvGroupDict;
+
+	protected Dictionary<Enemy.EName, List<Enemy.EName>> eeDict;
+
+	private const int maxAttempts = 4;
+
+	private const float maxSingleAddValue = 5f;
+
+	private const float survivalRoomChance = 0.35f;
+
+	private const float survivalRoomChestChance = 0.25f;
+
+	private const float roomSizeValueRatio = 0.08f;
+
+	private const float coopSizeValueRatio = 0.125f;
+
+	private float calcSizeValueRatio = 0.08f;
+
+	private const int decoratorRulePadding = 2;
+
+	private const float enemyValueMultiplier = 1f;
+
+	private const float elementalReplacementChance = 0.55f;
+
+	private Vector2 spawnOffset = new Vector2(0.5f, -0.5f);
+
+	private IntVec2 roomPadding = new IntVec2(4, 2);
+
+	protected bool initialize;
+
+	protected List<EnemyDecoration> availableDecorationsList;
+
+	protected List<IntVec2> validPositions;
+
+	protected List<Vector2> currentEnemyPositions;
+
+	protected float roomEnemyValue;
+
+	protected float currentEnemyValue;
+
+	private WeightedRandomizer wRandomizer;
+
+	private int AddCountRange => (!GameController.coopOn) ? Random.Range(0, 3) : Random.Range(1, 5);
+
+	public EnemyDecorator()
+	{
+		enemyValuesDict = new Dictionary<Enemy.EName, float>();
+		enemyAddsGroupDict = new Dictionary<EnemyDecoration, List<EnemyGroup>>();
+		enemyCoreGroupDict = new Dictionary<EnemyDecoration, List<EnemyGroup>>();
+		enemySurvGroupDict = new Dictionary<EnemyDecoration, List<EnemyGroup>>();
+		availableDecorationsList = new List<EnemyDecoration>();
+		validPositions = new List<IntVec2>();
+		currentEnemyPositions = new List<Vector2>();
+		wRandomizer = new WeightedRandomizer();
+		initialize = true;
+	}
+
+	public override void InitDecorations()
+	{
+	}
+
+	public virtual void InitializeDecorator()
+	{
+		InitEnemyValuesDict();
+		InitEnemyGroupDict();
+		CleanAllEnemyGroupDicts();
+		initialize = false;
+	}
+
+	public virtual void InitEnemyValuesDict()
+	{
+		calcSizeValueRatio = ((!GameController.coopOn) ? 0.08f : 0.125f);
+		enemyValuesDict.Clear();
+		enemyValuesDict[Enemy.EName.Blob] = 0.5f;
+		enemyValuesDict[Enemy.EName.BlobSpitter] = 0.75f;
+		enemyValuesDict[Enemy.EName.BlobRoller] = 0.75f;
+		enemyValuesDict[Enemy.EName.Ghoul] = 1f;
+		enemyValuesDict[Enemy.EName.GhoulLarge] = 4f;
+		enemyValuesDict[Enemy.EName.EnemyTurret] = 2f;
+		enemyValuesDict[Enemy.EName.OrbChargeFamiliar] = 2f;
+		enemyValuesDict[Enemy.EName.OrbRevolveFamiliar] = 2f;
+		enemyValuesDict[Enemy.EName.OrbShootFamiliar] = 2f;
+		enemyValuesDict[Enemy.EName.Coffin] = 4f;
+		enemyValuesDict[Enemy.EName.MovingStatue] = 4f;
+		enemyValuesDict[Enemy.EName.Archer] = 3f;
+		enemyValuesDict[Enemy.EName.Knight] = 2f;
+		enemyValuesDict[Enemy.EName.SkeletonMage] = 3f;
+		enemyValuesDict[Enemy.EName.Rogue] = 4f;
+		enemyValuesDict[Enemy.EName.Lancer] = 2.5f;
+		enemyValuesDict[Enemy.EName.Summoner] = 4f;
+		enemyValuesDict[Enemy.EName.FrostKnight] = 4f;
+		enemyValuesDict[Enemy.EName.FrostMage] = 4f;
+		enemyValuesDict[Enemy.EName.FrostRogue] = 4f;
+		enemyValuesDict[Enemy.EName.FrostArcher] = 4f;
+		enemyValuesDict[Enemy.EName.FrostLancer] = 4f;
+		enemyValuesDict[Enemy.EName.FrostSummoner] = 4f;
+		enemyValuesDict[Enemy.EName.EarthKnight] = 4f;
+		enemyValuesDict[Enemy.EName.EarthMage] = 4f;
+		enemyValuesDict[Enemy.EName.EarthRogue] = 4f;
+		enemyValuesDict[Enemy.EName.EarthArcher] = 4f;
+		enemyValuesDict[Enemy.EName.EarthLancer] = 4f;
+		enemyValuesDict[Enemy.EName.EarthSummoner] = 4f;
+		enemyValuesDict[Enemy.EName.FlameKnight] = 4f;
+		enemyValuesDict[Enemy.EName.FlameMage] = 4f;
+		enemyValuesDict[Enemy.EName.FlameRogue] = 4f;
+		enemyValuesDict[Enemy.EName.FlameArcher] = 4f;
+		enemyValuesDict[Enemy.EName.FlameLancer] = 4f;
+		enemyValuesDict[Enemy.EName.FlameSummoner] = 4f;
+		enemyValuesDict[Enemy.EName.WindKnight] = 4f;
+		enemyValuesDict[Enemy.EName.WindMage] = 4f;
+		enemyValuesDict[Enemy.EName.WindRogue] = 4f;
+		enemyValuesDict[Enemy.EName.WindArcher] = 4f;
+		enemyValuesDict[Enemy.EName.WindLancer] = 4f;
+		enemyValuesDict[Enemy.EName.WindSummoner] = 4f;
+		enemyValuesDict[Enemy.EName.ThunderKnight] = 4f;
+		enemyValuesDict[Enemy.EName.ThunderMage] = 4f;
+		enemyValuesDict[Enemy.EName.ThunderRogue] = 4f;
+		enemyValuesDict[Enemy.EName.ThunderArcher] = 4f;
+		enemyValuesDict[Enemy.EName.ThunderLancer] = 4f;
+		enemyValuesDict[Enemy.EName.ThunderSummoner] = 4f;
+		enemyValuesDict[Enemy.EName.FrostZoneEnemy] = 1f;
+		enemyValuesDict[Enemy.EName.EarthZoneEnemy] = 1f;
+		enemyValuesDict[Enemy.EName.FlameZoneEnemy] = 1f;
+		enemyValuesDict[Enemy.EName.WindZoneEnemy] = 1f;
+		enemyValuesDict[Enemy.EName.ThunderZoneEnemy] = 1f;
+	}
+
+	public virtual void InitEnemyGroupDict()
+	{
+		enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1] = new List<EnemyGroup>
+		{
+			new EnemyGroup(Enemy.EName.Blob),
+			new EnemyGroup(Enemy.EName.Ghoul),
+			new EnemyGroup(Enemy.EName.Knight),
+			new EnemyGroup(Enemy.EName.Lancer),
+			new EnemyGroup(Enemy.EName.Rogue),
+			new EnemyGroup(Enemy.EName.Archer),
+			new EnemyGroup(Enemy.EName.SkeletonMage),
+			new EnemyGroup(Enemy.EName.Summoner)
+		};
+		enemyCoreGroupDict[EnemyCoreDecoration.Core4x4] = new List<EnemyGroup>();
+		enemyCoreGroupDict[EnemyCoreDecoration.Core6x6] = new List<EnemyGroup>();
+		enemyCoreGroupDict[EnemyCoreDecoration.Core8x8] = new List<EnemyGroup>();
+		enemySurvGroupDict[EnemySurvivalDecoration.Surv4x4] = new List<EnemyGroup>();
+		enemySurvGroupDict[EnemySurvivalDecoration.Surv6x6] = new List<EnemyGroup>();
+		enemySurvGroupDict[EnemySurvivalDecoration.Surv8x8] = new List<EnemyGroup>();
+		enemyCoreGroupDict[EnemyCoreDecoration.Core4x4].AddRange(new List<EnemyGroup>
+		{
+			new EnemyGroup(1).Add(Enemy.EName.GhoulLarge),
+			new EnemyGroup(1).Add(Enemy.EName.Coffin),
+			new EnemyGroup(1).Add(Enemy.EName.MovingStatue),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Rogue
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Lancer,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Knight,
+				Enemy.EName.Rogue
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Archer
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Lancer
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Rogue,
+				Enemy.EName.Rogue
+			}),
+			new EnemyGroup(4).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			})
+		});
+		enemyCoreGroupDict[EnemyCoreDecoration.Core6x6].AddRange(new List<EnemyGroup>
+		{
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Summoner,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Lancer,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Rogue,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(1).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Coffin,
+				Enemy.EName.Coffin
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Lancer,
+				Enemy.EName.Lancer
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Coffin,
+				Enemy.EName.Lancer
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Rogue,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(2).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Coffin,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.MovingStatue,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.EnemyTurret
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.EnemyTurret
+			})
+		});
+		enemyCoreGroupDict[EnemyCoreDecoration.Core8x8].AddRange(new List<EnemyGroup>
+		{
+			new EnemyGroup(1, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.MovingStatue,
+				Enemy.EName.Summoner,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(1, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.MovingStatue,
+				Enemy.EName.Lancer,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(2, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(2, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Archer,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(2, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Summoner,
+				Enemy.EName.Summoner
+			}),
+			new EnemyGroup(2, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(3, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Summoner,
+				Enemy.EName.Coffin,
+				Enemy.EName.Coffin
+			}),
+			new EnemyGroup(3, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Lancer,
+				Enemy.EName.Coffin,
+				Enemy.EName.Coffin
+			}),
+			new EnemyGroup(4, addsAllowed: false).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Knight,
+				Enemy.EName.Rogue
+			})
+		});
+		enemySurvGroupDict[EnemySurvivalDecoration.Surv4x4].AddRange(new List<EnemyGroup>
+		{
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Knight,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Lancer,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Rogue,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(4, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob
+			}),
+			new EnemyGroup(4, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(2, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(2, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Lancer,
+				Enemy.EName.Lancer
+			}),
+			new EnemyGroup(2, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage
+			}),
+			new EnemyGroup(2, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Archer,
+				Enemy.EName.Archer
+			}),
+			new EnemyGroup(2, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Rogue,
+				Enemy.EName.Rogue
+			}),
+			new EnemyGroup(3, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Summoner,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			}),
+			new EnemyGroup(3, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			})
+		});
+		enemySurvGroupDict[EnemySurvivalDecoration.Surv6x6].AddRange(new List<EnemyGroup>
+		{
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Archer
+			}),
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Rogue,
+				Enemy.EName.Rogue
+			}),
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Rogue,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Lancer
+			}),
+			new EnemyGroup(4, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.GhoulLarge
+			}),
+			new EnemyGroup(2, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Summoner,
+				Enemy.EName.Summoner
+			}),
+			new EnemyGroup(2, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Archer,
+				Enemy.EName.Archer
+			}),
+			new EnemyGroup(4, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Archer
+			}),
+			new EnemyGroup(3, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Summoner,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Summoner,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight
+			}),
+			new EnemyGroup(5, addsAllowed: true, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Coffin,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			})
+		});
+		enemySurvGroupDict[EnemySurvivalDecoration.Surv8x8].AddRange(new List<EnemyGroup>
+		{
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Rogue,
+				Enemy.EName.Rogue,
+				Enemy.EName.Archer
+			}),
+			new EnemyGroup(2, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.EnemyTurret,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.SkeletonMage,
+				Enemy.EName.Summoner,
+				Enemy.EName.Summoner
+			}),
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Knight,
+				Enemy.EName.Lancer,
+				Enemy.EName.Lancer
+			}),
+			new EnemyGroup(3, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Knight,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.Coffin,
+				Enemy.EName.Coffin,
+				Enemy.EName.MovingStatue,
+				Enemy.EName.GhoulLarge,
+				Enemy.EName.GhoulLarge
+			}),
+			new EnemyGroup(4, addsAllowed: false, survivalRoom: true).Add(new List<Enemy.EName>
+			{
+				Enemy.EName.Blob,
+				Enemy.EName.Blob,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Coffin,
+				Enemy.EName.Coffin,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Lancer,
+				Enemy.EName.Lancer,
+				Enemy.EName.Ghoul,
+				Enemy.EName.Ghoul
+			})
+		});
+		LoadElementalEnemies();
+	}
+
+	public void UpdateEnemyDictWithElements(Dictionary<EnemyDecoration, List<EnemyGroup>> givenGroupDict)
+	{
+		int num = 0;
+		int num2 = 0;
+		foreach (List<EnemyGroup> value in givenGroupDict.Values)
+		{
+			foreach (EnemyGroup item in value)
+			{
+				List<Enemy.EName> enemyList = item.EnemyList;
+				num = enemyList.Count;
+				num2 = 0;
+				for (num2 = 0; num2 < num; num2++)
+				{
+					if (eeDict.ContainsKey(enemyList[num2]) && (useRandomElementalEnemies || Random.value < 0.55f))
+					{
+						enemyList[num2] = GetRandomFromEEDict(enemyList[num2]);
+					}
+				}
+			}
+		}
+	}
+
+	private Enemy.EName GetRandomFromEEDict(Enemy.EName key)
+	{
+		if (!eeDict.ContainsKey(key))
+		{
+			return Enemy.EName.Ghoul;
+		}
+		return eeDict[key][Random.Range(0, eeDict[key].Count)];
+	}
+
+	public void LoadElementalEnemies()
+	{
+		eeDict = new Dictionary<Enemy.EName, List<Enemy.EName>>();
+		switch (Level.element)
+		{
+		case ElementType.Water:
+			eeDict[Enemy.EName.Knight] = new List<Enemy.EName> { Enemy.EName.FrostKnight };
+			eeDict[Enemy.EName.SkeletonMage] = new List<Enemy.EName> { Enemy.EName.FrostMage };
+			eeDict[Enemy.EName.Rogue] = new List<Enemy.EName> { Enemy.EName.FrostRogue };
+			eeDict[Enemy.EName.Archer] = new List<Enemy.EName> { Enemy.EName.FrostArcher };
+			eeDict[Enemy.EName.Lancer] = new List<Enemy.EName> { Enemy.EName.FrostLancer };
+			eeDict[Enemy.EName.Summoner] = new List<Enemy.EName> { Enemy.EName.FrostSummoner };
+			enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1].Add(new EnemyGroup(Enemy.EName.FrostZoneEnemy));
+			break;
+		case ElementType.Earth:
+			eeDict[Enemy.EName.Knight] = new List<Enemy.EName> { Enemy.EName.EarthKnight };
+			eeDict[Enemy.EName.SkeletonMage] = new List<Enemy.EName> { Enemy.EName.EarthMage };
+			eeDict[Enemy.EName.Rogue] = new List<Enemy.EName> { Enemy.EName.EarthRogue };
+			eeDict[Enemy.EName.Archer] = new List<Enemy.EName> { Enemy.EName.EarthArcher };
+			eeDict[Enemy.EName.Lancer] = new List<Enemy.EName> { Enemy.EName.EarthLancer };
+			eeDict[Enemy.EName.Summoner] = new List<Enemy.EName> { Enemy.EName.EarthSummoner };
+			enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1].Add(new EnemyGroup(Enemy.EName.EarthZoneEnemy));
+			break;
+		case ElementType.Fire:
+			eeDict[Enemy.EName.Knight] = new List<Enemy.EName> { Enemy.EName.FlameKnight };
+			eeDict[Enemy.EName.SkeletonMage] = new List<Enemy.EName> { Enemy.EName.FlameMage };
+			eeDict[Enemy.EName.Rogue] = new List<Enemy.EName> { Enemy.EName.FlameRogue };
+			eeDict[Enemy.EName.Archer] = new List<Enemy.EName> { Enemy.EName.FlameArcher };
+			eeDict[Enemy.EName.Lancer] = new List<Enemy.EName> { Enemy.EName.FlameLancer };
+			eeDict[Enemy.EName.Summoner] = new List<Enemy.EName> { Enemy.EName.FlameSummoner };
+			enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1].Add(new EnemyGroup(Enemy.EName.FlameZoneEnemy));
+			break;
+		case ElementType.Air:
+			eeDict[Enemy.EName.Knight] = new List<Enemy.EName> { Enemy.EName.WindKnight };
+			eeDict[Enemy.EName.SkeletonMage] = new List<Enemy.EName> { Enemy.EName.WindMage };
+			eeDict[Enemy.EName.Rogue] = new List<Enemy.EName> { Enemy.EName.WindRogue };
+			eeDict[Enemy.EName.Archer] = new List<Enemy.EName> { Enemy.EName.WindArcher };
+			eeDict[Enemy.EName.Lancer] = new List<Enemy.EName> { Enemy.EName.WindLancer };
+			eeDict[Enemy.EName.Summoner] = new List<Enemy.EName> { Enemy.EName.WindSummoner };
+			enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1].Add(new EnemyGroup(Enemy.EName.WindZoneEnemy));
+			break;
+		case ElementType.Lightning:
+			eeDict[Enemy.EName.Knight] = new List<Enemy.EName> { Enemy.EName.ThunderKnight };
+			eeDict[Enemy.EName.SkeletonMage] = new List<Enemy.EName> { Enemy.EName.ThunderMage };
+			eeDict[Enemy.EName.Rogue] = new List<Enemy.EName> { Enemy.EName.ThunderRogue };
+			eeDict[Enemy.EName.Archer] = new List<Enemy.EName> { Enemy.EName.ThunderArcher };
+			eeDict[Enemy.EName.Lancer] = new List<Enemy.EName> { Enemy.EName.ThunderLancer };
+			eeDict[Enemy.EName.Summoner] = new List<Enemy.EName> { Enemy.EName.ThunderSummoner };
+			enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1].Add(new EnemyGroup(Enemy.EName.ThunderZoneEnemy));
+			break;
+		}
+		eeDict[Enemy.EName.Blob] = new List<Enemy.EName>
+		{
+			Enemy.EName.BlobSpitter,
+			Enemy.EName.BlobRoller,
+			Enemy.EName.FrostZoneEnemy,
+			Enemy.EName.EarthZoneEnemy,
+			Enemy.EName.FlameZoneEnemy,
+			Enemy.EName.WindZoneEnemy,
+			Enemy.EName.ThunderZoneEnemy
+		};
+		eeDict[Enemy.EName.EnemyTurret] = new List<Enemy.EName>
+		{
+			Enemy.EName.FrostZoneEnemy,
+			Enemy.EName.EarthZoneEnemy,
+			Enemy.EName.FlameZoneEnemy,
+			Enemy.EName.WindZoneEnemy,
+			Enemy.EName.ThunderZoneEnemy
+		};
+		UpdateEnemyDictWithElements(enemyCoreGroupDict);
+		UpdateEnemyDictWithElements(enemySurvGroupDict);
+		foreach (List<Enemy.EName> value in eeDict.Values)
+		{
+			foreach (Enemy.EName item in value)
+			{
+				enemyAddsGroupDict[EnemyAddsDecoration.Adds1x1].Add(new EnemyGroup(item));
+			}
+		}
+	}
+
+	public virtual void CleanAllEnemyGroupDicts()
+	{
+		List<Enemy.EName> list = enemyValuesDict.Keys.ToList();
+		for (int num = list.Count - 1; num >= 0; num--)
+		{
+			Enemy component = Enemy.EnemyPrefabObjects[list[num].ToString()].GetComponent<Enemy>();
+			if (component.element != Level.element && component.element != ElementType.Neutral)
+			{
+				list.RemoveAt(num);
+			}
+		}
+		CleanEnemyGroupDict(list, enemyAddsGroupDict);
+		CleanEnemyGroupDict(list, enemyCoreGroupDict);
+		CleanEnemyGroupDict(list, enemySurvGroupDict);
+	}
+
+	public virtual void CleanEnemyGroupDict(List<Enemy.EName> allowedList, Dictionary<EnemyDecoration, List<EnemyGroup>> givenDict)
+	{
+		List<Tuple<EnemyDecoration, EnemyGroup>> list = new List<Tuple<EnemyDecoration, EnemyGroup>>();
+		foreach (KeyValuePair<EnemyDecoration, List<EnemyGroup>> item in givenDict)
+		{
+			int count = item.Value.Count;
+			for (int i = 0; i < count; i++)
+			{
+				if (!item.Value[i].IsAllowed(allowedList))
+				{
+					list.Add(new Tuple<EnemyDecoration, EnemyGroup>(item.Key, item.Value[i]));
+				}
+			}
+		}
+		int count2 = list.Count;
+		for (int j = 0; j < count2; j++)
+		{
+			givenDict[list[j].First].Remove(list[j].Second);
+		}
+		list.Clear();
+	}
+
+	public virtual bool PopulateAvailableDecoList(Dictionary<EnemyDecoration, List<EnemyGroup>> givenDict, TileGrid givenTileGrid, bool isAdd = false)
+	{
+		availableDecorationsList.Clear();
+		List<EnemyDecoration> list = givenDict.Keys.ToList();
+		int count = list.Count;
+		for (int i = 0; i < count; i++)
+		{
+			if (givenDict[list[i]].Count != 0 && DecoIsAvailable(list[i], givenTileGrid))
+			{
+				availableDecorationsList.Add(list[i]);
+			}
+		}
+		if (availableDecorationsList.Count == 0)
+		{
+			return false;
+		}
+		wRandomizer.Clear();
+		if (!isAdd)
+		{
+			for (int j = 0; j < availableDecorationsList.Count; j++)
+			{
+				EnemyDecoration enemyDecoration = availableDecorationsList[j];
+				wRandomizer.Add(new WeightedItem<EnemyDecoration>(enemyDecoration, givenDict[enemyDecoration].Count, string.Empty));
+			}
+		}
+		else
+		{
+			foreach (EnemyGroup item in givenDict[availableDecorationsList[0]])
+			{
+				wRandomizer.Add(new WeightedItem<EnemyGroup>(item, (int)Mathf.Abs(5f - item.GroupValue), string.Empty));
+			}
+		}
+		return true;
+	}
+
+	public virtual bool DecoIsAvailable(EnemyDecoration givenDeco, TileGrid givenTileGrid)
+	{
+		int rowCount = givenTileGrid.RowCount;
+		int colCount = givenTileGrid.ColCount;
+		for (int i = 0; i < rowCount; i++)
+		{
+			for (int j = 0; j < colCount; j++)
+			{
+				if (givenDeco.CanPlace(givenTileGrid, i, j))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public virtual void ClearSpawnPositions()
+	{
+		EnemyAddsDecoration.Adds1x1.spawnPositions.Clear();
+		EnemyAddsDecoration.Adds4x4.spawnPositions.Clear();
+		EnemyCoreDecoration.Core4x4.spawnPositions.Clear();
+		EnemyCoreDecoration.Core6x6.spawnPositions.Clear();
+		EnemyCoreDecoration.Core8x8.spawnPositions.Clear();
+		EnemySurvivalDecoration.EnemyPlaceDeco.spawnPositions.Clear();
+		EnemySurvivalDecoration.Surv4x4.spawnPositions.Clear();
+		EnemySurvivalDecoration.Surv6x6.spawnPositions.Clear();
+		EnemySurvivalDecoration.Surv8x8.spawnPositions.Clear();
+	}
+
+	public virtual void DecorateTupleList(List<Tuple<TileGridSection, Room>> givenList)
+	{
+		int count = givenList.Count;
+		for (int i = 0; i < count; i++)
+		{
+			if (givenList[i].Second.randomEnemies || givenList[i].Second.type == RoomType.FloorPlan)
+			{
+				Decorate(givenList[i].First, givenList[i].Second);
+			}
+		}
+	}
+
+	public virtual void Decorate(TileGrid tileGrid, Room room)
+	{
+		ClearSpawnPositions();
+		currentEnemyPositions.Clear();
+		if (initialize)
+		{
+			InitializeDecorator();
+		}
+		int x = roomPadding.x;
+		int y = roomPadding.y;
+		roomEnemyValue = GetRoomValue(tileGrid);
+		currentEnemyValue = 0f;
+		Dictionary<EnemyDecoration, List<EnemyGroup>> dictionary = null;
+		EnemyDecoration enemyDecoration = null;
+		EnemyGroup enemyGroup = null;
+		EnemyGroup enemyGroup2 = null;
+		bool flag = false;
+		bool flag2 = true;
+		int num = 0;
+		bool flag3 = Random.value < 0.35f;
+		dictionary = ((!flag3) ? enemyCoreGroupDict : enemySurvGroupDict);
+		if (PopulateAvailableDecoList(dictionary, tileGrid))
+		{
+			enemyDecoration = ((WeightedItem<EnemyDecoration>)wRandomizer.GetRandomItem()).item;
+			enemyGroup = new EnemyGroup(dictionary[enemyDecoration].GetRandomValue());
+			flag = true;
+			currentEnemyValue += enemyGroup.GroupValue * 1f;
+			flag2 = enemyGroup.allowAdds;
+		}
+		if (flag2 && PopulateAvailableDecoList(enemyAddsGroupDict, tileGrid, isAdd: true))
+		{
+			if (!flag)
+			{
+				enemyGroup2 = new EnemyGroup(0, addsAllowed: false, Random.value < 0.5f);
+			}
+			int num2;
+			if (flag)
+			{
+				num2 = ((!flag3) ? ((int)Mathf.Clamp(roomEnemyValue / (currentEnemyValue + 1f), 0f, 2f)) : AddCountRange);
+			}
+			else
+			{
+				num2 = 4;
+			}
+			for (int i = 0; i < num2; i++)
+			{
+				if (availableDecorationsList.Count == 0)
+				{
+					break;
+				}
+				if ((flag || i > 0) && Random.value < 0.2f)
+				{
+					break;
+				}
+				EnemyGroup item = ((WeightedItem<EnemyGroup>)wRandomizer.GetRandomItem()).item;
+				if (roomEnemyValue - currentEnemyValue - item.GroupValue < 0f)
+				{
+					break;
+				}
+				num++;
+				if (flag)
+				{
+					enemyGroup.Add(item.EnemyList, isAdd: true);
+				}
+				else
+				{
+					enemyGroup2.Add(item.EnemyList);
+				}
+				currentEnemyValue += 1f * item.GroupValue;
+			}
+		}
+		if (flag)
+		{
+			PlaceEnemyGroup(enemyDecoration, enemyGroup, tileGrid, room, spawnAtCenter: true);
+		}
+		else if (num > 0)
+		{
+			PlaceEnemyGroup(EnemyAddsDecoration.Adds4x4, enemyGroup2, tileGrid, room, spawnAtCenter: false);
+		}
+	}
+
+	public virtual float GetRoomValue(TileGrid tileGrid)
+	{
+		float num = 0f;
+		for (int i = 0; i < tileGrid.RowCount; i++)
+		{
+			for (int j = 0; j < tileGrid.ColCount; j++)
+			{
+				if (tileGrid[i, j] != null && tileGrid[i, j].terrain == Tile.TerrainType.Floor)
+				{
+					num++;
+				}
+			}
+		}
+		return num * calcSizeValueRatio;
+	}
+
+	public virtual bool PlaceEnemyGroup(EnemyDecoration givenDeco, EnemyGroup givenGroup, TileGrid givenTileGrid, Room givenRoom, bool spawnAtCenter)
+	{
+		IntVec2 validPosition = GetValidPosition(givenTileGrid, givenDeco, spawnAtCenter);
+		if (validPosition == IntVec2.zero)
+		{
+			return false;
+		}
+		if (givenGroup.isSurvivalRoom)
+		{
+			Vector2 worldOrigin = givenRoom.GetWorldOrigin(givenTileGrid);
+			SpawnSurvivalRoom(worldOrigin, givenTileGrid, givenGroup, givenRoom);
+		}
+		else
+		{
+			givenDeco.Place(givenTileGrid, validPosition.x, validPosition.y);
+			Vector2 givenLoc = givenRoom.GetWorldOrigin(givenTileGrid) + new Vector2(validPosition.y, -validPosition.x);
+			SpawnEnemies(givenLoc, givenDeco, givenGroup, givenRoom.EnemiesTrans);
+		}
+		return true;
+	}
+
+	public virtual List<IntVec2> GetValidPositionList(TileGrid givenTileGrid, EnemyDecoration givenDeco, float excludeRange = -1f)
+	{
+		validPositions.Clear();
+		int rowCount = givenTileGrid.RowCount;
+		int colCount = givenTileGrid.ColCount;
+		bool flag = excludeRange > 0f;
+		Vector2 vector = new Vector2(rowCount, colCount) * 0.5f - Vector2.one * excludeRange;
+		Vector2 vector2 = new Vector2(rowCount, colCount) * 0.5f + Vector2.one * excludeRange;
+		for (int i = roomPadding.x; i < rowCount - roomPadding.x; i++)
+		{
+			for (int j = roomPadding.y; j < colCount - roomPadding.y; j++)
+			{
+				if ((!flag || !((float)i >= vector.x) || !((float)i < vector2.x) || !((float)j >= vector.y) || !((float)j < vector2.y)) && givenDeco.CanPlace(givenTileGrid, i, j))
+				{
+					validPositions.Add(new IntVec2(i, j));
+				}
+			}
+		}
+		return validPositions;
+	}
+
+	public virtual IntVec2 GetValidPosition(TileGrid givenTileGrid, EnemyDecoration givenDeco, bool spawnAtCenter = false, float excludeRange = -1f)
+	{
+		if (spawnAtCenter)
+		{
+			IntVec2 result = new IntVec2(Mathf.FloorToInt((float)(givenTileGrid.RowCount - givenDeco.RowCount) * 0.5f), Mathf.FloorToInt((float)(givenTileGrid.ColCount - givenDeco.ColCount) * 0.5f));
+			if (givenDeco.CanPlace(givenTileGrid, result.x, result.y))
+			{
+				return result;
+			}
+		}
+		GetValidPositionList(givenTileGrid, givenDeco, excludeRange);
+		if (validPositions.Count > 0)
+		{
+			return validPositions.GetRandomValue();
+		}
+		availableDecorationsList.Remove(givenDeco);
+		return IntVec2.zero;
+	}
+
+	public virtual void SpawnEnemies(Vector2 givenLoc, EnemyDecoration givenDeco, EnemyGroup givenEnemyGroup, Transform givenTrans)
+	{
+		int groupCount = givenEnemyGroup.GroupCount;
+		Vector2 zero = Vector2.zero;
+		Vector2 vector = new Vector2((givenDeco.ColCount <= 1) ? spawnOffset.x : ((float)Mathf.FloorToInt((float)givenDeco.ColCount * 0.5f)), (givenDeco.RowCount <= 1) ? spawnOffset.y : ((float)(-Mathf.FloorToInt((float)givenDeco.RowCount * 0.5f))));
+		int num = Mathf.Clamp(givenEnemyGroup.centerCount, 0, 4);
+		bool flag = num > 0;
+		for (int i = 0; i < groupCount; i++)
+		{
+			Vector2 vector2 = Vector2.zero;
+			if (num > 0)
+			{
+				if (flag)
+				{
+					if (i == num - 1)
+					{
+						flag = false;
+					}
+					switch (num)
+					{
+					case 1:
+						zero = Vector2.zero;
+						break;
+					case 2:
+						zero = ((i != 0) ? Vector2.right : Vector2.left);
+						zero *= (float)givenDeco.ColCount * 0.25f;
+						break;
+					default:
+						zero = Globals.GetCirclePositionVector(num, i);
+						zero = new Vector2(zero.x * (float)givenDeco.ColCount * 0.2f, zero.y * (float)givenDeco.RowCount * 0.2f);
+						break;
+					}
+					vector2 = givenLoc + vector + zero;
+				}
+				else
+				{
+					float num2 = 1 - num / 4;
+					for (int j = 0; j < 4; j++)
+					{
+						zero = vector + new Vector2((float)((!(Random.value < 0.5f)) ? 1 : (-1)) * ((float)givenDeco.ColCount * 0.5f - num2), (float)((!(Random.value < 0.5f)) ? 1 : (-1)) * ((float)givenDeco.RowCount * 0.5f - num2));
+						if (!currentEnemyPositions.Contains(givenLoc + zero))
+						{
+							vector2 = givenLoc + zero;
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int k = 0; k < 4; k++)
+				{
+					zero = vector + new Vector2(Random.Range((float)(-givenDeco.ColCount) * 0.5f + spawnOffset.x, (float)givenDeco.ColCount * 0.5f + spawnOffset.y), Random.Range((float)(-givenDeco.RowCount) * 0.5f + spawnOffset.x, (float)givenDeco.RowCount * 0.5f + spawnOffset.y));
+					Vector2 vector3 = givenLoc + zero;
+					if (currentEnemyPositions.Contains(vector3))
+					{
+						continue;
+					}
+					bool flag2 = false;
+					for (int l = 0; l < currentEnemyPositions.Count; l++)
+					{
+						if (Vector2.Distance(currentEnemyPositions[l], vector3) <= 0.25f)
+						{
+							flag2 = true;
+							break;
+						}
+					}
+					if (!flag2)
+					{
+						vector2 = vector3;
+						break;
+					}
+				}
+			}
+			if (vector2 == Vector2.zero)
+			{
+				continue;
+			}
+			currentEnemyPositions.Add(vector2);
+			Enemy.Spawn(givenEnemyGroup.EnemyList[i], vector2, givenTrans, dropLoot: true, alerted: false, spawnCard: false).name += Globals.generatedPostfix;
+			Level.totalEnemyCount++;
+			if (Level.doubleEnemies)
+			{
+				Enemy.Spawn(givenEnemyGroup.EnemyList[i], vector2 + Random.insideUnitCircle * 1.5f, givenTrans, dropLoot: true, alerted: false, spawnCard: false).name += Globals.generatedPostfix;
+				Level.totalEnemyCount++;
+				if (GameController.coopOn)
+				{
+					Enemy.Spawn(givenEnemyGroup.EnemyList[i], vector2 + Random.insideUnitCircle * 1.5f, givenTrans, dropLoot: true, alerted: false, spawnCard: false).name += Globals.generatedPostfix;
+					Level.totalEnemyCount++;
+				}
+			}
+		}
+	}
+
+	public virtual void SpawnSurvivalRoom(Vector2 givenLoc, TileGrid givenTileGrid, EnemyGroup givenEnemyGroup, Room givenRoom)
+	{
+		int num = givenEnemyGroup.GroupCount - givenEnemyGroup.addsCount;
+		int num2 = 4;
+		Vector2 vector = new Vector2(givenRoom.tileGrid.ColCount, givenRoom.tileGrid.RowCount);
+		float num3 = 1f;
+		Vector2 vector2 = new Vector2(givenTileGrid.ColCount, -givenTileGrid.RowCount) * 0.5f;
+		int num4;
+		if (givenEnemyGroup.centerCount <= 0)
+		{
+			num4 = ((num - num2 != 1) ? num2 : num);
+		}
+		else
+		{
+			num4 = givenEnemyGroup.centerCount;
+		}
+		SurvivalRoom survivalRoom = null;
+		List<EnemyFactory> list = null;
+		validPositions = GetValidPositionList(givenTileGrid, EnemySurvivalDecoration.EnemyPlaceDeco, 2f);
+		for (int i = 0; i < num; i++)
+		{
+			if (i % num4 == 0)
+			{
+				survivalRoom = Object.Instantiate(SurvivalRoom.Prefab, givenLoc + vector2, Quaternion.identity, givenRoom.EnemiesTrans).GetComponent<SurvivalRoom>();
+				survivalRoom.order = Mathf.FloorToInt(i / num4);
+				survivalRoom.gameObject.name += Globals.generatedPostfix;
+				if (i == 0)
+				{
+					survivalRoom.GetComponent<BoxCollider2D>().size = vector - Vector2.one * 2f;
+				}
+				else
+				{
+					Collider2D[] components = survivalRoom.GetComponents<Collider2D>();
+					for (int j = 0; j < components.Length; j++)
+					{
+						components[j].enabled = false;
+					}
+				}
+				list = new List<EnemyFactory>();
+			}
+			if (validPositions.Count == 0)
+			{
+				continue;
+			}
+			IntVec2 randomValue = validPositions.GetRandomValue();
+			if (!(randomValue == IntVec2.zero))
+			{
+				validPositions.Remove(randomValue);
+				EnemySurvivalDecoration.EnemyPlaceDeco.Place(givenTileGrid, randomValue.x, randomValue.y);
+				EnemyFactory component = Object.Instantiate(EnemyFactory.Prefab, givenLoc + new Vector2(randomValue.y, -randomValue.x) + spawnOffset, Quaternion.identity, survivalRoom.transform).GetComponent<EnemyFactory>();
+				component.enemyPrefabKey = givenEnemyGroup.EnemyList[i].ToString();
+				component.spawnTimer = (float)(i % num4) * 0.125f + ((i != 0) ? 0f : num3);
+				component.invalidSpawnArea = Vector2.zero;
+				component.enemiesPerCycle = 1;
+				if (Level.doubleEnemies)
+				{
+					component.spawnArea = Vector2.one * 1.5f;
+					component.spawnInterval = 0.25f;
+					component.maxSpawnCycles = ((!GameController.coopOn) ? 2 : 3);
+				}
+				else
+				{
+					component.spawnArea = Vector2.zero;
+					component.maxSpawnCycles = 1;
+				}
+				list.Add(component);
+				Level.totalEnemyCount += component.maxSpawnCycles * component.enemiesPerCycle;
+			}
+		}
+		if (survivalRoom != null && Random.value < 0.25f)
+		{
+			survivalRoom.spawnTreasureChest = true;
+			survivalRoom.treasureChestLootID = "TreasureChestSmall";
+		}
+		if (givenEnemyGroup.addsCount > 0)
+		{
+			int num5 = givenEnemyGroup.GroupCount - givenEnemyGroup.addsCount;
+			EnemyGroup enemyGroup = new EnemyGroup(givenEnemyGroup.addsCount, addsAllowed: false);
+			for (int k = num5; k < givenEnemyGroup.GroupCount; k++)
+			{
+				enemyGroup.Add(givenEnemyGroup.EnemyList[k]);
+			}
+			PlaceEnemyGroup(EnemyAddsDecoration.Adds4x4, enemyGroup, givenTileGrid, givenRoom, spawnAtCenter: true);
+		}
+	}
+}
+=== EnemySurvivalDecoration
+public class EnemySurvivalDecoration : EnemyDecoration
+{
+	private static EnemySurvivalDecoration enemyPlaceDeco;
+
+	private static EnemySurvivalDecoration surv4x4;
+
+	private static EnemySurvivalDecoration surv6x6;
+
+	private static EnemySurvivalDecoration surv8x8;
+
+	public static EnemySurvivalDecoration EnemyPlaceDeco => enemyPlaceDeco ?? (enemyPlaceDeco = new EnemySurvivalDecoration(1, 1, 1, 1));
+
+	public static EnemySurvivalDecoration Surv4x4 => surv4x4 ?? (surv4x4 = new EnemySurvivalDecoration(4, 4, 4, 4));
+
+	public static EnemySurvivalDecoration Surv6x6 => surv6x6 ?? (surv6x6 = new EnemySurvivalDecoration(6, 6, 6, 6));
+
+	public static EnemySurvivalDecoration Surv8x8 => surv8x8 ?? (surv8x8 = new EnemySurvivalDecoration(8, 8, 8, 8));
+
+	private EnemySurvivalDecoration(int minRows, int maxRows, int minCols, int maxCols)
+		: base(minRows, maxRows, minCols, maxCols)
+	{
+		placementTests.Add(AdjTileTest.FloorPitSurround1);
+	}
+}
+=== ExplosiveBarrelDeco
+public class ExplosiveBarrelDeco : Decoration
+{
+	public ExplosiveBarrelDeco()
+	{
+		dimensions = new GridDimensions(1, 1, 1, 1);
+		prefab = ChaosBundle.Get("Assets/Prefabs/Environment/Destructibles/ExplosiveBarrel.prefab");
+		spawnChance = 0.08f;
+		spawnPrefab = true;
+		minDupeDistance = 4f;
+		prefabWorldOffsetX = 0.5f;
+		prefabWorldOffsetY = 1f;
+		placementTests.Add(TerrainTypeTest.Floor);
+		placementTests.Add(HasDoodadTest.NoFloorDoodadSetTest);
+		placementTests.Add(HasDoodadTest.NoFloorDoodad2SetTest);
+		placementTests.Add(HasDoodadTest.NoFloorDoodad3SetTest);
+		placementTests.Add(ObstacleTest.IsNotObstacleTest);
+		placementTests.Add(ConnectionTypeTest.None);
+		placementTests.Add(AdjTileTest.NoPitSurround2);
+		placementTests.Add(AdjTileTest.FloorSurround);
+		placementTests.Add(HasEnemyTest.NoEnemyTest);
+		autoTilers.Add(AutoTiler.MarkFloorDoodadAsHasDoodad);
+	}
+}

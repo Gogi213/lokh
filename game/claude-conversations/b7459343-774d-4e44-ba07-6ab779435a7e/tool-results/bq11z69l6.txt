@@ -1,0 +1,2224 @@
+using System;
+using LootEdit;
+using LootEdit.loot;
+using MonsterEdit.monsters;
+using ProjectTower.config;
+using ProjectTower.debug;
+using ProjectTower.gamestate;
+using ProjectTower.particles;
+using ProjectTower.player;
+using ProjectTower.player.randomizer;
+namespace ProjectTower.character;
+public class CharStatsAttackVals
+{
+	private Character c;
+	public CharStatsAttackVals(Character c)
+	{
+		this.c = c;
+	}
+	public float GetAttackVal(Particle particle, int type)
+	{
+		if (c.playerIdx > -1)
+		{
+			if (c.equipment.active)
+			{
+				Player player = c.GetPlayer();
+				float num = 1f;
+				if (type == 2 && c.stats.GetRingFlag(25))
+				{
+					num *= 1.1f;
+				}
+				if ((particle.type == 24 || particle.type == 25 || particle.type == 78) && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx >= 128)
+				{
+					return GetMagicAtkVal(particle, type, num, player);
+				}
+				if ((particle.type == 117 || particle.type == 126) && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx >= 128)
+				{
+					return GetPhysicalAttackVal(particle, type, num, player);
+				}
+				switch (particle.type)
+				{
+				case 51:
+					return Magic.GetScaledValue(GameModeMgr.IsGameEnhanced() ? 2f : 2f, player, 1) * num;
+				case 53:
+					if (type == 2)
+					{
+						if (c.stats.GetRingFlag(44))
+						{
+							return 25f * num * 1.5f;
+						}
+						return 25f * num;
+					}
+					return 0f;
+				case 60:
+					if (type == 0)
+					{
+						if (c.stats.GetRingFlag(44))
+						{
+							return 25f * num * 1.5f;
+						}
+						return 25f * num;
+					}
+					return 0f;
+				case 174:
+				case 175:
+					if (type == 9)
+					{
+						if (c.stats.GetRingFlag(44))
+						{
+							return 6f * num * 1.5f;
+						}
+						return 6f * num;
+					}
+					return 0f;
+				case 62:
+				case 68:
+					if (type == 8)
+					{
+						if (c.stats.GetRingFlag(44))
+						{
+							return 6f * num * 1.5f;
+						}
+						return 6f * num;
+					}
+					return 0f;
+				case 69:
+					if (type == 3)
+					{
+						return Magic.GetScaledValue(60f, player, 1) * num;
+					}
+					return 0f;
+				case 83:
+					if (particle.flags == 9)
+					{
+						if (type == 8)
+						{
+							return Magic.GetScaledValue(GameModeMgr.IsGameEnhanced() ? 60f : 50f, player, 0) * num;
+						}
+					}
+					else if (particle.flags == 10 && type == 8)
+					{
+						return Magic.GetScaledValue(100f, player, 0) * num;
+					}
+					return 0f;
+				case 105:
+					switch (particle.flags)
+					{
+					case 22:
+						if (type == 2)
+						{
+							return Magic.GetScaledValue(15f, player, 1) * num;
+						}
+						return 0f;
+					case 32:
+						if (type == 8)
+						{
+							return Magic.GetScaledValue(15f, player, 0) * num;
+						}
+						return 0f;
+					case 43:
+						if (type == 8)
+						{
+							return Magic.GetScaledValue(10f, player, 0) * num;
+						}
+						return 0f;
+					}
+					break;
+				case 104:
+					if (particle.flags == 45)
+					{
+						if (type == 8)
+						{
+							return Magic.GetScaledValue(40f, player, 0) * num;
+						}
+						return 0f;
+					}
+					break;
+				case 70:
+					return GetMagicAtkVal(particle, type, num, player);
+				case 24:
+				case 25:
+				case 78:
+					return GetMagicAtkVal(particle, type, num, player);
+				case 61:
+				{
+					float num2 = 0f;
+					float num3 = 4f;
+					float num4 = (GameModeMgr.IsGameEnhanced() ? 0.08f : 0.05f);
+					if (type == 0 && GameModeMgr.IsGameEnhanced())
+					{
+						if (particle.flags == 94)
+						{
+							num2 = num3 * 1.25f;
+						}
+						else
+						{
+							num2 = ((particle.flags != 61) ? num3 : (num3 * 2f));
+						}
+					}
+					if (particle.type == 61)
+					{
+						switch (particle.flags)
+						{
+						case 63:
+							if (type == 2)
+							{
+								num2 += num3;
+							}
+							break;
+						case 62:
+							if (type == 5)
+							{
+								num2 += num3;
+							}
+							break;
+						case 69:
+							if (type == 0)
+							{
+								GameModeMgr.IsGameEnhanced();
+							}
+							if (type == 5)
+							{
+								num2 = ((!GameModeMgr.IsGameEnhanced()) ? (num2 + num3 * 2f * (1f + player.stats.GetCappedStat40(2, null) * num4)) : (num3 * 4f));
+							}
+							break;
+						}
+					}
+					num2 *= 1f + player.stats.GetCappedStat40(2, null) * num4;
+					return num2 * num;
+				}
+				case 106:
+					if (type == 2)
+					{
+						return Magic.GetScaledValue(GameModeMgr.IsGameEnhanced() ? 35f : 30f, player, 1) * num;
+					}
+					return 0f;
+				case 5:
+				case 11:
+				case 117:
+				case 126:
+					return GetPhysicalAttackVal(particle, type, num, player);
+				}
+			}
+			if (type != 0)
+			{
+				return 0f;
+			}
+			return 1f;
+		}
+		MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+		float num5 = 5f;
+		switch (particle.type)
+		{
+		case 133:
+			num5 = ((type != 0) ? 0f : 25f);
+			break;
+		case 119:
+			num5 = ((type != 2) ? 0f : 30f);
+			break;
+		case 237:
+			num5 = ((type != 8) ? 0f : 40f);
+			break;
+		case 106:
+			num5 = ((type != 2) ? 0f : 30f);
+			break;
+		case 139:
+			num5 = ((type != 8) ? 0f : 30f);
+			break;
+		case 165:
+			num5 = ((type != 8) ? 0f : 8f);
+			break;
+		case 105:
+			if (particle.flags == 43)
+			{
+				num5 = ((type != 8) ? 0f : 15f);
+			}
+			break;
+		case 24:
+			switch (particle.flags)
+			{
+			case 9:
+				num5 = type switch
+				{
+					2 => 5f, 
+					0 => 20f, 
+					_ => 0f, 
+				};
+				break;
+			case 8:
+				num5 = ((type != 2) ? 0f : 30f);
+				break;
+			case 0:
+				num5 = ((type != 3) ? 0f : 20f);
+				break;
+			case 19:
+				num5 = ((type != 3) ? 0f : 30f);
+				break;
+			case 41:
+				num5 = ((type != 9) ? 0f : 20f);
+				break;
+			}
+			break;
+		case 142:
+		case 161:
+			num5 = ((type != 0) ? 0f : 30f);
+			break;
+		case 69:
+			num5 = ((type != 3) ? 0f : 30f);
+			break;
+		case 150:
+			num5 = ((type != 3) ? 0f : 30f);
+			break;
+		case 159:
+			num5 = ((type != 9) ? 0f : 20f);
+			break;
+		case 70:
+			switch (particle.aux)
+			{
+			case 0:
+			case 5:
+			case 7:
+				num5 = ((type != 8) ? 0f : 20f);
+				break;
+			case 3:
+				num5 = ((type != 3 && type != 8) ? 0f : 20f);
+				break;
+			case 1:
+			case 4:
+			case 9:
+				num5 = ((type != 9) ? 0f : 20f);
+				break;
+			case 2:
+				num5 = ((type != 3) ? 0f : 20f);
+				break;
+			case 6:
+				num5 = ((type != 9) ? 0f : 20f);
+				break;
+			}
+			break;
+		case 74:
+			num5 = ((type != 8) ? 0f : 20f);
+			break;
+		case 78:
+			if (particle.face != 1)
+			{
+				num5 = ((type != 2) ? 0f : 20f);
+			}
+			else
+			{
+				num5 = ((type != 3) ? 0f : 20f);
+			}
+			break;
+		case 115:
+			num5 = type switch
+			{
+				5 => 10f, 
+				0 => 10f, 
+				_ => 0f, 
+			};
+			break;
+		case 100:
+			num5 = ((type != 2) ? 0f : 20f);
+			break;
+		case 42:
+		case 44:
+			num5 = ((type != 3) ? 0f : 30f);
+			break;
+		case 5:
+			switch (particle.flags)
+			{
+			case 0:
+			case 1:
+			case 2:
+				num5 = 10f;
+				break;
+			case 4:
+			case 18:
+				num5 = 40f;
+				break;
+			case 19:
+			case 20:
+			case 67:
+				num5 = 20f;
+				break;
+			case 17:
+				num5 = 25f;
+				break;
+			case 21:
+			case 22:
+			case 68:
+				num5 = 8f;
+				break;
+			case 25:
+			case 26:
+			case 70:
+				num5 = 25f;
+				break;
+			case 63:
+			case 86:
+				num5 = 25f;
+				break;
+			case 64:
+				num5 = 30f;
+				break;
+			case 65:
+				num5 = 10f;
+				break;
+			case 33:
+			case 34:
+			case 74:
+			case 90:
+				num5 = 25f;
+				break;
+			case 23:
+			case 24:
+			case 69:
+				num5 = 20f;
+				break;
+			case 27:
+			case 28:
+			case 71:
+				num5 = 30f;
+				break;
+			case 29:
+			case 30:
+			case 72:
+				num5 = 32f;
+				break;
+			case 31:
+			case 32:
+			case 73:
+				num5 = 34f;
+				break;
+			case 91:
+				num5 = 34f;
+				break;
+			case 180:
+			case 184:
+				num5 = 32f;
+				break;
+			case 39:
+			case 76:
+				num5 = 5f;
+				break;
+			case 187:
+			case 230:
+				num5 = 2f;
+				break;
+			case 36:
+			case 75:
+				num5 = 5f;
+				break;
+			case 40:
+			case 41:
+			case 123:
+			case 133:
+			case 205:
+			case 219:
+				num5 = 30f;
+				break;
+			case 42:
+			case 43:
+			case 124:
+			case 134:
+			case 206:
+			case 220:
+				num5 = 15f;
+				break;
+			case 46:
+			case 47:
+			case 126:
+			case 136:
+			case 208:
+			case 222:
+				num5 = 28f;
+				break;
+			case 54:
+			case 55:
+			case 130:
+			case 140:
+			case 212:
+			case 226:
+				num5 = 30f;
+				break;
+			case 44:
+			case 45:
+			case 125:
+			case 135:
+			case 207:
+			case 221:
+				num5 = 35f;
+				break;
+			case 48:
+			case 49:
+			case 127:
+			case 137:
+			case 209:
+			case 223:
+				num5 = 40f;
+				break;
+			case 50:
+			case 51:
+			case 128:
+			case 138:
+			case 210:
+			case 224:
+				num5 = 45f;
+				break;
+			case 173:
+				num5 = 40f;
+				break;
+			case 52:
+			case 53:
+			case 129:
+			case 139:
+			case 211:
+			case 225:
+				num5 = 50f;
+				break;
+			case 57:
+			case 132:
+			case 142:
+			case 214:
+			case 228:
+				num5 = 10f;
+				break;
+			case 56:
+			case 131:
+			case 141:
+			case 213:
+			case 227:
+				num5 = 10f;
+				break;
+			case 164:
+				num5 = 60f;
+				break;
+			}
+			if (type != 0)
+			{
+				num5 = 0f;
+			}
+			switch (particle.flags)
+			{
+			case 237:
+				num5 = ((type != 8) ? 0f : 40f);
+				break;
+			case 155:
+				switch (type)
+				{
+				case 9:
+					num5 = 25f;
+					break;
+				case 0:
+					num5 = 5f;
+					break;
+				}
+				break;
+			case 153:
+				switch (type)
+				{
+				case 5:
+					num5 = 10f;
+					break;
+				case 0:
+					num5 = 20f;
+					break;
+				}
+				break;
+			case 146:
+			case 147:
+				switch (type)
+				{
+				case 5:
+					num5 = 25f;
+					break;
+				case 0:
+					num5 = 20f;
+					break;
+				}
+				break;
+			case 113:
+				switch (type)
+				{
+				case 2:
+					num5 = 15f;
+					break;
+				case 0:
+					num5 = 5f;
+					break;
+				}
+				break;
+			case 86:
+				switch (type)
+				{
+				case 5:
+					num5 = 15f;
+					break;
+				case 0:
+					num5 = 5f;
+					break;
+				}
+				break;
+			case 79:
+				switch (type)
+				{
+				case 5:
+					num5 = 15f;
+					break;
+				case 0:
+					num5 = 5f;
+					break;
+				}
+				break;
+			case 110:
+				switch (type)
+				{
+				case 2:
+					num5 = 20f;
+					break;
+				case 0:
+					num5 = 20f;
+					break;
+				}
+				break;
+			}
+			break;
+		case 176:
+			num5 = ((type != 0) ? 0f : 35f);
+			break;
+		case 76:
+		case 173:
+			num5 = ((type != 0) ? 0f : 34f);
+			break;
+		case 83:
+			num5 = ((type != 8) ? 0f : 100f);
+			break;
+		case 92:
+			num5 = ((type != 9) ? 0f : 15f);
+			break;
+		case 96:
+			if (particle.aux != 0)
+			{
+				num5 = ((type != 3) ? 0f : 15f);
+			}
+			else
+			{
+				num5 = ((type != 2) ? 0f : 15f);
+			}
+			break;
+		case 11:
+		case 117:
+			num5 = 15f;
+			switch (particle.flags)
+			{
+			case 12:
+				if (type != 2)
+				{
+					num5 = 0f;
+				}
+				break;
+			case 14:
+				if (type != 5)
+				{
+					num5 = 0f;
+				}
+				break;
+			case 6:
+				if (type != 8)
+				{
+					num5 = 0f;
+				}
+				break;
+			default:
+				if (type != 0)
+				{
+					num5 = 0f;
+				}
+				break;
+			}
+			break;
+		case 126:
+			num5 = 15f;
+			switch (particle.flags)
+			{
+			case 12:
+				if (type != 2)
+				{
+					num5 = 0f;
+				}
+				break;
+			case 14:
+				if (type != 5)
+				{
+					num5 = 0f;
+				}
+				break;
+			default:
+				if (type != 0)
+				{
+					num5 = 0f;
+				}
+				break;
+			}
+			break;
+		case 108:
+			num5 = type switch
+			{
+				0 => 25f, 
+				2 => 25f, 
+				_ => 0f, 
+			};
+			break;
+		case 61:
+			num5 = 15f;
+			switch (particle.flags)
+			{
+			case 63:
+				if (type != 2)
+				{
+					num5 = 0f;
+				}
+				break;
+			case 62:
+				if (type != 5)
+				{
+					num5 = 0f;
+				}
+				break;
+			default:
+				if (type != 0)
+				{
+					num5 = 0f;
+				}
+				break;
+			}
+			break;
+		case 144:
+			num5 = ((type != 5 && type != 0) ? 0f : 40f);
+			break;
+		case 154:
+			num5 = ((type != 9) ? 0f : 20f);
+			break;
+		case 52:
+			if (particle.flags == 96)
+			{
+				num5 = 10f;
+				if (type != 9)
+				{
+					num5 = 0f;
+				}
+			}
+			else
+			{
+				num5 = 25f;
+				if (type != 0)
+				{
+					num5 = 0f;
+				}
+			}
+			break;
+		case 99:
+			num5 = type switch
+			{
+				0 => 10f, 
+				2 => 15f, 
+				_ => 0f, 
+			};
+			break;
+		case 103:
+			num5 = ((type != 2) ? 0f : 25f);
+			break;
+		case 53:
+			num5 = 25f;
+			if (type != 2)
+			{
+				num5 = 0f;
+			}
+			break;
+		case 116:
+			num5 = 25f;
+			if (type != 2)
+			{
+				num5 = 0f;
+			}
+			break;
+		case 174:
+		case 175:
+			num5 = 6f;
+			if (type != 9)
+			{
+				num5 = 0f;
+			}
+			break;
+		case 62:
+		case 68:
+			num5 = 6f;
+			if (type != 8)
+			{
+				num5 = 0f;
+			}
+			break;
+		case 60:
+			num5 = 25f;
+			if (type != 0)
+			{
+				num5 = 0f;
+			}
+			break;
+		case 49:
+			num5 = 15f;
+			if (type != 0)
+			{
+				num5 = 0f;
+			}
+			break;
+		}
+		float num6 = monsterDef.attack / 100f;
+		if (num5 > 0f)
+		{
+			Player mainPlayer = PlayerMgr.GetMainPlayer();
+			if (mainPlayer != null && mainPlayer.IsScaledRandomizer())
+			{
+				num6 = RandomizerMgr.GetTierAdjustDamage(c);
+			}
+			if (GameStateManager.playthroughCount > 0)
+			{
+				num6 += 3f;
+				num6 += 1f * (float)GameStateManager.playthroughCount;
+				if (GameStateManager.playthroughCount > 1)
+				{
+					num6 += 0.5f * ((float)GameStateManager.playthroughCount - 1f);
+				}
+			}
+			if (PlayerMgr.IsSaltCharacter(c))
+			{
+				if (c.boss)
+				{
+					return num6 * num5 * 1.05f;
+				}
+				return num6 * num5 * 1.25f;
+			}
+		}
+		return num6 * num5;
+	}
+	private float GetPhysicalAttackVal(Particle particle, int type, float elementalRingFac, Player p)
+	{
+		switch (particle.flags)
+		{
+		case 37:
+			if (type == 0)
+			{
+				return 1f * elementalRingFac;
+			}
+			return 0f;
+		case 235:
+			return GetShieldAttackVal(p, type) * elementalRingFac;
+		case 189:
+		case 190:
+		case 218:
+		case 247:
+			return GetFistAttackVal(particle, type, p) * elementalRingFac;
+		default:
+			return GetDefaultAttackVal(p, particle, type, elementalRingFac);
+		}
+	}
+	private float ConvertRangedDamage(InvLoot weap, int dType, float aVal, Particle particle)
+	{
+		int flags = particle.flags;
+		switch (flags)
+		{
+		case 11:
+			return aVal *= 1.1f;
+		case 12:
+		case 13:
+		case 14:
+		case 16:
+		case 17:
+			aVal /= 2f;
+			break;
+		}
+		if ((flags == 12 && dType == 2) || (flags == 13 && dType == 3) || (flags == 14 && dType == 5) || (flags == 17 && dType == 9) || (flags == 16 && dType == 8))
+		{
+			aVal += GetBaseDamage(weap) / 2f;
+		}
+		return aVal;
+	}
+	public float GetCharmAdjustedPhysicalAttackVal(float aVal, int type, Player p, InvLoot weap)
+	{
+		if (!GameModeMgr.IsGameEnhanced())
+		{
+			aVal = GetGlobalModifiedDamage(aVal, p, weap);
+			aVal += GetCharmOnlyDamage(weap, type);
+		}
+		else
+		{
+			aVal += GetCharmOnlyDamage(weap, type);
+			aVal = GetGlobalModifiedDamage(aVal, p, weap);
+		}
+		return aVal;
+	}
+	public float GetBaseDamage(InvLoot weap)
+	{
+		if (c.GetPlayer() == null || weap == null || weap.category < 0 || weap.catalogIdx < 0)
+		{
+			return 0f;
+		}
+		float num = weap.GetScaledValue(0, c.GetPlayer(), c.GetPlayer().stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+		switch (LootCatalog.category[weap.category].loot[weap.catalogIdx].flags)
+		{
+		case 1:
+			num += weap.GetScaledValue(6, c.GetPlayer(), c.GetPlayer().stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			break;
+		case 2:
+			num += weap.GetScaledValue(7, c.GetPlayer(), c.GetPlayer().stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			break;
+		case 5:
+			num += weap.GetScaledValue(12, c.GetPlayer(), c.GetPlayer().stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			break;
+		case 6:
+			num += weap.GetScaledValue(13, c.GetPlayer(), c.GetPlayer().stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			break;
+		case 3:
+			num += weap.GetScaledValue(9, c.GetPlayer(), c.GetPlayer().stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			break;
+		}
+		return num;
+	}
+	private float GetMagicAtkVal(Particle particle, int type, float elementalRingFac, Player p)
+	{
+		float num = 0f;
+		if (particle.type == 78)
+		{
+			if (type == 2)
+			{
+				num = Magic.GetScaledValue(GameModeMgr.IsGameEnhanced() ? 9f : 7f, p, 1);
+			}
+		}
+		else
+		{
+			switch (particle.type)
+			{
+			case 70:
+				switch (particle.aux)
+				{
+				case 1:
+					if (type == 9)
+					{
+						float value3 = 10f;
+						if (c.playerIdx > -1)
+						{
+							value3 = 20f;
+						}
+						num = Magic.GetScaledValue(value3, p, 1);
+					}
+					break;
+				case 9:
+					if (type == 9)
+					{
+						num = Magic.GetScaledValue(2f, p, 1);
+					}
+					break;
+				}
+				break;
+			case 25:
+				switch (particle.flags)
+				{
+				case 0:
+					if (type == 9)
+					{
+						num = Magic.GetScaledValue(GameModeMgr.IsGameEnhanced() ? 7f : 10f, p, 1);
+					}
+					break;
+				case 1:
+					if (type == 9)
+					{
+						num = Magic.GetScaledValue(50f, p, 1);
+					}
+					break;
+				default:
+					if (type == 9)
+					{
+						num = Magic.GetScaledValue(10f, p, 1);
+					}
+					break;
+				}
+				break;
+			case 165:
+				if (type == 8)
+				{
+					num = Magic.GetScaledValue(15f, p, 1);
+				}
+				break;
+			case 24:
+				switch (particle.flags)
+				{
+				case 19:
+					if (type == 3)
+					{
+						num = Magic.GetScaledValue(15f, p, 1);
+					}
+					break;
+				case 20:
+					if (type == 3)
+					{
+						num = Magic.GetScaledValue(40f, p, 1);
+					}
+					break;
+				case 0:
+					if (type == 3)
+					{
+						float value2 = 20f;
+						if (particle.aux == 5)
+						{
+							value2 = (GameModeMgr.IsGameEnhanced() ? 40f : 35f);
+						}
+						num = Magic.GetScaledValue(value2, p, 1);
+					}
+					break;
+				case 1:
+					if (type == 3)
+					{
+						num = Magic.GetScaledValue(20f, p, 1);
+					}
+					break;
+				case 7:
+					if (type == 2)
+					{
+						float value = 10f;
+						if (GameModeMgr.IsGameEnhanced() && c.playerIdx > -1)
+						{
+							value = 30f;
+						}
+						num = Magic.GetScaledValue(value, p, 1);
+					}
+					break;
+				case 31:
+					if (type == 2)
+					{
+						num = Magic.GetScaledValue(10f, p, 1);
+					}
+					break;
+				case 28:
+					if (type == 3)
+					{
+						num = Magic.GetScaledValue(5f, p, 1);
+					}
+					break;
+				case 29:
+					if (type == 2)
+					{
+						num = Magic.GetScaledValue(7f, p, 1);
+					}
+					break;
+				case 30:
+					if (type == 2)
+					{
+						num = Magic.GetScaledValue(15f, p, 1);
+					}
+					break;
+				case 8:
+					if (type == 2)
+					{
+						num = Magic.GetScaledValue(18f, p, 1);
+					}
+					break;
+				default:
+					if (type == 2)
+					{
+						num = Magic.GetScaledValue(10f, p, 1);
+					}
+					break;
+				}
+				break;
+			}
+		}
+		float num2 = 0f;
+		if (!particle.grounded && (particle.flags != 0 || particle.aux != 5) && particle.flags != 40)
+		{
+			if (c.equipment.loadout[c.equipment.loadoutIdx, 0].invIdx > -1)
+			{
+				num2 = p.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 0].invIdx].GetScaledValue(0, p, p.stats, twoHanded: false, null);
+			}
+			if (c.equipment.loadout[c.equipment.loadoutIdx, 1].category == 0 && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > 128)
+			{
+				num2 = p.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx].GetScaledValue(0, p, p.stats, twoHanded: false, null);
+			}
+			num2 = 0.5f + num2 / 40f;
+			num *= num2;
+		}
+		if (c.buffs.GetMagicBoost())
+		{
+			num *= 1.25f;
+		}
+		if ((type == 2 || type == 3) && num > 0f && c.stats.GetRingFlag(33) && !c.stats.GetRingFlag(34))
+		{
+			num *= 1.5f;
+		}
+		return num * elementalRingFac;
+	}
+	public float GetAttackPoiseDamage(Particle particle)
+	{
+		MonsterDef monsterDef = MonsterCatalog.catalog[c.monsterIdx];
+		float num = 5f;
+		switch (particle.type)
+		{
+		case 104:
+			if (particle.flags == 45)
+			{
+				num = (GameModeMgr.IsGameEnhanced() ? 18f : 60f);
+			}
+			break;
+		case 42:
+		case 44:
+			num = 80f;
+			break;
+		case 25:
+			num = particle.flags switch
+			{
+				0 => GameModeMgr.IsGameEnhanced() ? 8f : 60f, 
+				1 => GameModeMgr.IsGameEnhanced() ? 45f : 60f, 
+				_ => 60f, 
+			};
+			break;
+		case 144:
+			num = 80f;
+			break;
+		case 154:
+			num = 50f;
+			break;
+		case 142:
+			num = 80f;
+			break;
+		case 5:
+			switch (particle.flags)
+			{
+			case 37:
+				num = 100f;
+				break;
+			case 235:
+				num = 200f;
+				break;
+			case 0:
+			case 1:
+			case 2:
+				num = 10f;
+				break;
+			case 189:
+				num = 15f;
+				break;
+			case 218:
+				num = 25f;
+				break;
+			case 190:
+				num = 25f;
+				break;
+			case 155:
+				num = 10f;
+				break;
+			case 4:
+			case 18:
+				num = 50f;
+				break;
+			case 19:
+			case 20:
+			case 67:
+			case 146:
+			case 147:
+				num = 20f;
+				if (PlayerMgr.GetMainPlayer() != null && PlayerMgr.GetMainPlayer().isEnhanced)
+				{
+					num = 18f;
+				}
+				break;
+			case 17:
+				num = 25f;
+				break;
+			case 63:
+			case 86:
+				num = 15f;
+				break;
+			case 64:
+				num = 30f;
+				break;
+			case 65:
+				num = 40f;
+				break;
+			case 21:
+			case 22:
+			case 68:
+				num = 8f;
+				break;
+			case 25:
+			case 26:
+			case 70:
+				num = 14f;
+				if (PlayerMgr.GetMainPlayer() != null && PlayerMgr.GetMainPlayer().isEnhanced)
+				{
+					num = 22f;
+				}
+				break;
+			case 33:
+			case 34:
+			case 74:
+			case 90:
+				num = 24f;
+				break;
+			case 23:
+			case 24:
+			case 69:
+				num = 18f;
+				break;
+			case 27:
+			case 28:
+			case 71:
+				num = 28f;
+				break;
+			case 29:
+			case 30:
+			case 72:
+				num = 32f;
+				break;
+			case 180:
+			case 184:
+				num = 32f;
+				break;
+			case 31:
+			case 32:
+			case 73:
+				num = 34f;
+				break;
+			case 91:
+				num = 70f;
+				break;
+			case 110:
+				num = 50f;
+				break;
+			case 39:
+			case 76:
+				num = 10f;
+				break;
+			case 245:
+				num = 30f;
+				break;
+			case 246:
+				num = 20f;
+				break;
+			case 113:
+				num = 5f;
+				break;
+			case 79:
+				num = 15f;
+				break;
+			case 36:
+			case 75:
+			case 187:
+			case 230:
+				num = 5f;
+				break;
+			case 40:
+			case 41:
+			case 123:
+				num = 30f;
+				break;
+			case 133:
+			case 205:
+			case 219:
+				num = 30f;
+				break;
+			case 42:
+			case 43:
+			case 124:
+				num = 5f;
+				break;
+			case 134:
+			case 206:
+			case 220:
+				num = 30f;
+				break;
+			case 247:
+				num = 40f;
+				break;
+			case 46:
+			case 47:
+			case 126:
+			case 222:
+				num = 40f;
+				break;
+			case 136:
+			case 208:
+				num = 40f;
+				break;
+			case 54:
+			case 55:
+			case 130:
+				num = 30f;
+				break;
+			case 140:
+			case 212:
+			case 226:
+				num = 60f;
+				break;
+			case 44:
+			case 45:
+			case 125:
+				num = 24f;
+				break;
+			case 135:
+			case 207:
+			case 221:
+				num = 50f;
+				break;
+			case 48:
+			case 49:
+			case 127:
+				num = 30f;
+				break;
+			case 137:
+			case 209:
+			case 223:
+				num = 80f;
+				break;
+			case 50:
+			case 51:
+			case 128:
+				num = 35f;
+				break;
+			case 138:
+			case 210:
+			case 224:
+				num = 60f;
+				break;
+			case 173:
+				num = 60f;
+				break;
+			case 52:
+			case 53:
+			case 129:
+				num = 40f;
+				break;
+			case 153:
+				num = 100f;
+				break;
+			case 139:
+			case 211:
+			case 225:
+				num = 110f;
+				break;
+			case 57:
+			case 132:
+				num = 8f;
+				break;
+			case 142:
+			case 214:
+			case 228:
+				num = 20f;
+				break;
+			case 56:
+			case 131:
+				num = 8f;
+				break;
+			case 141:
+			case 213:
+			case 227:
+				num = 20f;
+				break;
+			case 96:
+				num = 10f;
+				break;
+			case 164:
+				num = 50f;
+				break;
+			case 237:
+				num = 60f;
+				break;
+			}
+			break;
+		case 176:
+			num = 60f;
+			break;
+		case 108:
+			num = 50f;
+			break;
+		case 126:
+			num = 30f;
+			break;
+		case 11:
+		case 117:
+			num = 8f;
+			break;
+		case 92:
+			num = 8f;
+			break;
+		case 78:
+			num = 10f;
+			break;
+		case 115:
+			num = 10f;
+			break;
+		case 106:
+			num = ((GameModeMgr.IsGameEnhanced() && c.playerIdx > -1) ? 50f : 100f);
+			break;
+		case 161:
+			num = 100f;
+			break;
+		case 119:
+			num = 100f;
+			break;
+		case 100:
+			num = 10f;
+			break;
+		case 76:
+		case 173:
+			num = 100f;
+			break;
+		case 83:
+			num = (GameModeMgr.IsGameEnhanced() ? 75f : 100f);
+			break;
+		case 70:
+		case 74:
+		case 150:
+		case 159:
+			num = 20f;
+			if (GameModeMgr.IsGameEnhanced() && particle.type == 70 && c.playerIdx > -1)
+			{
+				num = 8f;
+			}
+			break;
+		case 61:
+			num = ((!GameModeMgr.IsGameEnhanced() || particle.flags != 94) ? 3f : 8f);
+			break;
+		case 52:
+			num = 15f;
+			break;
+		case 99:
+			num = 15f;
+			break;
+		case 103:
+			num = 15f;
+			break;
+		case 53:
+		case 62:
+		case 174:
+			num = 5f;
+			break;
+		case 116:
+			num = 25f;
+			break;
+		case 60:
+			num = 15f;
+			break;
+		case 68:
+		case 175:
+			num = 5f;
+			break;
+		case 49:
+			num = 20f;
+			break;
+		case 69:
+			num = 25f;
+			break;
+		case 165:
+			num = 5f;
+			break;
+		case 105:
+			switch (particle.flags)
+			{
+			case 22:
+				num = 15f;
+				break;
+			case 32:
+				num = 25f;
+				break;
+			case 43:
+				num = 25f;
+				break;
+			}
+			break;
+		case 24:
+			switch (particle.flags)
+			{
+			case 19:
+				num = 25f;
+				break;
+			case 20:
+				num = 50f;
+				break;
+			case 0:
+				num = 15f;
+				if (GameModeMgr.IsGameEnhanced() && particle.aux == 5)
+				{
+					num = 50f;
+				}
+				break;
+			case 28:
+			case 29:
+				num = 2f;
+				break;
+			default:
+				num = 15f;
+				break;
+			}
+			break;
+		}
+		if (c.buffs.GetAllBuff())
+		{
+			num *= 2f;
+		}
+		if (c.playerIdx > -1)
+		{
+			if ((particle.type == 5 || particle.type == 11 || particle.type == 117 || particle.type == 126) && GameModeMgr.IsGameEnhanced() && c.buffs.GetGoldenBuff())
+			{
+				num *= 1.25f;
+			}
+			if (particle.type == 5)
+			{
+				float num2 = (c.equipment.twoHanded[c.equipment.loadoutIdx] ? 1.25f : 1f);
+				if (c.stats.GetCharmFlag(1))
+				{
+					if (GameModeMgr.IsGameEnhanced())
+					{
+						num += 10f;
+					}
+					else
+					{
+						num *= 1.1f;
+						num += 5f;
+					}
+				}
+				if (c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx < LootCatalog.category[0].loot.Length && LootCatalog.category[0].loot[c.equipment.loadout[c.equipment.loadoutIdx, 0].catalogIdx].flags == 9)
+				{
+					if (GameModeMgr.IsGameEnhanced())
+					{
+						num += 10f;
+					}
+					else
+					{
+						num *= 1.1f;
+						num += 5f;
+					}
+				}
+				if (c.script.chargeVal > 0f)
+				{
+					num *= 1f + c.script.chargeVal * 0.25f;
+					num += c.script.chargeVal * 10f;
+				}
+				return num * num2;
+			}
+			return num;
+		}
+		if (PlayerMgr.IsSaltCharacter(c))
+		{
+			if (c.boss)
+			{
+				return monsterDef.poiseAttack / 100f * num * 1.1f;
+			}
+			return monsterDef.poiseAttack / 100f * num * 2f;
+		}
+		return monsterDef.poiseAttack / 100f * num;
+	}
+	public float GetDefaultAttackVal(Player p, Particle particle, int type, float elementalRingFac)
+	{
+		InvLoot invLoot = ((c.equipment.loadout[c.equipment.loadoutIdx, 0].invIdx > -1) ? p.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 0].invIdx] : null);
+		int type2 = particle.type;
+		if ((type2 == 11 || type2 == 117 || type2 == 126) && c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > 128 && c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx > -1)
+		{
+			invLoot = p.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx];
+		}
+		if (invLoot == null)
+		{
+			return 0f;
+		}
+		try
+		{
+			float num = 0f;
+			float num2 = (c.equipment.twoHanded[c.equipment.loadoutIdx] ? 1f : 1f);
+			if (!c.equipment.CanAttack(c.update.lastAttackIdx))
+			{
+				num2 = 0.1f;
+			}
+			num = GetBuffScaledAttackVal(c, invLoot, type);
+			type2 = particle.type;
+			if (type2 == 11 || type2 == 117 || type2 == 126)
+			{
+				float num3 = 3f;
+				switch (particle.type)
+				{
+				case 11:
+					num3 = 3f;
+					if (particle.flags == 11)
+					{
+						num3 = 5f;
+					}
+					break;
+				case 117:
+					num3 = 2f;
+					break;
+				case 126:
+					num3 = 2f;
+					break;
+				}
+				if (p != null && GameModeMgr.IsGameEnhanced())
+				{
+					num = ConvertRangedDamage(invLoot, type, num, particle);
+					num3 = 0f;
+				}
+				switch (particle.flags)
+				{
+				case 12:
+					if (type == 2)
+					{
+						num += num3;
+					}
+					break;
+				case 14:
+					if (type == 5)
+					{
+						num += num3;
+					}
+					break;
+				case 13:
+					if (type == 3)
+					{
+						num += num3;
+					}
+					break;
+				case 16:
+					if (type == 8)
+					{
+						num += num3;
+					}
+					break;
+				case 17:
+					if (type == 9)
+					{
+						num += num3;
+					}
+					break;
+				}
+				if (!GameModeMgr.IsGameEnhanced() && particle.type == 126)
+				{
+					num *= 1.5f;
+				}
+			}
+			else
+			{
+				switch (particle.flags)
+				{
+				case 133:
+				case 136:
+				case 140:
+					num *= 0.25f;
+					break;
+				case 40:
+				case 41:
+				case 44:
+				case 45:
+				case 46:
+				case 47:
+				case 48:
+				case 49:
+				case 50:
+				case 51:
+				case 52:
+				case 53:
+				case 54:
+				case 55:
+				case 56:
+				case 57:
+				case 123:
+				case 125:
+				case 126:
+				case 127:
+				case 128:
+				case 129:
+				case 130:
+				case 131:
+				case 132:
+				case 135:
+				case 137:
+				case 138:
+				case 139:
+				case 142:
+					num *= 1.5f;
+					break;
+				case 245:
+				case 246:
+					num *= 1.5f;
+					break;
+				case 187:
+				case 230:
+					num *= 0.25f;
+					break;
+				case 42:
+				case 43:
+				case 124:
+				case 134:
+					num *= 1.5f + p.stats.GetCappedStat40(2) * 0.05f;
+					break;
+				case 21:
+					if (GameModeMgr.IsGameEnhanced())
+					{
+						num *= 1.2f;
+					}
+					break;
+				case 22:
+					if (GameModeMgr.IsGameEnhanced())
+					{
+						num *= 1f;
+					}
+					break;
+				case 68:
+					if (GameModeMgr.IsGameEnhanced())
+					{
+						num *= 1f;
+					}
+					break;
+				}
+			}
+			num = GetCharmAdjustedPhysicalAttackVal(num, type, p, invLoot);
+			if (GameModeMgr.IsGameEnhanced() && invLoot.category == 0 && LootCatalog.category[0].loot[invLoot.catalogIdx].type == 18 && particle.type == 126)
+			{
+				num *= 1.375f;
+			}
+			if (c.script.chargeVal > 0.1f)
+			{
+				num *= 1f + c.script.chargeVal * 0.25f;
+			}
+			return num * num2 * elementalRingFac;
+		}
+		catch
+		{
+		}
+		return 0f;
+	}
+	private float GetFistAttackVal(Particle particle, int type, Player p)
+	{
+		float fistBaseVal = GetFistBaseVal(p, type);
+		if (!GameModeMgr.IsGameEnhanced())
+		{
+			fistBaseVal = GetCharmAdjustedPhysicalAttackVal(fistBaseVal, type, p, null);
+			if (c.stats.GetRingFlag(31))
+			{
+				fistBaseVal *= 1.5f;
+			}
+			if (c.stats.GetRingFlag(38))
+			{
+				fistBaseVal *= 1.5f;
+			}
+			fistBaseVal *= 0.8f;
+			if (particle.flags == 218)
+			{
+				fistBaseVal *= 1.25f;
+			}
+		}
+		else
+		{
+			float num = 1f;
+			if (c.stats.GetRingFlag(38))
+			{
+				num = 1.5f;
+			}
+			fistBaseVal = GetCharmAdjustedPhysicalAttackVal(fistBaseVal, type, p, null);
+			fistBaseVal *= num;
+			switch (particle.flags)
+			{
+			case 218:
+				fistBaseVal *= 2f;
+				break;
+			case 190:
+				fistBaseVal *= 1.5f;
+				break;
+			case 247:
+				fistBaseVal *= 1.25f;
+				break;
+			}
+		}
+		if (DebugMgr.onePunch && type == 0)
+		{
+			fistBaseVal = 999999f;
+		}
+		return fistBaseVal;
+	}
+	public float GetFistBaseVal(Player p, int type)
+	{
+		float result = 0f;
+		if (type == 0)
+		{
+			if (GameModeMgr.IsGameEnhanced())
+			{
+				float num = 3f;
+				float num2 = 0.247f;
+				if (c.stats.GetRingFlag(31))
+				{
+					num = 6f;
+					num2 = 0.147f;
+				}
+				result = num * (1f + p.stats.GetCappedStat40(0) * num2);
+			}
+			else
+			{
+				result = p.stats.GetCappedStat40(0) * 0.8f;
+			}
+		}
+		return result;
+	}
+	private float GetShieldAttackVal(Player p, int type)
+	{
+		if (type == 0)
+		{
+			if (GameModeMgr.IsGameEnhanced())
+			{
+				float num = 21f;
+				num *= 1f + 2f * p.stats.GetCappedStat40(0) / 50f;
+				if (c.equipment.loadout[c.equipment.loadoutIdx, 1].catalogIdx > -1 && c.equipment.loadout[c.equipment.loadoutIdx, 1].category == 1)
+				{
+					num *= (float)Math.Pow(1.1, (((c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx > -1) ? p.playerInv.inventory[c.equipment.loadout[c.equipment.loadoutIdx, 1].invIdx] : null)?.upgrade).Value);
+				}
+				return GetGlobalModifiedDamage(num, p, null);
+			}
+			return p.stats.GetCappedStat40(0) * 0.5f;
+		}
+		return 0f;
+	}
+	public float GetBuffScaledAttackVal(Character c, InvLoot weap, int damtype)
+	{
+		Player player = c.GetPlayer();
+		float num = 0f;
+		float num2 = (GameModeMgr.IsGameEnhanced() ? 1.2f : 2.25f);
+		int flags = LootCatalog.category[weap.category].loot[weap.catalogIdx].flags;
+		switch (damtype)
+		{
+		case 0:
+			num = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			break;
+		case 2:
+			num = weap.GetScaledValue(6, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			if (c.buffs.GetMagicBuff() == 8)
+			{
+				float num7 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num7 = GetBaseDamage(weap);
+				}
+				num += num7 * c.buffs.GetMagicBuffVal(8) * ((flags == 1 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 3:
+			num = weap.GetScaledValue(7, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			if (c.buffs.GetMagicBuff() == 9)
+			{
+				float num5 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num5 = GetBaseDamage(weap);
+				}
+				num += num5 * c.buffs.GetMagicBuffVal(9) * ((flags == 2 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 5:
+			num = weap.GetScaledValue(9, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			if (c.buffs.GetMagicBuff() == 11)
+			{
+				float num6 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num6 = GetBaseDamage(weap);
+				}
+				num += num6 * c.buffs.GetMagicBuffVal(11) * ((flags == 3 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 8:
+			num = weap.GetScaledValue(12, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			if (c.buffs.GetMagicBuff() == 12)
+			{
+				float num4 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num4 = GetBaseDamage(weap);
+				}
+				num += num4 * c.buffs.GetMagicBuffVal(12) * ((flags == 5 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 9:
+			num = weap.GetScaledValue(13, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+			if (c.buffs.GetMagicBuff() == 13)
+			{
+				float num3 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num3 = GetBaseDamage(weap);
+				}
+				num += num3 * c.buffs.GetMagicBuffVal(13) * ((flags == 6 || flags == 14) ? num2 : 1f);
+			}
+			if (c.buffs.GetMagicBoost())
+			{
+				num *= 1.25f;
+			}
+			break;
+		}
+		return num;
+	}
+	public float GetBuffAttackValueOnly(InvLoot weap, int damtype)
+	{
+		if (weap == null)
+		{
+			return 0f;
+		}
+		Player player = c.GetPlayer();
+		float num = 0f;
+		float num2 = (GameModeMgr.IsGameEnhanced() ? 1.2f : 2.25f);
+		int flags = LootCatalog.category[weap.category].loot[weap.catalogIdx].flags;
+		switch (damtype)
+		{
+		case 2:
+			if (c.buffs.GetMagicBuff() == 8)
+			{
+				float num6 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num6 = GetBaseDamage(weap);
+				}
+				num += num6 * c.buffs.GetMagicBuffVal(8) * ((flags == 1 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 3:
+			if (c.buffs.GetMagicBuff() == 9)
+			{
+				float num7 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num7 = GetBaseDamage(weap);
+				}
+				num += num7 * c.buffs.GetMagicBuffVal(9) * ((flags == 2 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 5:
+			if (c.buffs.GetMagicBuff() == 11)
+			{
+				float num5 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num5 = GetBaseDamage(weap);
+				}
+				num += num5 * c.buffs.GetMagicBuffVal(11) * ((flags == 3 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 8:
+			if (c.buffs.GetMagicBuff() == 12)
+			{
+				float num4 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num4 = GetBaseDamage(weap);
+				}
+				num += num4 * c.buffs.GetMagicBuffVal(12) * ((flags == 5 || flags == 14) ? num2 : 1f);
+			}
+			break;
+		case 9:
+			if (c.buffs.GetMagicBuff() == 13)
+			{
+				float num3 = weap.GetValue(0, player);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num3 = GetBaseDamage(weap);
+				}
+				num += num3 * c.buffs.GetMagicBuffVal(13) * ((flags == 6 || flags == 14) ? num2 : 1f);
+			}
+			if (c.buffs.GetMagicBoost())
+			{
+				num *= 1.25f;
+			}
+			break;
+		}
+		return num;
+	}
+	public float GetGlobalModifiedDamage(float aVal, Player p, InvLoot weap)
+	{
+		if (PlayerMgr.GetMainPlayer().sanctuaryBonus[3])
+		{
+			aVal *= 1.1f;
+		}
+		if (c.stats.GetRingFlag(19))
+		{
+			aVal *= 1.1f;
+		}
+		if (c.stats.GetCharmFlag(0))
+		{
+			aVal *= 1.1f;
+		}
+		if (c.stats.GetCharmFlag(15) && p.salt > 0)
+		{
+			aVal *= 1.25f;
+		}
+		if (c.stats.GetCharmFlag(13) && c.hp <= c.stats.GetMaxHP() * 0.25f)
+		{
+			aVal *= 1.5f;
+		}
+		if (c.buffs.GetGoldenBuff())
+		{
+			float num = 1.5f;
+			if (GameModeMgr.IsGameEnhanced())
+			{
+				num = 1.35f;
+				float num2 = 1.42f;
+				if (weap == null)
+				{
+					num = num2;
+				}
+				else
+				{
+					LootDef lootDef = LootCatalog.category[weap.category].loot[weap.catalogIdx];
+					if (lootDef.flags < 1 || lootDef.flags > 6)
+					{
+						num = num2;
+					}
+				}
+				int magicBuff = c.buffs.GetMagicBuff();
+				if (magicBuff >= 8 && magicBuff <= 13)
+				{
+					num = 1f;
+				}
+			}
+			aVal *= num;
+		}
+		return aVal;
+	}
+	public float GetCharmOnlyDamage(InvLoot weap, int type)
+	{
+		float num = 0f;
+		Player player = c.GetPlayer();
+		float num2 = 0.1f;
+		float num3 = num2 * (GameModeMgr.IsGameEnhanced() ? 1.25f : 2.5f);
+		int num4 = -1;
+		if (weap != null && weap.catalogIdx > -1)
+		{
+			num4 = LootCatalog.category[0].loot[weap.catalogIdx].flags;
+		}
+		if (c.stats.GetCharmFlag(4) && type == 2)
+		{
+			if (weap != null)
+			{
+				float num5 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num5 = GetBaseDamage(weap);
+				}
+				num += num5 * ((num4 == 1 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (c.stats.GetCharmFlag(5) && type == 3)
+		{
+			if (weap != null)
+			{
+				float num6 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num6 = GetBaseDamage(weap);
+				}
+				num += num6 * ((num4 == 2 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (c.stats.GetCharmFlag(6) && type == 5)
+		{
+			if (weap != null)
+			{
+				float num7 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num7 = GetBaseDamage(weap);
+				}
+				num += num7 * ((num4 == 3 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (c.stats.GetCharmFlag(14) && type == 5)
+		{
+			if (weap != null)
+			{
+				float num8 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num8 = GetBaseDamage(weap);
+				}
+				num += num8 * ((num4 == 3 || num4 == 14) ? (num3 * 2f) : (num2 * 2f));
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (c.stats.GetCharmFlag(8) && type == 8)
+		{
+			if (weap != null)
+			{
+				float num9 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num9 = GetBaseDamage(weap);
+				}
+				num += num9 * ((num4 == 5 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (c.stats.GetCharmFlag(9) && type == 9)
+		{
+			if (weap != null)
+			{
+				float num10 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num10 = GetBaseDamage(weap);
+				}
+				num += num10 * ((num4 == 6 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		return num;
+	}
+	public float GetCharmDamageFromFlag(int flag, InvLoot weap)
+	{
+		float num = 0f;
+		Player player = c.GetPlayer();
+		float num2 = 0.1f;
+		float num3 = num2 * (GameModeMgr.IsGameEnhanced() ? 1.25f : 2.5f);
+		int num4 = -1;
+		if (weap != null && weap.catalogIdx > -1)
+		{
+			num4 = LootCatalog.category[0].loot[weap.catalogIdx].flags;
+		}
+		if (flag == 4)
+		{
+			if (weap != null)
+			{
+				float num5 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num5 = GetBaseDamage(weap);
+				}
+				num += num5 * ((num4 == 1 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (flag == 5)
+		{
+			if (weap != null)
+			{
+				float num6 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num6 = GetBaseDamage(weap);
+				}
+				num += num6 * ((num4 == 2 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (flag == 6)
+		{
+			if (weap != null)
+			{
+				float num7 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num7 = GetBaseDamage(weap);
+				}
+				num += num7 * ((num4 == 3 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (flag == 14)
+		{
+			if (weap != null)
+			{
+				float num8 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num8 = GetBaseDamage(weap);
+				}
+				num += num8 * ((num4 == 3 || num4 == 14) ? (num3 * 2f) : (num2 * 2f));
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (flag == 8)
+		{
+			if (weap != null)
+			{
+				float num9 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num9 = GetBaseDamage(weap);
+				}
+				num += num9 * ((num4 == 5 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		if (flag == 9)
+		{
+			if (weap != null)
+			{
+				float num10 = weap.GetScaledValue(0, player, player.stats, c.equipment.twoHanded[c.equipment.loadoutIdx], null);
+				if (GameModeMgr.IsGameEnhanced())
+				{
+					num10 = GetBaseDamage(weap);
+				}
+				num += num10 * ((num4 == 6 || num4 == 14) ? num3 : num2);
+			}
+			else
+			{
+				num += GetFistBaseVal(player, 0) * num2;
+			}
+		}
+		return num;
+	}
+	public int GetEquippedCharmId()
+	{
+		int catalogIdx = c.equipment.loadout[c.equipment.loadoutIdx, 2].catalogIdx;
+		int category = c.equipment.loadout[c.equipment.loadoutIdx, 2].category;
+		if (catalogIdx > -1 && catalogIdx < LootCatalog.category[3].loot.Length && category == 3)
+		{
+			LootDef lootDef = LootCatalog.category[3].loot[c.equipment.loadout[c.equipment.loadoutIdx, 2].catalogIdx];
+			if (lootDef != null)
+			{
+				return lootDef.flags;
+			}
+		}
+		return -1;
+	}
+}
+				break;
+			}
+		}
+		return result;
+	}
+}

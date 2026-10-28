@@ -1,0 +1,234 @@
+## lg2.layout_params | ['LayoutGenerator.cs:113-135', 'LayoutGenerator.cs:SetGenerationVars:243-246', 'LayoutGenerator.cs:cursedRoomChance:105', 'LayoutGenerator.cs:GenerateLayout:498']
+   N: {'connector_block': {'value': 4, 'unit': 'клеток'}, 'stage_padding': {'value': 8, 'unit': 'клеток'}, 'room_padding_vertical': {'value': 4, 'unit': 'клеток'}, 'room_padding_horizontal': {'value': 2, 'unit': 'клеток'}, 'max_rooms_solo': {'value': 10, 'note': 'считая стартовую'}, 'max_rooms_coop': {'va
+## lg2.stage_order | ['LevelGenerator.cs:Generate:119', 'LevelGenerator.cs:Generate:42']
+   N: {'overlay_thickness': {'value': 8, 'unit': 'клеток'}, 'decor_global_passes': 2}
+## lg2.mesh_layers | ['MeshGenerator.cs:CreateLayerMesh:31', 'MeshGenerator.cs:InitTriangles:86', 'MeshGenerator.cs:InitUVs:131', 'TileGrid.cs:InitVertices:245', 'Tile.cs:tileLayerNames:77', 'LayerVertexData']
+    отражение по X меняет местами левую и правую пары углов, отражение по Y — верхнюю и нижнюю
+   N: {'layers_per_tile': 14, 'vertices_per_tile': 4, 'triangles_per_tile': 2, 'indices_per_tile': 6, 'tile_size': {'value': 1, 'unit': 'м'}}
+## lg2.grid_primitives | ['IntGrid.cs', 'IntVec2.cs', 'Node.cs', 'LayoutGenerator.cs:SetGenerationVars:244', 'TileGridSection.cs']
+    етка целых чисел, пара целых (строка, колонка) с покомпонентными действиями и умножением на дробное число (результат округляется вниз), узел графа с координатой, списком соседей, расстоянием до цели, эвристической оценкой и
+   N: None
+## lg2.tileset_structure | ['TileSet.cs:floorVarChance:24', 'TileSet.cs:tileWidth:20', 'TileSet.cs:TerrainTypeToTileSetID:366', 'TileSet.cs:.ctor:201', 'TileSet.cs:InitTileSetMappings:274']
+    жа имеет набор тайлов: массивы вариантов для пола (центр, верх, низ, лево, право), отдельные тайлы внешних и внутренних углов, массивы вариантов для разных рядов стены (нижний, средний, верхний), каймы, пола и ямы, а также
+   N: {'tile_size_px': {'value': 16, 'unit': 'пикселей'}, 'floor_variation_chance_default': 0.03, 'wall_mirror_chance': 0.5, 'uv_inset': {'value': 0.1, 'unit': 'пикселя'}, 'wall_rows': 3}
+## lg2.minimap_reveal | ['Minimap.cs:GenerateMinimapMeshes:117', 'Minimap.cs:revealDistance:32', 'Minimap.cs:minimapZVal:34', 'Minimap.cs:GenerateMinimapMeshes:165', 'Minimap.cs:OnLevelGeneratedEvent:262', 'Minimap.cs:InitStageVars:224', 'Minimap.MinimapMode']
+    65) собственным упрощённым набором тайлов: пол, левая и правая стена, нижняя стена, кайма верхней стены, яма с краями и углами
+   N: {'section_size': {'value': 4, 'unit': 'клеток'}, 'tile_alpha': 0.65, 'camera_z': {'value': -40, 'unit': 'м'}, 'start_marker_scale': 2.75, 'modes': 3}
+## lg2.minimap_tileset | ['MinimapTileSet.cs']
+    дин тайл пола, по одному тайлу левой и правой стены, нижней стены и каймы верхней стены, один тайл ямы и восемь краёв и углов ямы (право, лево, низ, верх, четыре угла)
+   N: {'pit_edge_tiles': 8, 'wall_tile_kinds': 4}
+## lg2.path_tileset_params | ['PathTileSet.cs:maxTileCount:31', 'PathTileSet.cs:newPathSpawnChance:35', 'PathTileSet.cs:maxDistFromSeed:39', 'Tile.TerrainMaterial']
+    ериалом (камень, грунт, трава, вода) и списками тайлов для центра, четырёх сторон, четырёх внешних и четырёх внутренних углов
+   N: {'max_tile_count_default': 999, 'new_path_chance_default': 0.01, 'max_dist_from_seed_default': 999, 'material_kinds': 4}
+## lg2.overlay_generator | ['OverlayGenerator.cs:validTerrainTypes:7', 'OverlayGenerator.cs:GenerateOverlay:157']
+   N: {'thickness': {'value': 8, 'unit': 'клеток'}, 'yield_interval': {'value': 64, 'unit': 'строк'}, 'terrain_kinds': 3}
+## lg3.room_object | ['Room.cs', 'Room.cs:InitEntityLists', 'Room.cs:Generate:187']
+   N: {'allowed_exit_mask_default': 'all'}
+## lg3.room_connection_info | ['RoomConnectionInfo.cs', 'Room.cs:GetConnectionInfo', 'Room.cs:SetConnectionInfo', 'Tile.ConnectionType']
+   N: {'connection_kinds': 8, 'sides': 4}
+## lg3.floor_type_mask | ['Tile.cs:FloorType:13', 'Tile.FloorType']
+    внутренние углы имеют отдельные значения 16 (верх-лево), 17 (верх-право), 18 (низ-лево), 19 (низ-право)
+   N: {'center': 15, 'top': 7, 'bottom': 11, 'left': 14, 'right': 13, 'top_left': 6, 'top_right': 5, 'bottom_left': 10, 'bottom_right': 9, 'inner_corner_top_left': 16, 'inner_corner_top_right': 17, 'inner_corner_bottom_left': 18, 'inner_corner_bottom_right': 19}
+## lg3.tile_grid | ['TileGrid.cs', 'TileGrid.cs:CountTilesInDir:398', 'TileGridSection.cs']
+    индексы внутри участка отсчитываются от его угла
+   N: {'count_in_direction_max': {'value': 40, 'unit': 'клеток'}, 'insets_sides': 4}
+## lg3.tile_selection | ['TileSet.cs:TerrainTypeToTileSetID:366', 'TileSet.cs:TerrainTypeToTileSetID:372', 'TileSet.cs:TerrainTypeToTileSetID:376', 'TileSet.cs:PathFloorToTileSetID:469', 'TileSet.cs:FloorToTileSetID:517', 'TileSet.cs:PitToTileSetIDSubFunction:723', 'TileSet.cs:PitToTileSetID:753']
+    Пол — по маске соседей из этого раздела (центр/края/углы) и по вероятности вариации темы
+   N: {'mirror_chance': 0.5, 'wall_rows': 3, 'pit_depth_levels': 4}
+## lg3.tile_atlas_math | ['TileSet.cs:GetUVFromTilePosition:1170', 'TileSet.cs:.ctor:201', 'TileSet.cs:tileWidth:20']
+    Для каждого тайла определяется его положение в сетке, затем четыре угла текстурных координат со сдвигом на 0
+   N: {'tile_size_px': {'value': 16, 'unit': 'пикселей'}, 'uv_inset': {'value': 0.1, 'unit': 'пикселя'}, 'uv_corners': 4}
+## enc.factory_location | ['EnemyFactory.cs:SetSpawnAreaExtents:158', 'EnemyFactory.cs:GetRandomLocation:180', 'EnemyFactory.cs:GetRandomLocation:185', 'EnemyFactory.cs:GetRandomLocation:186', 'EnemyFactory.cs:GetRandomLocation:187', 'EnemyFactory.cs:OnDrawGizmosSelected:207']
+   N: {'half_area_factor': 0.5, 'strip_choices': 4, 'editor_min_gap_to_edge': {'value': 1, 'unit': 'клетка'}, 'editor_min_margin_size': {'value': 2, 'unit': 'клетка'}}
+## loot.gold_coins | ['Gold.cs', 'CoinType.cs', 'ItemSpawner.cs:SpawnGoldVal:235', 'ItemSpawner.cs:SpawnGoldVal:239', 'ItemSpawner.cs:SpawnGoldVal:242', 'ItemSpawner.cs:SpawnGoldVal:243', 'Gold.cs:Awake:39', 'Gold.cs:Awake:40', 'GoldWallet.cs:.ctor:4']
+    Монета разлетается со случайной скоростью от 12 до 15 и ждёт 0
+   N: {'coin_small': 1, 'coin_medium': 5, 'coin_large': 10, 'fly_speed_min': 12, 'fly_speed_max': 15, 'pickup_delay': {'value': 0.5, 'unit': 'с'}, 'wallet_cap': {'value': 9999, 'unit': 'золота'}}
+## loot.gem_pickup | ['Platinum.cs', 'Platinum.cs:Awake:21', 'Platinum.cs:Awake:22', 'Platinum.cs:Pickup:57', 'PlatWallet.cs:.ctor:4', 'LootManager.cs:DropPlat:2236']
+    Кристаллы при выпадении разлетаются в радиусе 3 клеток
+   N: {'value': 1, 'fly_speed_min': 12, 'fly_speed_max': 15, 'pickup_delay': {'value': 0.75, 'unit': 'с'}, 'wallet_cap': {'value': 999, 'unit': 'кристаллов'}, 'particle_burst': 50, 'drop_scatter_radius': {'value': 3, 'unit': 'клеток'}}
+## loot.item_spawner_pools | ['ItemSpawner.cs', 'ItemSpawner.cs:Awake:54', 'ItemSpawner.cs:SpawnItem:109', 'ItemSpawner.cs:SpawnItem:130', 'ItemSpawner.cs:SpawnItem:135', 'ItemSpawner.cs:SpawnItem:172', 'ItemSpawner.cs:SpawnItemWithCount:177', 'ItemSpawner.cs:SpawnItemBetweenMinMax:190', 'ItemSpawner.cs:SpawnItemWithChance:198', 'ItemSpawner.cs:GetRandomSpawnLocation:202', 'ItemSpawner.cs:GetRandomSpawnLocation:208', 'ItemSpawner.ItemPoolEntry', 'ItemSpawner.PoolType']
+    Новый предмет берётся из пула по кругу
+   N: {'scatter_range': {'value': 1.5, 'unit': 'м'}, 'min_distance_scatter': {'value': 1, 'unit': 'м'}, 'random_jitter_scale': 1, 'random_jitter_offset': 0.125, 'overlap_buffer': 50, 'pool_kinds': 7, 'default_chance_threshold': 1}
+## loot.gold_compensation | ['LootManager.cs:coopGoldMod:1896', 'LootManager.cs:targetGoldPerStageMulti:1898', 'LootManager.cs:minMaxCompVal:1900', 'LootManager.cs:minPercentageForCompensation:1902', 'LootManager.cs:GoldCompensationVal.get:1930', 'LootManager.cs:GoldCompensationVal.get:1935', 'DropTableEntry.cs']
+    1) как умножающий модификатор с приоритетом 10) и подстройки, затем округляется вверх
+   N: {'min_defeated_share': 0.5, 'gold_per_stage_factor': 0.005, 'compensation_max': 1.5, 'compensation_min': 0.5, 'coop_gold_bonus': 0.1, 'coop_bonus_priority': 10, 'min_max_comp_value': 0.5, 'min_percentage_for_compensation': 0.5}
+## C-09-loot-007 | Gold (Gold.cs)
+    5 с, гасит долг, остаток кладёт в кошелёк с цифрой над игроком, при подборе разлетаются 6 частиц цвета монеты
+   N: {'small': 1, 'medium': 5, 'large': 10, 'fly_speed_min': 12, 'fly_speed_max': 15, 'pickup_delay': {'value': 0.5, 'unit': 'с'}}
+## C-09-loot-013 | ItemSpawner (ItemSpawner.cs)
+    Единственный создатель предметов на полу: берёт предметы из пулов по кругу, разбрасывает их, считает монеты
+   N: {'scatter_range': {'value': 1.5, 'unit': 'м'}, 'overlap_buffer': 50}
+## C-09-loot-014 | ItemSpawner.ItemPoolEntry (ItemSpawner.cs)
+    индекс идёт по кругу
+   N: {}
+## C-10-boss-002 | AirBoss.AirBossAirRailState (AirBoss.cs)
+    55 с (от 5 до 7 по сложности), в каждой по 8 выстрелов широким веером (до 1
+   N: {'wave_step_s': {'value': 0.55, 'unit': 'с'}, 'shots_per_wave': 8, 'shots_regular': 3, 'arrow_speed': 100, 'fan_width': 1.75, 'waves_min': 5, 'waves_max': 7, 'lock_delay_s': {'value': 0.125, 'unit': 'с'}, 'dash_shot_speed': 60, 'retreat_speed': 10, 'exit_mult_ult': 3.25, 'damage_main': 35, 'damage_s
+## C-10-boss-004 | AirBoss.AirBossIdleState (AirBoss.cs)
+   N: {'taunt_speed': 1.5, 'end_phase_at': 0.7, 'ball_off_at': 0.5}
+## C-10-boss-021 | BossRoomEventHandler (BossRoomEventHandler.cs)
+   N: {'camera_move_s': {'value': 2, 'unit': 'с'}, 'pause_s': {'value': 1, 'unit': 'с'}, 'camera_return_s': {'value': 0.25, 'unit': 'с'}, 'exit_circle_s': {'value': 1.5, 'unit': 'с'}, 'pvp_wait_s': {'value': 3, 'unit': 'с'}}
+## C-10-boss-033 | EarthBoss.EarthBossReadyState (EarthBoss.cs)
+    25 от 2 E: по кругу радиуса 1
+   N: {'windup_share': 0.25, 'cubes': 6, 'cube_ring_radius_m': {'value': 1.5, 'unit': 'м'}, 'debris_particles': 24, 'total_exit_mult': 2}
+## C-10-boss-040 | FinalBoss.FinalBossChaosBallState (FinalBoss.cs)
+    5 м, веер 16° на 5 шаров), при выпуске пускает их в цель с интервалом 0
+   N: {'spawn_range_m': {'value': 1.5, 'unit': 'м'}, 'spread_deg': 16, 'count': 5, 'step_s': {'value': 0.25, 'unit': 'с'}, 'speed': 12, 'ult_speed': 30, 'windup_mult_regular': 1.5, 'windup_mult_ult': 1.25}
+## C-10-boss-042 | FinalBoss.FinalBossChaosGrabState (FinalBoss.cs)
+    25 с по три спирали (в цель и ±веер 0
+   N: {'directions': 8, 'ult_volleys': 5, 'ult_step_s': {'value': 0.25, 'unit': 'с'}, 'ult_spread': 0.25, 'windup_mult': 1.25, 'storm_delay_s': {'value': 1.3, 'unit': 'с'}, 'ult_storm_delay_s': {'value': 0.25, 'unit': 'с'}}
+## C-10-boss-044 | FinalBoss.FinalBossChaosSummonState (FinalBoss.cs)
+    Обычно — по кругу радиуса 5 м вокруг босса, в ульте — по кругу у стен арены
+   N: {'orbs': 5, 'orbs_ult': 7, 'spawn_range_m': {'value': 5, 'unit': 'м'}, 'exit_mult': 2.5, 'exit_mult_ult': 4}
+## C-10-boss-058 | FinalBoss.FinalBossOutroState (FinalBoss.cs)
+    Анимация ухода: взрыв эффекта (360°, 24 частицы с шагом 0
+   N: {'effect_delay_s': {'value': 0.75, 'unit': 'с'}, 'particles': 24, 'step_s': {'value': 0.075, 'unit': 'с'}}
+## C-10-boss-066 | FinalBoss.FinalBossSuperSpearState (FinalBoss.cs)
+    Замах W, затем веер из трёх мечей-снарядов (шаг 1/32 круга), каждый взрывается через 1 с
+   N: {'projectiles': 3, 'fan_step_circle': '1/32', 'detonate_s': {'value': 1, 'unit': 'с'}}
+## C-10-boss-067 | FinalBoss.FinalBossWaterAttackState (FinalBoss.cs)
+    веер из 5 ледяных снарядов по 24 направлениям вокруг цели, выпускаются с шагом 0
+   N: {'directions': 24, 'projectiles': 5, 'step_s': {'value': 0.025, 'unit': 'с'}, 'windup_mult': 0.5, 'flight_mult': 4, 'damage': 25}
+## C-10-boss-069 | FinalBossExitRoom (FinalBossExitRoom.cs)
+    Комната после битвы: сначала зона выживания с 5 лазерными орбами по кругу (радиус 7 м), затем вторая зона с одним случайным элитным врагом из шести видов
+   N: {'spawn_range_m': {'value': 7, 'unit': 'м'}, 'first_wave_orbs': 5, 'second_wave_pool': 6, 'teleport_effect_s': {'value': 0.125, 'unit': 'с'}}
+## C-10-boss-073 | FireBoss.FireBossDragonLineState (FireBoss.cs)
+   N: {'line_length_m': {'value': 20, 'unit': 'м'}, 'arc_batches': 10, 'batch_step_s': {'value': 0.1, 'unit': 'с'}, 'batch_size': 5, 'speed_min': 28, 'speed_max': 32, 'slide_mult': 0.75, 'exit_mult': 2, 'damage_tick': 5, 'damage_trail': 10}
+## C-10-boss-074 | FireBoss.FireBossFireBarrageState (FireBoss.cs)
+    пять огненных шаров на кольце радиуса 3 м, выстрел по одному в порядке центр, 1, 3, 0, 4 с интервалом 0
+   N: {'balls': 5, 'ring_radius_m': {'value': 3, 'unit': 'м'}, 'ball_speed': 32, 'windup_mult': 0.75, 'step_mult': 0.25, 'exit_mult': 1.25, 'damage': 50}
+## C-10-boss-076 | FireBoss.FireBossFireDashState (FireBoss.cs)
+   N: {'dashes': 3, 'dash_distance_m': {'value': 8, 'unit': 'м'}, 'dash_speed': 32, 'dash_time_s': {'value': 0.25, 'unit': 'с'}, 'windup_mult': 1.25, 'gap_mult': 0.5, 'damage': 30}
+## C-10-boss-077 | FireBoss.FireBossFlareFadeState (FireBoss.cs)
+    самонаводящиеся искры (пять веером) с наведением 0
+   N: {'dash_speed': 32, 'dash_time_s': {'value': 0.125, 'unit': 'с'}, 'homing_s': {'value': 0.5, 'unit': 'с'}, 'windup_mult': 0.75, 'sparks': 5, 'speed_min': 8, 'speed_max': 12, 'life_s': {'value': 3, 'unit': 'с'}, 'retreat_speed': 20, 'exit_mult': 2, 'damage': 16}
+## C-10-boss-083 | FireBoss.FireBossVacuumExplosionState (FireBoss.cs)
+    затем вакуумный заряд в цели и ещё 4 на кольце радиуса 5 м (случайная чётность из 8 точек), сдвиг 1–1
+   N: {'ring_radius_m': {'value': 5, 'unit': 'м'}, 'positions': 8, 'charges': 5, 'fuse_mult': 1, 'delay_mult': 2, 'exit_mult': 2, 'damage_pull': 10, 'damage_blast': 30}
+## C-10-boss-084 | GenericPool (GenericPool.cs)
+    Служебный пул предметов: заранее создаёт N экземпляров (по умолчанию 10) за пределами сцены и выдаёт их по кругу
+   N: {'default_size': 10}
+## C-10-boss-085 | IceBoss (IceBoss.cs)
+    снятие укрепления рассыпает ледяные осколки (20, 15 и 12 частиц на трёх высотах) со звуком
+   N: {'hp_base': 1500, 'hp_per_difficulty': 125, 'move_speed': 9, 'dash_speed': 36, 'dash_time_s': {'value': 0.15, 'unit': 'с'}, 'shatter_particles': [20, 15, 12]}
+## C-10-boss-090 | IceBoss.IceBossIceDashState (IceBoss.cs)
+    07 с), пять параллельных волн веером, главная наводится на цель первые 75% звеньев
+   N: {'waves': 5, 'links': 40, 'step_max_s': {'value': 0.09, 'unit': 'с'}, 'step_min_s': {'value': 0.07, 'unit': 'с'}, 'fortify_mult': 1.5, 'exit_mult': 1.5, 'damage': 5}
+## C-10-boss-091 | IceBoss.IceBossIceLanceState (IceBoss.cs)
+    Босс воды выращивает перед собой веер ледяных копий и бросает его в цель
+    я в стороны и всё время довёрнуты на текущую позицию цели (каждое копьё целится со своим поперечным смещением от центра веера)
+    Размер веера растёт со сложностью: 3 копья на D=0, 5 на D=1, 7 на D>=2
+   N: {'windup_gate_xW': {'value': 1.25, 'unit': 'доли W', 'note': 'реальное окно замаха; базовое значение замаха W'}, 'launch_delay_xW': {'value': 0.35, 'unit': 'доли W', 'note': 'пауза после перенаведения до пуска'}, 'half_fan': {'value': 'int(lerp(1; 3; v))', 'note': '1 / 2 / 3 для D=0 / 1 / >=2'}, 'fa
+## C-10-boss-096 | IceBoss.IceBossReadyState (IceBoss.cs)
+   N: {'wheel_shatter_at_anim': {'value': 0.9, 'note': 'доля анимации колеса'}, 'shatter_bursts': {'value': 4, 'unit': 'шт'}, 'shatter_particles_each': {'value': 40, 'unit': 'шт'}, 'shatter_height': {'value': 3.25, 'unit': 'м', 'note': 'над колесом; направления вверх/вниз/влево/вправо на 1 м'}, 'sound_ran
+## C-10-boss-097 | IceBoss.IceBossWaterBarrageState (IceBoss.cs)
+    Босс воды вызывает кольцо водяных шаров вокруг себя и выпускает их в цель по одному
+    В ульте каждый шар в конце своего пути рассыпается на 12 ледяных осколков веером по кругу (случайный сдвиг начала), осколок летит 25 м/с в течение 0
+   N: {'ult_balls': {'value': 'int(lerp(20; 24; v))', 'unit': 'шт'}, 'ult_ball_speed': {'value': 'lerp(24; 32; v)', 'unit': 'м/с'}, 'ult_windup_xW': {'value': 3.0, 'unit': 'доли W'}, 'ult_exit_xE': {'value': 1.0, 'unit': 'доли E'}, 'ult_attack_level': 2, 'normal_balls': {'value': 'int(lerp(7; 9; v))', 'un
+## C-10-boss-098 | IceBoss.IceBossWaterBombState (IceBoss.cs)
+    3, и каждая бомба летит в точку кольца радиусом 3 м вокруг цели: кольцо поделено на 12 позиций, бомба i берёт позицию i·4 + сдвиг, то есть три бомбы падают вокруг цели ра
+   N: {'bombs': {'value': 3, 'unit': 'шт'}, 'orbit_radius_start': {'value': 1, 'unit': 'м'}, 'orbit_radius_end': {'value': 3, 'unit': 'м'}, 'ring_positions': {'value': 12, 'unit': 'шт'}, 'ring_step': {'value': 4, 'unit': 'позиции'}, 'target_ring_radius': {'value': 3, 'unit': 'м'}, 'throw_flight': {'value'
+## C-10-boss-099 | LightningBoss (LightningBoss.cs)
+    углы арены берутся по крайним точкам внешних колонок
+   N: {'facing_directions': 4, 'stage_center_offset_y': {'value': -2, 'unit': 'м', 'note': 'от точки появления босса'}, 'intro_boss_offset_x': {'value': -0.75, 'unit': 'м'}, 'intro_partner_offset_x': {'value': 0.75, 'unit': 'м'}, 'drum_boss_offset_y': {'value': 5.5, 'unit': 'м', 'note': 'от центра сцены'}
+## C-10-boss-100 | LightningBoss.LightningBossChainSpinState (LightningBoss.cs)
+   N: {'moves': {'value': 10, 'unit': 'шт'}, 'move_interval': {'value': 'lerp(0.5; 0.375; v)', 'unit': 'с'}, 'windup_xW': {'value': 1.375, 'unit': 'доли W'}, 'pull_pose_at_anim': 0.85, 'first_move': 'притягивающий рывок', 'second_move': 'усиление цепи: 8 импульсов вдоль линии', 'dash_attack_level': 2, 'wa
+## C-10-boss-108 | LightningBoss.LightningBossShockBlenderState (LightningBoss.cs)
+    25), и по кольцу радиусом 3 м вокруг него появляются 3 орба (живые враги в тревоге без добычи
+   N: {'orbs': {'value': 3, 'unit': 'шт'}, 'orb_ring_radius': {'value': 3, 'unit': 'м'}, 'orb_hp': {'value': 25, 'unit': 'HP', 'note': 'замена, а не прибавка'}, 'windup_xW': {'value': 0.75, 'unit': 'доли W'}, 'exit_xE': {'value': 3.0, 'unit': 'доли E'}, 'burst_radius': {'value': 2.5, 'unit': 'м'}, 'old_or
+## C-10-boss-109 | LightningBoss.LightningBossShockNetState (LightningBoss.cs)
+    Затем появляются 5 шаров на кольце радиусом 5 м (из 25 позиций кольца берётся каждая пятая со случайным сдвигом)
+    каждый шар соединяется линиями с тремя точками - центром сети (на 1 м выше целевой точки) и двумя точками кольца, смещёнными на 3 и 1 шаг
+   N: {'orbs': {'value': 5, 'unit': 'шт'}, 'orb_hits': {'value': 5, 'unit': 'шт'}, 'orb_ring_radius': {'value': 5, 'unit': 'м'}, 'ring_positions': {'value': 25, 'unit': 'шт'}, 'windup_xW': {'value': 0.75, 'unit': 'доли W'}, 'second_wait_xW': {'value': 0.75, 'unit': 'доли W'}, 'land_time': {'value': 0.25, 
+## C-10-boss-110 | LightningBoss.LightningBossShrinkBoxState (LightningBoss.cs)
+    5·замах раздвигает четыре угла от центра, затем на 0
+   N: {'boxes': {'value': 4, 'unit': 'шт'}, 'half_side_step': {'value': 3, 'unit': 'м', 'note': 'полусторона клетки i = i·3'}, 'touches_per_side': {'value': '9 - i', 'unit': 'шт', 'note': 'для клетки номер i = 1..4'}, 'expand_time_xwindup': {'value': 0.5, 'note': 'доля замаха'}, 'fire_delay': {'value': '2
+## C-10-boss-111 | LightningBoss.LightningBossSkyJavelinState (LightningBoss.cs)
+    25·W: босс призывает 5 шаров по кольцу радиусом 1
+   N: {'javelins': {'value': 5, 'unit': 'шт'}, 'interval': {'value': 'lerp(0.35; 0.25; v)', 'unit': 'с'}, 'windup_xW': {'value': 1.25, 'unit': 'доли W'}, 'exit_xE': {'value': 1.75, 'unit': 'доли E'}, 'orb_ring_radius': {'value': 1.325, 'unit': 'м'}, 'javelin_height': {'value': 4.75, 'unit': 'м'}, 'target_
+## C-10-boss-113 | LightningBoss.LightningBossThunderDrumState (LightningBoss.cs)
+    75 м (кольца порождаются каждые 0
+   N: {'strikes': {'value': 6, 'unit': 'шт'}, 'strike_interval_xW': {'value': 1.0, 'unit': 'доли W'}, 'windup_gate_xW': {'value': 1.5, 'unit': 'доли W'}, 'exit_xE': {'value': 2.0, 'unit': 'доли E'}, 'wave_count': {'value': 16, 'unit': 'шт'}, 'wave_burst_scale': 2, 'wave_spacing': {'value': 1.75, 'unit': '
+## C-10-boss-118 | MiniBossActivationCircle (MiniBossActivationCircle.cs)
+   N: {'interact_radius': {'value': 2, 'unit': 'м'}, 'prompt_height': {'value': 2.5, 'unit': 'м'}, 'aura_particles_each': {'value': 15, 'unit': 'шт', 'note': 'передний и задний слой'}, 'disabled_skull_alpha': 0.25}
+## C-10-boss-119 | MiniBossAltar (MiniBossAltar.cs)
+   N: {'skulls': {'value': 3, 'unit': 'шт', 'note': 'по числу меток прогресса'}, 'all_dim_pause': {'value': 0.5, 'unit': 'с'}, 'skull_relight_step': {'value': 0.2, 'unit': 'с'}, 'pause_before_break': {'value': 0.1, 'unit': 'с'}, 'second_burst_delay': {'value': 0.15, 'unit': 'с'}, 'break_burst': 'rock_debr
+## C-10-boss-121 | MiniBossLaserSummonState (MiniBossLaserSummonState.cs)
+    е лазерные шары элиты сначала уничтожаются, затем создаётся 5 новых шаров с 1 HP: вокруг точки появления элиты строится кольцо из 10 направлений, берутся нечётные (через одно), по каждому на расстояние до 20 м, но не дальше б
+   N: {'priority': 10, 'range': {'value': [0, 30], 'unit': 'м'}, 'cooldown': {'value': 60, 'unit': 'с'}, 'initial_cooldown': {'value': 30, 'unit': 'с'}, 'orbs_max': 5, 'orbs_per_cast': 5, 'ring_radius': {'value': 20, 'unit': 'м'}, 'ring_points': {'value': 10, 'unit': 'шт', 'note': 'берутся нечётные точки 
+## C-10-boss-122 | MiniBossSummonState (MiniBossSummonState.cs)
+    максимум − текущее число) миньонов, расставленных по кругу из n+1 точек радиусом 4 м (индексы 1
+   N: {'spawn_radius': {'value': 4, 'unit': 'м'}, 'cooldown_factor_when_full': {'value': 0.5, 'note': 'доля базовой перезарядки'}, 'health_mod_priority': 10, 'wave_size_default': 1, 'health_added_default': 0}
+## C-10-boss-123 | ShockBox (ShockBox.cs)
+    Четыре угла плавно (сглаженная кривая) расходятся от центра к вершинам за время расширения (по умолчанию 0
+    в углах вспыхивают всплески, камера трясётся на 0
+    125 с, осыпая углы обломками металла (5) и искрами (8 на угол)
+   N: {'corners': 4, 'expand_time_default': {'value': 0.35, 'unit': 'с'}, 'fire_delay_default': {'value': 0.25, 'unit': 'с'}, 'warning_duration': {'value': 0.25, 'unit': 'с'}, 'stream_interval': {'value': 0.1, 'unit': 'с'}, 'stream_width': {'value': 0.375, 'unit': 'м'}, 'life_after_fire': {'value': 'касан
+## C-10-boss-124 | StunEffect (StunEffect.cs)
+   N: {'stars': {'value': 5, 'unit': 'шт'}, 'star_share': {'value': 0.2, 'note': 'каждая звезда - 20% полной шкалы'}, 'full_window_default': {'value': 1.25, 'unit': 'с', 'note': 'звёзды убираются в последние 1.25 с, если полное окно не задано'}, 'default_duration': {'value': 1, 'unit': 'с'}}
+## R-11-checkpoint-build | ['CheckpointGenerator (CheckpointGenerator.cs):GenerateCheckpoints, DestroyOldCheckpoints']
+   N: {'offset_top': {'value': '(0.5; 0.5)', 'unit': 'клетки'}, 'offset_bottom': {'value': '(0.5; -1.5)', 'unit': 'клетки'}, 'offset_left': {'value': '(-0.5; -0.5)', 'unit': 'клетки'}, 'offset_right': {'value': '(1.5; -0.5)', 'unit': 'клетки'}, 'zone_height_for_horizontal': {'value': 1, 'unit': 'клетки'}}
+## R-11-ending-altar | ['EndingAltar (EndingAltar.cs):GoHome']
+    Затем три серии лучей света из реликвии: в первой 3 луча, в остальных по 2
+    лучи равномерно разведены по кругу (360° / число лучей) от случайного угла, каждый с разбросом поворота ±45°, скоростью анимации 0
+   N: {'start_pause': {'value': 0.5, 'unit': 'с'}, 'item_spawn_height': {'value': 2, 'unit': 'м'}, 'camera_target_height': {'value': 5, 'unit': 'м'}, 'camera_move_param': {'value': 18, 'note': 'параметр времени/скорости движения камеры, единица не выяснена'}, 'sparkle_duration': {'value': 3, 'unit': 'с'},
+## R-11-exit-portal | ['ExitPortal (ExitPortal.cs):Awake, Start, Update, Close, LoadNextLevel, Prepare, Deactivate']
+   N: {'hide_players_at': {'value': 0.1, 'note': 'нормированное время анимации телепорта'}, 'go_at': {'value': 1.0, 'note': 'нормированное время анимации телепорта'}, 'dust_particles': {'value': 200, 'unit': 'шт'}, 'icon_height': {'value': 1.0625, 'unit': 'м'}, 'item_repeller_radius': {'value': 2, 'unit':
+## R-11-portal-manager | ['PortalManager (PortalManager.cs):CreateDirectedPortal, SetLastPortal, ResetDirectedPortals, CreatePortal']
+   N: {'exit_offset': {'value': '(0; -1.5)', 'unit': 'м'}}
+## R-12-loadout-ui | ['LoadoutUI (LoadoutUI.cs):Update, LoadData, UpdateCurrentLoadout, EquipSelected, SaveCurrent, HandleNavigation, Deactivate, GetArcanaBGIndex']
+    Навигация вверх/вниз по кругу
+   N: {'cards': 6, 'close_distance': {'value': 4, 'unit': 'м'}, 'nav_first_delay': {'value': 0.4, 'unit': 'с'}, 'nav_repeat': {'value': 0.2, 'unit': 'с'}, 'dimmer_alpha': 0.6, 'flash_fade': {'value': 0.25, 'unit': 'с'}, 'full_heal_request': {'value': 999, 'unit': 'HP'}}
+## pvp-match-start | ['PvpController.cs:Start', 'PvpController.cs:Update', 'PvpController.cs:ResetPlayers', 'PvpController.cs:OnTriggerStay2D', 'PvpController.cs:OnTriggerExit2D']
+    Как только обе площадки заняты и оба игрока живы, всё сбрасывается - здоровье полное, позиции в стартовых углах, перезарядки и шкала ульты нулевые, призывы и стражи игроков уничтожены - и запускается подготовк
+   N: {'players': 2}
+## stat-skill-field-store | ['StatData.cs:GetValue', 'StatData.cs:ApplyVarStatMod', 'StatData.cs:AddMod', 'StatData.cs:RemoveMod', 'StatData.cs:EnsureVarStatEntry', 'StatData.cs:HasOverrideMod', 'StatData.cs:SetValue', 'StatData.cs:LoadStatDict']
+    Целочисленные поля после конвейера округляются вверх, дробные не округляются
+   N: {'levels_per_skill': 5, 'rounding': 'вверх для целых'}
+## C-15-items-007 | AoEStatusEffects (AoEStatusEffects.cs)
+   N: {'chance': 0.5, 'internal_cooldown': {'value': 0.25, 'unit': 's'}, 'radius': {'value': 3, 'unit': 'm'}, 'poison_bomb': {'value': 0.5, 'unit': 's'}, 'pool_tier': 3, 'base_price': 4}
+## C-15-items-040 | BurstOnDotItem (BurstOnDotItem.cs)
+   N: {'radius': {'value': 3, 'unit': 'm'}, 'internal_cooldown': {'value': 3, 'unit': 's'}, 'pool_tier': 4, 'base_price': 5}
+## C-15-items-071 | DamageUpWithCC (DamageUpWithCC.cs)
+    2 с округлением вверх, до применения защиты цели
+   N: {'множитель_урона': {'value': 1.2, 'unit': 'раз'}, 'округление': 'вверх'}
+## C-15-items-077 | DamageUpWithMapReveal (DamageUpWithMapReveal.cs)
+    Текущий бонус = округлённый процент открытой карты этажа × 0
+   N: {'урон_за_процент_карты_множ': {'value': 0.0004, 'unit': 'доля на 1% открытой карты'}, 'максимум_за_этаж_множ': {'value': 0.04, 'unit': 'доля'}, 'мин_интервал_обновления': {'value': 2, 'unit': 'с'}}
+## C-15-items-084 | DeathProofCrown (DeathProofCrown.cs)
+    HP (округление вверх)
+   N: {'неуязвимость': {'value': 3.5, 'unit': 'с'}, 'ульта_при_срабатывании': {'value': 999, 'unit': 'очки шкалы ульты', 'note': 'заполняет шкалу'}, 'лечение_по_окончании': {'value': 0.05, 'unit': 'доля макс. HP', 'note': 'округление вверх'}}
+## C-15-items-092 | DoctorVial (DoctorVial.cs)
+    HP (округление вверх)
+   N: {'лечение': {'value': 0.1, 'unit': 'доля макс. HP', 'note': 'округление вверх'}}
+## C-15-items-094 | DoubleAttackChance (DoubleAttackChance.cs)
+    1 с повторяется по той же цели с 25% исходного урона (округление вверх), без отбрасывания
+   N: {'задержка_повтора': {'value': 0.1, 'unit': 'с'}, 'доля_урона': {'value': 0.25, 'unit': 'доля исходного', 'note': 'округление вверх'}}
+## C-15-items-098 | EarthChargeFamiliarItem (EarthChargeFamiliarItem.cs)
+   N: {'радиус_орбиты_сдвиг': 0.25, 'дальность_обнаружения': {'value': 7, 'unit': 'м'}, 'зарядка': {'value': 0.5, 'unit': 'с'}, 'дистанция_рывка': {'value': 7, 'unit': 'м'}, 'пауза_между_атаками': {'value': 2, 'unit': 'с', 'note': 'плюс случайные 0–1 с'}}
+## C-15-items-130 | ExtraSkillCharge (ExtraSkillCharge.cs)
+    округление определяет система перезарядки)
+   N: {'заряды_множ': {'value': 0.2, 'unit': 'доля'}}
+## C-15-items-131 | FireArcanaCountItem (FireArcanaCountItem.cs)
+   N: {'шанс_база': {'value': 0.02, 'unit': 'доля'}, 'шанс_за_аркану': {'value': 0.005, 'unit': 'доля'}, 'урон_поздний_множ': {'value': 1.0, 'unit': 'доля', 'note': '+100%'}}
+## C-15-items-137 | FireChargeFamiliarItem (FireChargeFamiliarItem.cs)
+   N: {'радиус_орбиты_сдвиг': -0.5, 'дальность_обнаружения': {'value': 7, 'unit': 'м'}, 'зарядка': {'value': 0.5, 'unit': 'с'}, 'дистанция_рывка': {'value': 7, 'unit': 'м'}, 'пауза_между_атаками': {'value': 2, 'unit': 'с', 'note': 'плюс случайные 0–1 с'}}
+## C-15-items-141 | FirstHitDamageUp (FirstHitDamageUp.cs)
+    Плюс: урон арканы этого игрока по цели с полным здоровьем (кроме разрушаемых объектов) +35% (округление вверх)
+   N: {'бонус_урона_по_целой_цели': {'value': 0.35, 'unit': 'доля', 'note': 'округление вверх'}, 'получаемый_урон_множ': {'value': 0.35, 'unit': 'доля'}}
+## C-15-items-149 | FrostAura (FrostAura.cs)
+   N: {'шанс_заморозки': {'value': 0.2, 'unit': 'доля'}, 'задержка_заморозки': {'value': 0.4, 'unit': 'с'}, 'уровень_арканы': 1}
+## C-15-items-150 | FrostField (FrostField.cs)
+   N: {'шанс_заморозки_в_pvp': {'value': 0.08, 'unit': 'доля'}, 'разброс_задержки': {'value': '0.8–1.2', 'unit': 'раз'}, 'масштаб_зоны_удара': 0.25}
+## C-15-items-152 | FrostNova (FrostNova.cs)
+   N: {'радиус_по_умолчанию': {'value': 6, 'unit': 'м'}, 'длительность_до_удаления': {'value': 1, 'unit': 'с'}}
+## C-15-items-153 | FrostNovaWithOverdrive (FrostNovaWithOverdrive.cs)
+   N: {'радиус_волны': {'value': 6, 'unit': 'м'}}
+## C-15-items-174 | HealOnStartZeroGold (HealOnStartZeroGold.cs)
+   N: {'лечение_за_золото': {'value': 0.5, 'unit': 'HP на монету', 'note': 'округление вверх'}}
+## C-15-items-179 | HealthToGold (HealthToGold.cs)
+   N: {'потеря_hp': {'value': 0.1, 'unit': 'доля текущего HP', 'note': 'округление вверх'}}
+## C-15-items-207 | LaserSightItem (LaserSightItem.cs)
+   N: {'projectile_crit_add': {'value': 0.06, 'unit': 'доля, прибавка'}, 'pool_tier': 4, 'base_price': 5}
+## C-15-items-210 | LightningAura (LightningAura.cs)
+   N: {'strike_chance': {'value': 0.1, 'unit': 'доля за проверку'}, 'strike_period': {'value': 0.2, 'unit': 'с'}, 'arcana_level': 1, 'pool_tier': 4, 'base_price': 5}

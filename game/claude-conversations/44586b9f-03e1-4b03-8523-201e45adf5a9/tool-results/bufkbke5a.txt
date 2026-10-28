@@ -1,0 +1,1129 @@
+=== VarStat
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+[Serializable]
+public class VarStat<T> : ISerializationCallbackReceiver
+{
+	public delegate void StatChangedEventHandler();
+	private VarStatMod<T> topPriorityOverride;
+	public StatChangedEventHandler statChangedEventHandlers;
+	public T _currentValue;
+	public T _baseValue;
+	public T _modifiedValue;
+	public int overrideModCount;
+	public List<VarStatMod<T>> modifiers;
+	public virtual T CurrentValue
+	{
+		get
+		{
+			return _currentValue;
+		}
+		set
+		{
+			_currentValue = value;
+			AnnounceStatChangedEvent();
+		}
+	}
+	public virtual T BaseValue
+	{
+		get
+		{
+			return _baseValue;
+		}
+		set
+		{
+			_baseValue = value;
+			Recalculate();
+		}
+	}
+	public virtual T ModifiedValue
+	{
+		get
+		{
+			return _modifiedValue;
+		}
+		set
+		{
+			_modifiedValue = value;
+		}
+	}
+	public bool HasOverrideMod => overrideModCount > 0;
+	public VarStat(T newBaseVal)
+	{
+		Initialize(newBaseVal);
+	}
+	public void Initialize(T newBaseVal, bool initModList = true)
+	{
+		BaseValue = newBaseVal;
+		ModifiedValue = newBaseVal;
+		CurrentValue = newBaseVal;
+		if (initModList)
+		{
+			modifiers = new List<VarStatMod<T>>();
+		}
+	}
+	public void OnBeforeSerialize()
+	{
+	}
+	public virtual void OnAfterDeserialize()
+	{
+		Initialize(_baseValue);
+	}
+	public virtual int GetModIndex(string modID)
+	{
+		for (int i = 0; i < modifiers.Count; i++)
+		{
+			if (modifiers[i].ID == modID)
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+	public virtual void Reset()
+	{
+		modifiers.Clear();
+		overrideModCount = 0;
+		topPriorityOverride = null;
+		Recalculate();
+	}
+	public virtual void Modify(VarStatMod<T> givenMod, bool addMod)
+	{
+		if (addMod)
+		{
+			AddMod(givenMod);
+		}
+		else
+		{
+			RemoveMod(givenMod);
+		}
+	}
+	public virtual void AddMod(VarStatMod<T> newMod)
+	{
+		int modIndex = GetModIndex(newMod.ID);
+		if (modIndex != -1)
+		{
+			modifiers[modIndex] = newMod;
+		}
+		else
+		{
+			modifiers.Add(newMod);
+		}
+		Reprioritize();
+		SetTopPriorityOverride();
+		Recalculate();
+		if (newMod.modType == VarStatModType.Override)
+		{
+			overrideModCount++;
+		}
+	}
+	public virtual void RemoveMod(VarStatMod<T> givenMod)
+	{
+		if (givenMod != null)
+		{
+			RemoveMod(givenMod.ID);
+			if (givenMod.modType == VarStatModType.Override)
+			{
+				overrideModCount--;
+			}
+		}
+	}
+	public virtual void RemoveMod(string modID)
+	{
+		int modIndex = GetModIndex(modID);
+		if (modIndex != -1)
+		{
+			modifiers[modIndex].Remove(this);
+			modifiers.Remove(modifiers[modIndex]);
+			Reprioritize();
+			SetTopPriorityOverride();
+			Recalculate();
+		}
+	}
+	public void SetTopPriorityOverride()
+	{
+		for (int i = 0; i < modifiers.Count; i++)
+		{
+			if (modifiers[i].modType == VarStatModType.Override)
+			{
+				topPriorityOverride = modifiers[i];
+				return;
+			}
+		}
+		topPriorityOverride = null;
+	}
+	public virtual void Recalculate()
+	{
+		if (modifiers == null)
+		{
+			return;
+		}
+		ModifiedValue = BaseValue;
+		if (topPriorityOverride != null)
+		{
+			topPriorityOverride.Apply(this);
+		}
+		else
+		{
+			for (int i = 0; i < modifiers.Count; i++)
+			{
+				modifiers[i].Apply(this);
+			}
+		}
+		CurrentValue = CurrentValue;
+	}
+	public virtual void Reprioritize()
+	{
+		modifiers = (from x in modifiers
+			orderby x.modType, x.priority
+			select x).ToList();
+	}
+	public void SetInitialBaseValue(T newBaseVal)
+	{
+		Initialize(newBaseVal, initModList: false);
+	}
+	public void AnnounceStatChangedEvent()
+	{
+		if (statChangedEventHandlers != null)
+		{
+			statChangedEventHandlers();
+		}
+	}
+}
+=== VarStatMod
+public class VarStatMod<T>
+{
+	public string ID;
+	public int priority;
+	public int defaultPriority = 10;
+	public VarStatModType modType;
+	public VarStatMod(string newID, int newPriority = 0, VarStatModType modType = VarStatModType.Additive)
+	{
+		ID = newID;
+		priority = newPriority;
+		this.modType = modType;
+	}
+	public virtual void Apply(VarStat<T> varStatToMod)
+	{
+	}
+	public virtual void Remove(VarStat<T> varStatToMod)
+	{
+	}
+}
+=== VarStatModType
+public enum VarStatModType
+{
+	Override = 0,
+	OverrideWithMods = 1,
+	Multiplicative = 2,
+	Additive = 3,
+	LateMultiplicative = 4,
+	Custom = 8
+}
+=== BoolVarStat
+using System;
+using System.Linq;
+[Serializable]
+public class BoolVarStat : VarStat<bool>
+{
+	public BoolVarStat(bool newBaseVal)
+		: base(newBaseVal)
+	{
+	}
+	public override void Reprioritize()
+	{
+		modifiers = (from x in modifiers
+			orderby x.modType descending, x.priority
+			select x).ToList();
+	}
+	public override void Recalculate()
+	{
+		CurrentValue = BaseValue;
+		base.Recalculate();
+	}
+}
+=== BoolVarStatMod
+public class BoolVarStatMod : VarStatMod<bool>
+{
+	public bool modValue;
+	public BoolVarStatMod(string newID, bool newModValue, int newPriority = 10)
+		: base(newID, newPriority, VarStatModType.Additive)
+	{
+		modValue = newModValue;
+	}
+	public BoolVarStatMod(string newID, BoolVarStatMod newMod)
+		: base(newID, newMod.priority, VarStatModType.Additive)
+	{
+		modValue = newMod.modValue;
+	}
+	public override void Apply(VarStat<bool> varStatToMod)
+	{
+		base.Apply(varStatToMod);
+		varStatToMod.CurrentValue = modValue;
+		varStatToMod.ModifiedValue = modValue;
+	}
+}
+=== NumVarStat
+using System;
+using System.Linq;
+[Serializable]
+public class NumVarStat : VarStat<float>
+{
+	public bool syncCurrentToModMax;
+	public float minMaxVal;
+	public override float CurrentValue
+	{
+		get
+		{
+			return (!syncCurrentToModMax) ? _currentValue : ModifiedValue;
+		}
+		set
+		{
+			_currentValue = ((!syncCurrentToModMax && !(value > ModifiedValue)) ? value : ModifiedValue);
+			if (_currentValue < 0f)
+			{
+				_currentValue = 0f;
+			}
+			AnnounceStatChangedEvent();
+		}
+	}
+	public override float BaseValue
+	{
+		get
+		{
+			return _baseValue;
+		}
+		set
+		{
+			_baseValue = ((!(value > minMaxVal)) ? minMaxVal : value);
+		}
+	}
+	public override float ModifiedValue
+	{
+		get
+		{
+			return _modifiedValue;
+		}
+		set
+		{
+			_modifiedValue = ((!(value > minMaxVal)) ? minMaxVal : value);
+		}
+	}
+	public NumVarStat(float newBaseVal, bool syncCurrentToModMax = false)
+		: base(newBaseVal)
+	{
+		CurrentValue = newBaseVal;
+		this.syncCurrentToModMax = syncCurrentToModMax;
+	}
+	public NumVarStat(int newBaseVal)
+		: this(newBaseVal, false)
+	{
+	}
+	public override void Reprioritize()
+	{
+		modifiers = (from x in modifiers
+			orderby x.modType, ((NumVarStatMod)x).priority, ((NumVarStatMod)x).modValue descending
+			select x).ToList();
+	}
+}
+=== NumVarStatMod
+public class NumVarStatMod : VarStatMod<float>
+{
+	public float modValue;
+	public bool fillToNewMax;
+	public NumVarStatMod(string newID, float newModValue, int newPriority = 10, VarStatModType modType = VarStatModType.Additive, bool fillToNewMax = false)
+		: base(newID, newPriority, modType)
+	{
+		modValue = newModValue;
+		base.modType = modType;
+		this.fillToNewMax = fillToNewMax;
+	}
+	public void ApplyMultiplicative(VarStat<float> varStatToMod)
+	{
+		varStatToMod.ModifiedValue += varStatToMod.ModifiedValue * (1f + modValue) - varStatToMod.ModifiedValue;
+	}
+	public override void Apply(VarStat<float> varStatToMod)
+	{
+		base.Apply(varStatToMod);
+		if (modType == VarStatModType.Override || modType == VarStatModType.OverrideWithMods)
+		{
+			varStatToMod.ModifiedValue = modValue;
+		}
+		else
+		{
+			switch (modType)
+			{
+			case VarStatModType.Additive:
+				varStatToMod.ModifiedValue += modValue;
+				break;
+			case VarStatModType.Multiplicative:
+				ApplyMultiplicative(varStatToMod);
+				break;
+			case VarStatModType.LateMultiplicative:
+				ApplyMultiplicative(varStatToMod);
+				break;
+			}
+		}
+		if (fillToNewMax)
+		{
+			varStatToMod.CurrentValue = varStatToMod.ModifiedValue;
+		}
+	}
+	public new void Remove(VarStat<float> varStatToMod)
+	{
+		base.Apply(varStatToMod);
+	}
+}
+=== SyncedNumVarStat
+using System;
+[Serializable]
+public class SyncedNumVarStat : NumVarStat
+{
+	public SyncedNumVarStat(float newBaseVal)
+		: base(newBaseVal, syncCurrentToModMax: true)
+	{
+	}
+	public override void OnAfterDeserialize()
+	{
+		base.OnAfterDeserialize();
+		syncCurrentToModMax = true;
+	}
+}
+=== EmpowerStatMods
+public static class EmpowerStatMods
+{
+	private static BoolVarStatMod _defaultEmpowerMod;
+	private static BoolVarStatMod _debugEmpowerMod;
+	public static BoolVarStatMod DefaultEmpowerMod
+	{
+		get
+		{
+			if (_defaultEmpowerMod == null)
+			{
+				_defaultEmpowerMod = new BoolVarStatMod("DefaultEmpower", newModValue: true, 60);
+			}
+			return _defaultEmpowerMod;
+		}
+	}
+	public static BoolVarStatMod DebugEmpowerMod
+	{
+		get
+		{
+			if (_debugEmpowerMod == null)
+			{
+				_debugEmpowerMod = new BoolVarStatMod("DebugEmpower", newModValue: true, 0);
+			}
+			return _debugEmpowerMod;
+		}
+	}
+}
+=== EnemyGlobalStatManager
+using UnityEngine;
+public static class EnemyGlobalStatManager
+{
+	private static readonly string GlobalModID = "EnemyGlobalModID";
+	public static bool useDiffScaling = false;
+	public static NumVarStatMod healthMod = new NumVarStatMod(GlobalModID, 0f, 0, VarStatModType.Additive, fillToNewMax: true);
+	private static NumVarStatMod damageMod = new NumVarStatMod(GlobalModID, 0f, 0, VarStatModType.LateMultiplicative);
+	private static NumVarStatMod cdrMod = new NumVarStatMod(GlobalModID, 0f, 0, VarStatModType.LateMultiplicative);
+	private static NumVarStatMod windupMod = new NumVarStatMod(GlobalModID, 0f, 0, VarStatModType.LateMultiplicative);
+	private static NumVarStatMod exitMod = new NumVarStatMod(GlobalModID, 0f, 0, VarStatModType.LateMultiplicative);
+	private static NumVarStatMod bossHurtMod = new NumVarStatMod(GlobalModID, 0f, 0, VarStatModType.LateMultiplicative);
+	public static void CalculateScaling()
+	{
+		if (useDiffScaling)
+		{
+			int currentDifficulty = GameController.CurrentDifficulty;
+			healthMod.modValue = 5 * currentDifficulty;
+			damageMod.modValue = 0.03f * (float)currentDifficulty;
+			cdrMod.modValue = -0.03f * (float)currentDifficulty;
+			windupMod.modValue = -0.03f * (float)currentDifficulty;
+			exitMod.modValue = -0.03f * (float)currentDifficulty;
+			bossHurtMod.modValue = -0.02f * (float)currentDifficulty;
+			SetModStatus(givenStatus: true);
+		}
+		else
+		{
+			healthMod.modValue = Mathf.Min(GameController.CurrentDifficulty * 20 - 10, 70);
+		}
+	}
+	public static void ResetScaling()
+	{
+		useDiffScaling = false;
+		healthMod.modValue = 0f;
+		SetModStatus(givenStatus: false);
+	}
+	private static void SetModStatus(bool givenStatus)
+	{
+		StatManager.ModifyAllStatData(damageMod, Enemy.globalEnemySkillCategory, "damage", IgnoreStatusAndHazard, givenStatus);
+		Enemy.SkillState.ApplyGlobalMods(cdrMod, windupMod, exitMod, givenStatus);
+		Boss.BaseHurtDurationMultiplier.Modify(bossHurtMod, givenStatus);
+	}
+	private static bool IgnoreStatusAndHazard(StatData givenSD)
+	{
+		return !givenSD.GetValue<bool>("isStatusEffect");
+	}
+}
+=== RunModifier
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+public class RunModifier : MonoBehaviour
+{
+	private static RunModifier instance;
+	private Dictionary<string, RunMod> runMods = new Dictionary<string, RunMod>();
+	public static RunModifier Instance => instance;
+	private void Awake()
+	{
+		if (instance != null && instance != this)
+		{
+			UnityEngine.Object.Destroy(gameObject);
+			return;
+		}
+		instance = this;
+		UnityEngine.Object.DontDestroyOnLoad(gameObject);
+	}
+	public void AddMod(RunMod mod)
+	{
+		runMods[mod.modID] = mod;
+		if (mod.activateImmediately)
+		{
+			mod.Activate();
+		}
+	}
+	public bool HasMod(string modID)
+	{
+		return runMods != null && runMods.ContainsKey(modID);
+	}
+	private void Start()
+	{
+		LoadingScreen loadingScreen = GameController.loadingScreen;
+		loadingScreen.loadCompleteEventHandlers = (LoadingScreen.LoadCompleteEvent)Delegate.Combine(loadingScreen.loadCompleteEventHandlers, new LoadingScreen.LoadCompleteEvent(OnLoadComplete));
+	}
+	private void OnDestroy()
+	{
+		if (GameController.loadingScreen != null)
+		{
+			LoadingScreen loadingScreen = GameController.loadingScreen;
+			loadingScreen.loadCompleteEventHandlers = (LoadingScreen.LoadCompleteEvent)Delegate.Remove(loadingScreen.loadCompleteEventHandlers, new LoadingScreen.LoadCompleteEvent(OnLoadComplete));
+		}
+	}
+	private void DeactivateAllMods()
+	{
+		foreach (KeyValuePair<string, RunMod> runMod in runMods)
+		{
+			if (runMod.Value != null)
+			{
+				runMod.Value.Deactivate();
+			}
+		}
+	}
+	private void RemoveAllMods()
+	{
+		DeactivateAllMods();
+		runMods.Clear();
+	}
+	private void OnLevelWasLoaded()
+	{
+		if (runMods == null || runMods.Keys.Count == 0)
+		{
+			return;
+		}
+		if (GameController.resetHubVars)
+		{
+			RemoveAllMods();
+		}
+		else
+		{
+			if (!Globals.InGameScene(string.Empty))
+			{
+				return;
+			}
+			foreach (KeyValuePair<string, RunMod> runMod in runMods)
+			{
+				if (runMod.Value != null && runMod.Value.useOnLevelWasLoaded)
+				{
+					runMod.Value.OnLevelWasLoaded();
+				}
+			}
+		}
+	}
+	private void OnLoadComplete()
+	{
+		if (runMods == null || runMods.Keys.Count == 0 || !Globals.InGameScene(string.Empty))
+		{
+			return;
+		}
+		foreach (KeyValuePair<string, RunMod> runMod in runMods)
+		{
+			if (runMod.Value != null && runMod.Value.useOnLoadComplete)
+			{
+				runMod.Value.OnLoadComplete();
+			}
+		}
+	}
+}
+=== StatData
+using System;
+using System.Collections.Generic;
+using Chaos.DictionaryExtensions;
+using UnityEngine;
+public class StatData
+{
+	public static string idStr = "ID";
+	public static string eleStr = "elementType";
+	public static string subEleStr = "subElementType";
+	public static string showNumStr = "showDamageNumber";
+	public static string showEffStr = "showDamageEffect";
+	public static string shakeCamStr = "shakeCamera";
+	public static string targetStr = "targetNames";
+	public static string sameTrgStr = "sameTargetImmunityTime";
+	public static string sameAtkStr = "sameAttackImmunityTime";
+	public static string canStunStr = "canHitStun";
+	public static string stunDurStr = "hitStunDurationModifier";
+	public static string kbMultiStr = "knockbackMultiplier";
+	public static string kbOverStr = "knockbackOverwrite";
+	public static string damageStr = "damage";
+	public static string cdStr = "cooldown";
+	public static string durStr = "duration";
+	public static string hitCountStr = "hitCount";
+	public static string intervalStr = "damageInterval";
+	public static string spawnStr = "spawnCount";
+	public static string healthStr = "baseHealth";
+	public static string critChStr = "criticalHitChance";
+	public static string critDmgStr = "criticalDamageModifier";
+	public static string isStatStr = "isStatusEffect";
+	public static string rootChStr = "rootChance";
+	public static string rootDurStr = "rootDuration";
+	public static string chaosChStr = "chaosChance";
+	public static string chaosLvStr = "chaosLevel";
+	public static string burnChStr = "burnChance";
+	public static string burnLvStr = "burnLevel";
+	public static string slowChStr = "slowChance";
+	public static string slowLvStr = "slowLevel";
+	public static string psnChStr = "poisonChance";
+	public static string psnLvStr = "poisonLevel";
+	public static string shockChStr = "shockChance";
+	public static string shockLvStr = "shockLevel";
+	public static string frzChStr = "freezeChance";
+	public static string frzDurStr = "freezeDuration";
+	public static string odDmgStr = "overdriveDamageMultiplier";
+	public static string odProgStr = "overdriveProgressMultiplier";
+	public static string odSingleStr = "overdriveSingleIncrease";
+	public Dictionary<string, object> statDict = new Dictionary<string, object>();
+	public string category;
+	public int currentLevel;
+	public Dictionary<string, SyncedNumVarStat> numVarStatDict;
+	public Dictionary<string, BoolVarStat> boolVarStatDict;
+	public StatData(SkillStats givenSS, string givenCategory)
+	{
+		numVarStatDict = new Dictionary<string, SyncedNumVarStat>();
+		boolVarStatDict = new Dictionary<string, BoolVarStat>();
+		category = givenCategory;
+		currentLevel = 0;
+		LoadStatDict(givenSS);
+	}
+	public bool HasOverrideMod(string fieldName)
+	{
+		if (numVarStatDict.ContainsKey(fieldName))
+		{
+			return numVarStatDict[fieldName].HasOverrideMod;
+		}
+		if (boolVarStatDict.ContainsKey(fieldName))
+		{
+			return boolVarStatDict[fieldName].HasOverrideMod;
+		}
+		return false;
+	}
+	public void EnsureVarStatEntry(string fieldName)
+	{
+		if (!numVarStatDict.ContainsKey(fieldName))
+		{
+			numVarStatDict[fieldName] = new SyncedNumVarStat(0f);
+		}
+		if (!boolVarStatDict.ContainsKey(fieldName))
+		{
+			boolVarStatDict[fieldName] = new BoolVarStat(newBaseVal: false);
+		}
+	}
+	public void AddMod(string fieldName, NumVarStatMod newMod)
+	{
+		if (!numVarStatDict.ContainsKey(fieldName))
+		{
+			numVarStatDict[fieldName] = new SyncedNumVarStat(0f);
+		}
+		numVarStatDict[fieldName].AddMod(newMod);
+	}
+	public void AddMod(string fieldName, BoolVarStatMod newMod)
+	{
+		if (!boolVarStatDict.ContainsKey(fieldName))
+		{
+			boolVarStatDict[fieldName] = new BoolVarStat(newBaseVal: false);
+		}
+		boolVarStatDict[fieldName].AddMod(newMod);
+	}
+	public void RemoveMod(string fieldName, string modID)
+	{
+		if (numVarStatDict.ContainsKey(fieldName))
+		{
+			numVarStatDict[fieldName].RemoveMod(modID);
+		}
+		if (boolVarStatDict.ContainsKey(fieldName))
+		{
+			boolVarStatDict[fieldName].RemoveMod(modID);
+		}
+	}
+	public void ModifyMod(string givenField, NumVarStatMod givenMod, bool givenStatus)
+	{
+		if (givenStatus)
+		{
+			AddMod(givenField, givenMod);
+		}
+		else
+		{
+			RemoveMod(givenField, givenMod.ID);
+		}
+	}
+	public void ModifyMod(string givenField, BoolVarStatMod givenMod, bool givenStatus)
+	{
+		if (givenStatus)
+		{
+			AddMod(givenField, givenMod);
+		}
+		else
+		{
+			RemoveMod(givenField, givenMod.ID);
+		}
+	}
+	public T GetValue<T>(string fieldName, int level = -1)
+	{
+		if (level < 0)
+		{
+			if (currentLevel < 0)
+			{
+				currentLevel = 0;
+				Debug.Log("Stat data current level is negative!! Resetting to zero. Fix plz!");
+			}
+			level = currentLevel;
+		}
+		if (level > 0)
+		{
+			level--;
+		}
+		T varStatVal;
+		try
+		{
+			List<T> value = statDict.GetValue<List<T>>(fieldName);
+			varStatVal = value[level];
+		}
+		catch (InvalidCastException)
+		{
+			varStatVal = statDict.GetValue<T>(fieldName);
+		}
+		return ApplyVarStatMod(fieldName, varStatVal);
+	}
+	public T ApplyVarStatMod<T>(string fieldName, T varStatVal)
+	{
+		if (varStatVal.GetType() == typeof(float) || varStatVal.GetType() == typeof(int))
+		{
+			if (!numVarStatDict.ContainsKey(fieldName) || numVarStatDict[fieldName].modifiers.Count == 0)
+			{
+				return varStatVal;
+			}
+			numVarStatDict[fieldName].SetInitialBaseValue((float)Convert.ChangeType(varStatVal, typeof(float)));
+			numVarStatDict[fieldName].Recalculate();
+			return (T)Convert.ChangeType((varStatVal.GetType() != typeof(float)) ? ((float)Mathf.CeilToInt(numVarStatDict[fieldName].CurrentValue)) : numVarStatDict[fieldName].CurrentValue, typeof(T));
+		}
+		if (varStatVal.GetType() == typeof(bool))
+		{
+			if (!boolVarStatDict.ContainsKey(fieldName) || boolVarStatDict[fieldName].modifiers.Count == 0)
+			{
+				return varStatVal;
+			}
+			boolVarStatDict[fieldName].SetInitialBaseValue((bool)Convert.ChangeType(varStatVal, typeof(bool)));
+			boolVarStatDict[fieldName].Recalculate();
+			return (T)Convert.ChangeType(boolVarStatDict[fieldName].CurrentValue, typeof(T));
+		}
+		return varStatVal;
+	}
+	public float ApplyVarStatMod(string fieldName, int varStatVal)
+	{
+		return ApplyVarStatMod(fieldName, (float)varStatVal);
+	}
+	public float ApplyVarStatMod(string fieldName, float varStatVal)
+	{
+		if (!numVarStatDict.ContainsKey(fieldName))
+		{
+			return varStatVal;
+		}
+		numVarStatDict[fieldName].SetInitialBaseValue(varStatVal);
+		numVarStatDict[fieldName].Recalculate();
+		return numVarStatDict[fieldName].CurrentValue;
+	}
+	public bool ApplyVarStatMod(string fieldName, bool varStatVal)
+	{
+		if (!boolVarStatDict.ContainsKey(fieldName))
+		{
+			return varStatVal;
+		}
+		boolVarStatDict[fieldName].SetInitialBaseValue(varStatVal);
+		boolVarStatDict[fieldName].Recalculate();
+		return boolVarStatDict[fieldName].CurrentValue;
+	}
+	public void SetValue<T>(string fieldName, T newVal, int level = -1)
+	{
+		if (level < 0)
+		{
+			level = currentLevel;
+		}
+		if (level > 0)
+		{
+			level--;
+		}
+		try
+		{
+			List<T> value = statDict.GetValue<List<T>>(fieldName);
+			value[level] = newVal;
+		}
+		catch (InvalidCastException)
+		{
+			statDict[fieldName] = newVal;
+		}
+	}
+	private void LoadStatDict(SkillStats givenSS)
+	{
+		statDict.Clear();
+		statDict.Add(idStr, new List<string>(givenSS.ID));
+		statDict.Add(eleStr, new List<string>(givenSS.elementType));
+		statDict.Add(subEleStr, new List<string>(givenSS.subElementType));
+		statDict.Add(showNumStr, new List<bool>(givenSS.showDamageNumber));
+		statDict.Add(showEffStr, new List<bool>(givenSS.showDamageEffect));
+		statDict.Add(shakeCamStr, new List<bool>(givenSS.shakeCamera));
+		statDict.Add(targetStr, new List<string>(givenSS.targetNames));
+		statDict.Add(sameTrgStr, new List<float>(givenSS.sameTargetImmunityTime));
+		statDict.Add(sameAtkStr, new List<float>(givenSS.sameAttackImmunityTime));
+		statDict.Add(canStunStr, new List<bool>(givenSS.canHitStun));
+		statDict.Add(stunDurStr, new List<float>(givenSS.hitStunDurationModifier));
+		statDict.Add(kbMultiStr, new List<float>(givenSS.knockbackMultiplier));
+		statDict.Add(kbOverStr, new List<bool>(givenSS.knockbackOverwrite));
+		statDict.Add(damageStr, new List<int>(givenSS.damage));
+		statDict.Add(cdStr, new List<float>(givenSS.cooldown));
+		statDict.Add(durStr, new List<float>(givenSS.duration));
+		statDict.Add(hitCountStr, new List<int>(givenSS.hitCount));
+		statDict.Add(intervalStr, new List<float>(givenSS.damageInterval));
+		statDict.Add(spawnStr, new List<int>(givenSS.spawnCount));
+		statDict.Add(healthStr, new List<int>(givenSS.baseHealth));
+		statDict.Add(critChStr, new List<float>(givenSS.criticalHitChance));
+		statDict.Add(critDmgStr, new List<float>(givenSS.criticalDamageModifier));
+		statDict.Add(isStatStr, new List<bool>(givenSS.isStatusEffect));
+		statDict.Add(chaosChStr, new List<float>(givenSS.chaosChance));
+		statDict.Add(chaosLvStr, new List<int>(givenSS.chaosLevel));
+		statDict.Add(burnChStr, new List<float>(givenSS.burnChance));
+		statDict.Add(burnLvStr, new List<int>(givenSS.burnLevel));
+		statDict.Add(slowChStr, new List<float>(givenSS.slowChance));
+		statDict.Add(slowLvStr, new List<int>(givenSS.slowLevel));
+		statDict.Add(psnChStr, new List<float>(givenSS.poisonChance));
+		statDict.Add(psnLvStr, new List<int>(givenSS.poisonLevel));
+		statDict.Add(shockChStr, new List<float>(givenSS.shockChance));
+		statDict.Add(shockLvStr, new List<int>(givenSS.shockLevel));
+		statDict.Add(frzChStr, new List<float>(givenSS.freezeChance));
+		statDict.Add(frzDurStr, new List<float>(givenSS.freezeDuration));
+		statDict.Add(rootChStr, new List<float>(givenSS.rootChance));
+		statDict.Add(rootDurStr, new List<float>(givenSS.rootDuration));
+		statDict.Add(odDmgStr, new List<float>(givenSS.overdriveDamageMultiplier));
+		statDict.Add(odProgStr, new List<float>(givenSS.overdriveProgressMultiplier));
+		statDict.Add(odSingleStr, new List<bool>(givenSS.overdriveSingleIncrease));
+	}
+}
+=== StatManager
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+public static class StatManager
+{
+	public delegate bool ModApplyConditional(StatData givenStatData);
+	private static readonly string statFieldStr = "Skills";
+	private static readonly string playerSkillAssetPath = "Assets/Data/Player/Skills.json";
+	private static readonly string playerBaseCategory = "Player";
+	private static readonly string enemySkillAssetPath = "Assets/Data/Enemy/Skills.json";
+	public static readonly string enemyBaseCategory = "Enemy";
+	public static Dictionary<string, StatData> globalSkillData = new Dictionary<string, StatData>();
+	public static Dictionary<string, Dictionary<string, Dictionary<string, StatData>>> data = new Dictionary<string, Dictionary<string, Dictionary<string, StatData>>>();
+	private static List<StatData> modifiedStatDataList;
+	private static StatData modifiedStatData;
+	public static void LoadPlayerSkills(string categoryModifier = "")
+	{
+		LoadData(playerSkillAssetPath, statFieldStr, playerBaseCategory, categoryModifier);
+	}
+	public static void LoadEnemySkills(string categoryModifier = "")
+	{
+		LoadData(enemySkillAssetPath, statFieldStr, enemyBaseCategory, categoryModifier);
+	}
+	public static void LoadData(string assetPath, string statID, string category, string categoryModifier = "")
+	{
+		string text = category + categoryModifier;
+		if (!data.ContainsKey(statID))
+		{
+			data[statID] = new Dictionary<string, Dictionary<string, StatData>>();
+		}
+		data[statID][text] = new Dictionary<string, StatData>();
+		Dictionary<string, StatData> dictionary = data[statID][text];
+		SkillStatContainer skillStatContainer = JsonUtility.FromJson<SkillStatContainer>(ChaosBundle.Get<TextAsset>(assetPath).text);
+		int num = skillStatContainer.skillStats.Length;
+		bool flag = category == "Enemy";
+		for (int i = 0; i < num; i++)
+		{
+			skillStatContainer.skillStats[i].Initialize();
+			StatData statData = new StatData(skillStatContainer.skillStats[i], text);
+			List<string> value = statData.GetValue<List<string>>("targetNames");
+			if (value.Contains(Globals.allyHBStr) || value.Contains(Globals.enemyHBStr))
+			{
+				value.Add(Globals.ffaHBStr);
+			}
+			if (value.Contains(Globals.allyFCStr) || value.Contains(Globals.enemyFCStr))
+			{
+				value.Add(Globals.ffaFCStr);
+			}
+			if (flag)
+			{
+				switch (categoryModifier)
+				{
+				case "Only":
+					if (value.Contains(Globals.allyHBStr))
+					{
+						value.Remove(Globals.allyHBStr);
+						value.Add(Globals.enemyHBStr);
+					}
+					if (value.Contains(Globals.allyFCStr))
+					{
+						value.Remove(Globals.allyFCStr);
+						value.Add(Globals.enemyFCStr);
+					}
+					break;
+				case "FFA":
+					if (value.Contains(Globals.allyHBStr))
+					{
+						value.Add(Globals.enemyHBStr);
+					}
+					if (value.Contains(Globals.allyFCStr))
+					{
+						value.Add(Globals.enemyFCStr);
+					}
+					break;
+				case "AsAlly":
+					value.Remove(Globals.ffaHBStr);
+					value.Remove(Globals.ffaFCStr);
+					break;
+				}
+				statData.currentLevel = 1;
+			}
+			dictionary[statData.GetValue<string>("ID")] = statData;
+			globalSkillData[statData.GetValue<string>("ID")] = statData;
+		}
+	}
+	public static StatData GetSkillData(string category, string skillID)
+	{
+		return GetStatData("Skills", category, skillID);
+	}
+	public static StatData GetStatData(string statID, string category, string skillID)
+	{
+		if (!data.ContainsKey(statID) || !data[statID].ContainsKey(category))
+		{
+			return null;
+		}
+		if (!data[statID][category].ContainsKey(skillID))
+		{
+			return (!globalSkillData.ContainsKey(skillID)) ? null : globalSkillData[skillID];
+		}
+		return data[statID][category][skillID];
+	}
+	public static List<StatData> GetAllStatData(string statID, string fullCategoryStr)
+	{
+		return data[statID][fullCategoryStr].Values.ToList();
+	}
+	public static void ModifyAllStatData(NumVarStatMod givenMod, string givenCategory, string statFieldStr, ModApplyConditional GivenConditional = null, bool addMod = true)
+	{
+		modifiedStatDataList = GetAllStatData("Skills", givenCategory);
+		if (addMod)
+		{
+			for (int num = modifiedStatDataList.Count - 1; num > -1; num--)
+			{
+				modifiedStatData = modifiedStatDataList[num];
+				if (GivenConditional == null || GivenConditional(modifiedStatData))
+				{
+					modifiedStatData.AddMod(statFieldStr, givenMod);
+				}
+			}
+		}
+		else
+		{
+			for (int num2 = modifiedStatDataList.Count - 1; num2 > -1; num2--)
+			{
+				modifiedStatData = modifiedStatDataList[num2];
+				if (GivenConditional == null || GivenConditional(modifiedStatData))
+				{
+					modifiedStatData.RemoveMod(statFieldStr, givenMod.ID);
+				}
+			}
+		}
+		modifiedStatDataList.Clear();
+		modifiedStatData = null;
+	}
+	public static void ModifyAllStatData(Dictionary<string, NumVarStatMod> givenDict, string givenCategory, ModApplyConditional GivenConditional = null, bool addMod = true)
+	{
+		if (givenDict == null)
+		{
+			return;
+		}
+		modifiedStatDataList = GetAllStatData("Skills", givenCategory);
+		if (addMod)
+		{
+			for (int num = modifiedStatDataList.Count - 1; num > -1; num--)
+			{
+				modifiedStatData = modifiedStatDataList[num];
+				if (GivenConditional == null || GivenConditional(modifiedStatData))
+				{
+					foreach (KeyValuePair<string, NumVarStatMod> item in givenDict)
+					{
+						modifiedStatData.AddMod(item.Key, item.Value);
+					}
+				}
+			}
+		}
+		else
+		{
+			for (int num2 = modifiedStatDataList.Count - 1; num2 > -1; num2--)
+			{
+				modifiedStatData = modifiedStatDataList[num2];
+				if (GivenConditional == null || GivenConditional(modifiedStatData))
+				{
+					foreach (KeyValuePair<string, NumVarStatMod> item2 in givenDict)
+					{
+						modifiedStatData.RemoveMod(item2.Key, item2.Value.ID);
+					}
+				}
+			}
+		}
+		modifiedStatDataList.Clear();
+		modifiedStatData = null;
+	}
+}
+# 14 — Конвейер статов: база + стек модификаторов
+
+## Цель
+
+Любое число, на которое влияют вещи, облики, статусы, сложность и арканы, считается одним способом: **значение = функция(база, набор модификаторов)**. Никаких «+= при подборе, -= при сбросе»: при каждом изменении набора значение пересчитывается с нуля, поэтому дрейфа нет, а порядок добавления не важен. Срез закрывается, когда все стат-сценарии ниже проходят headless и игрок видит, что урон/скорость изменились.
+
+## Поведение
+
+1. **Стат** = база + список модификаторов + (для «здоровья» и т. п.) текущее значение. Итог пересчитывается при добавлении/удалении модификатора и при смене базы. Минимум итога — `min` стата (по умолчанию 0; максимум здоровья — 1); применяется **один раз в конце** (см. отличие в вопросах).
+   - *Отличие от оригинала (смена базы).* В оригинале установка базы числового стата только записывает её (с обрезкой по минимуму), а итог меняется при следующем добавлении/снятии модификатора. У нас пересчёт идёт и при смене базы — итог не должен зависеть от порядка «база → модификатор» (хеш реплея). Поле арканы читается по-другому: каждое чтение заново ставит базу и пересчитывает (п. 11).
+   - *Отличие от оригинала (обрезка).* В оригинале обрезка по минимуму срабатывает на КАЖДОМ присваивании итога и базы: «база −1» у потолка урона реально равна 0 (поведение «нет потолка» то же), жёсткая замена уклонения на −1 даёт 0 (невозможность уклонения сохраняется: бросок `rng < 0` не проходит), отрицательные прибавки обнуляют промежуточный итог. У нас эти два стата хранят −1 явно: их нижний предел — −1.
+2. **Модификатор** = (id, вид, приоритет, значение). Приоритет по умолчанию 10.
+3. **Шесть видов**, применяются строго в таком порядке (номер = порядок):
+   - 0 «Жёсткая замена»: итог = значение; **все остальные модификаторы игнорируются**. Действует только первая жёсткая замена списка (см. п. 5).
+   - 1 «Замена базы»: база := значение, затем применяются виды 2–5. Из нескольких действует первая.
+   - 2 «Множитель»: итог × (1 + значение). Значение — доля: +0.15 → ×1.15; −0.10 → ×0.90. Несколько множителей перемножаются.
+   - 3 «Прибавка»: итог + значение. Прибавки суммируются.
+   - 4 «Поздний множитель»: итог × (1 + значение) после прибавок.
+   - 8 «Особый»: встроенного эффекта нет (резерв под правила конкретного стата).
+4. **Следствие порядка:** прибавка стоит после раннего множителя (множитель её не усиливает), а поздний множитель усиливает и базу, и прибавки. Поэтому «разгон бега» — поздний множитель, а «+15% скорости» от вещи — ранний.
+5. **Порядок внутри списка:** вид по возрастанию, затем приоритет по возрастанию (**меньшее число — сильнее**), затем значение по убыванию (при равных приоритетах побеждает большее значение). Для множителей и прибавок приоритет ни на что не влияет (операции коммутативны); он важен только для замен и булевых статов.
+6. **Булев стат** (иммунитеты, «парирование включено», «усилен»): база; модификатор задаёт значение, а не прибавляет. Первым действует модификатор с наименьшим числом приоритета; при равенстве — добавленный позже. Таблица приоритетов усиления: отладка 0, жёсткое 10, штраф 20, предметы 40/50, по умолчанию 60.
+   - *Отличие от оригинала.* В оригинале итог булева стата — значение ПОСЛЕДНЕГО применённого модификатора; список упорядочен по возрастанию приоритета, поэтому побеждает НАИБОЛЬШИЙ номер, при равенстве — добавленный позже (то есть «по умолчанию» 60 перекрывает остальные). У нас порядок побед инвертирован осознанно (п. 5): побеждает наименьший номер. Референсные тесты на приоритеты усиления напрямую не переносятся: при переносе номера отображаются как p → 60 − p.
+7. **Уникальность.** id модификатора уникален внутри стата. Добавление с уже существующим id **заменяет** старый (не складывается). Разные id складываются/перемножаются без ограничений. id вещи = id вещи, поэтому вещь сама с собой не складывается; статус использует свой постоянный id — одна ячейка на статус.
+8. **Удаление** — по id. Удаление несуществующего — тихий no-op. Удаление не откатывает «досыпанное» текущее значение (см. п. 10).
+   - *Отличие от оригинала (счётчик замен).* В оригинале число жёстких замен (вид 0) ведётся целым счётчиком, а не по списку: добавление с тем же id увеличивает его снова, а снятие несуществующего или повторное — уменьшает. Признак «есть жёсткая замена» берётся из счётчика, поэтому после замены + снятия он может остаться «истинным» (или стать отрицательным), и правило «плоский урон» (п. 13) продолжит действовать, подставив базу. У нас признак вычисляется по списку (рекомендовано; отклонение).
+9. **Целые поля.** Для целочисленных полей арканы (урон, число призывов, здоровье призыва) итог после конвейера **округляется вверх**. Для дробных — нет. Малые числа выигрывают: 5 × 1.08 = 5.4 → 6.
+10. **Текущее значение** (здоровье, щит, заряды): живёт отдельно, всегда в `[0; итог]`. Падение максимума срезает текущее. Рост максимума текущее не меняет, **кроме** модификаторов с флагом «долить до нового максимума» (здоровье врага от сложности, здоровье призывов): после применения текущее = итог. Флаг срабатывает не однократно, а при КАЖДОМ пересчёте стата, пока модификатор с флагом висит: любое добавление или снятие любого другого модификатора на то же здоровье снова доливает до полного (для здоровья врага от сложности любая правка набора лечит его полностью). Принимаем как в оригинале. Облик: и надевание, и снятие облика с флагом обновления (здоровье) ставят текущее = максимум. «Синхронные» статы (броня, уклонение, КД-множители, всё прочее) текущего не имеют: значение = итог.
+11. **Поля арканов.** Каждая аркана хранит поля по 5 уровням (см. 05 §2). Модификатор вешается на поле конкретной арканы. Вещи/облики вешают его **на все арканы владельца, кроме статусных записей**, часто с фильтром (без базовых и рывков; только призывы; только движение; только усиленные). Конвейер применяется к значению **выбранного уровня**; у каждого игрока свой набор арканов — в коопе моды независимы.
+    - *Чтение поля.* Уровни 0 и 1 дают один индекс (первый); 2–5 — со второго по пятый. Массив по уровням дополняется до 5 предыдущим значением (список целей не по уровням: пустое значение). Каждое чтение заново ставит базу = значение уровня и пересчитывает конвейер (кэша нет; один стат поля общий для 5 уровней). Если модификаторов нет — значение как есть. Целочисленные поля (урон, число призывов, здоровье, число ударов) округляются вверх; дробные — нет. Порядок чтения полей на результат не влияет.
+    - *Значения по умолчанию полей арканы (поле не задано).* Стихия «нейтральная»; подстихия (звук/эффект) = стихия; показ цифры и эффекта и тряска — да; оглушает — да; шанс крита 0.05; множитель крита 1.5; оглушение ×1; отбрасывание 0; перезапись направления — нет; иммунитеты 0; перезарядка, длительность, интервал, число ударов и призывов, здоровье — 0; шансы статусов 0; уровни статусов 1; длительность корней 2 с; длительность заморозки 1.5 с; множитель урона ульты 1; множитель прироста ульты 1; «единый прирост» — нет; уровней 5 (02 п. 1 перечисляет часть).
+    - *Категории данных.* Данные арканов — отдельные копии на категорию: «игрок 0», «игрок 1» (у каждого свой конвейер), «враг» с вариантами «только» / «все против всех» / «как союзник» (подчинение, PvP; у них свои списки целей, 02 п. 5а); у врагов уровень арканы всегда 1. Запрос id, которого нет в категории, берёт глобальную запись по id. Массовое применение модификатора — перебор записей категории с предикатом (например «не статусные»); снятие — по id.
+12. **Источники и время жизни:**
+    - Вещь: вешает при подборе, снимает при сбросе. Постоянна.
+    - Облик: один набор модификаторов за раз; смена облика снимает старый набор и вешает новый. Фиксированные id на стат. Замена облика — вид 0 «жёсткая замена» (не вид 1) с приоритетом 1: пока облик надет, весь остальной набор этого стата (вещи, сложность) игнорируется (кроме жёстких замен с меньшим номером приоритета). Множитель и прибавка облика — виды 2 и 3, приоритет 10. Нулевые значения прибавки/множителя/замены считаются «нет значения» и не вешаются. Цели: здоровье (с доливом), скорость бега, время до разгона, уклонение, броня, щит (максимальный; текущий не меняется), флаги регенерации и разрешения улучшения (булевы), множитель лечения, шанс крит-лечения, глобальные множители золота и кристаллов, а также поля крит-шанс, крит-множитель, урон, перезарядка, прирост ульты и урон ульты на ВСЕХ нестатусных записях арканов игрока. Максимум здоровья и «долить» — при надевании. Таблицы обликов — в 16.
+    - Статус: вешает при наложении, снимает по таймеру, при смерти носителя или при очистке (см. 04, 22).
+    - Состояние арканы/сущности: вешает на входе в состояние, снимает на выходе (рывок, парирование, бег, оглушение).
+    - Временные усиления арканы: на повторный каст вешается жёсткая замена на нужное поле, снимается по выходу из арканы. Пример: «повтор последней арканы» ставит шанс статуса арканы = 1 (стихия земли: множитель оглушения = 3) до конца этого каста.
+    - Сложность: вешается при создании врага/после загрузки этажа, снимается при сбросе забега. Приоритет 0.
+13. **Выходные статы и их формулы использования:**
+    - Уклонение: бросок `rng < уклонение` до урона (02 §7.1). Жёсткая замена +1 — гарантия; −1 — невозможность.
+    - Броня: урон × (1 − clamp(броня, 0, 1)); статусный урон не режется.
+    - Получаемый урон (×, база 1): множитель после элементного; жёсткая замена = плоский урон за каждый нестатусный удар с исходным уроном > 0.
+    - Потолок урона (база −1 = нет): жёсткая замена = потолок (напр. 10% макс. здоровья, floor). Потолок действует и на статусные тики (он вне ветки «не статусный»); применяется после брони и таблицы стихий и до «минимум 1». «Минимум 1» — только при исходном уроне > 0; плоский урон подменяет результат после этих шагов. Таблица стихий действует на все удары, включая статусные.
+    - Оглушение/отбрасывание получаемые (×, база 1): умножаются в начале обработки удара.
+    - Лечение (×, база 1): ceil(мн. × лечение); шанс крит-лечения (база 0.01) удваивает лечение. Полное лечение — без множителя и без крита; подписчики события меняют значение после крита; постепенное лечение чередует ceil и floor (02 п. 11б).
+    - Таблицы по стихиям (6 стихий, база 1): множитель урона стихии и множитель шанса статуса стихии; вещь-сопротивление вешает множитель −0.25 в **обе** таблицы; слабость — +0.2 в таблицу урона (22).
+    - Скорость бега и рывка, длительность рывка: рывок — замена базы 0.125 (01); замедление множит и бег, и рывок.
+    - Время до разгона бега (база 2 с): множитель −0.3 → 1.4 с.
+    - Скорость затухания шкалы ульты: набор 4.5, готова 10; жёсткая замена 0 = не затухает; пауза 0.75 с. Прирост ульты — поле арканы (множитель, база 1; формула в 04 §20).
+    - Перезарядка: поле арканы; множитель −0.10 = ×0.90. Читается **при старте** отсчёта; идущий отсчёт не пересчитывается.
+    - Статы игрока без поля арканы: урон падения (база 25, floor перед применением); скорость анимации (база 1; бег ставит замену = скорость / база, пересчёт раз в 0.25 с; замедление и подчинение множат); флаг пропуска скольжения; флаг регенерации; флаг разрешения улучшения облика (база «истина»); пауза затухания ульты 0.75 с (изменение сразу меняет задержку таймера); флаги ульты (двойное, многоволновое с «лотереей», принудительное, сброс перезарядок, лечение вместо); «игнорировать прирост ульты»; флаги игнорирования статусов (по одному на поджог, замедление, яд, шок, заморозку и «без захватов»); смертестойкость; «без реакции на урон» и «без отбрасывания». Шанс хаос-статуса таблицей не масштабируется (04 п. 13); корни масштабируются таблицей земли.
+    - Крит-шанс (база 0.05) — прибавка; крит-множитель (база 1.5) — прибавка (+0.25 → 1.75).
+14. **Отображение изменённого урона.** Если итог удара после щита/стихии/брони/множителей больше исходного (после крита) — число окрашено «усилено», размер ×1.1, значок «вверх»; меньше — «ослаблено», ×0.9, «вниз»; равно — обычное.
+
+## Числа
+
+Типичные значения вещей (id своих):
+
+| Стат | Вид | Значение |
+|---|---|---|
+| Урон всех арканов | Множитель | +0.08 |
+| Крит-шанс | Прибавка | +0.08 |
+| Броня | Прибавка | +0.05 |
+| Уклонение | Прибавка | +0.08 |
+| Скорость бега | Множитель | +0.15 |
+| Перезарядка | Множитель | −0.10 |
+| Набор ульты | Множитель | +0.15 |
+| Урон призывов / длительность / перезарядка | Множитель | +0.20 / +0.50 / −0.25 |
+
+Базы: здоровье игрока 500 (минимум 1), щит: максимум 100, текущий 0; бег 9; рывок 42 с длительностью 0.125 (базовый стат 0.14 лежит в данных персонажа, но на рывок как таковой не влияет — 01); разгон +0.4 (поздний множитель) после 2 с бега; уклонение 0; броня 0.
+
+Сложность врагов (приоритет 0, `D` — число сложности из 11 §7): обычный забег — вешается только прибавка к здоровью `min(20·D − 10, 70)` (с доливом; при D = 0 она отрицательная, −10; D = 1 → +10; 2 → +30; 3 → +50; D ≥ 4 → +70), остальные модификаторы не вешаются и не снимаются; режим «трудный» — прибавка здоровья +5·D (с доливом), урон врагов (кроме статусов) поздний множитель +0.03·D, перезарядки, замахи и выходы врагов −0.03·D, оглушение боссов −0.02·D; урон — на поле урона всех нестатусных записей врага. На конце забега режим выключается, прибавка здоровья = 0, модификаторы снимаются.
+
+Приоритеты: сложность и проклятые вещи 0; облик-замена 1; корни и замедление 7; всё прочее 10.
+
+## Разобранные примеры
+
+1. **Скорость.** База 9; вещь +0.15 и замедление уровня 1 (−0.375) — множители; прибавка +1; разгон +0.4. 9 × 1.15 × 0.625 = 6.469; +1 = 7.469; × 1.4 = 10.456 м/с.
+2. **Урон.** База 5; +0.08 и +0.20 — множители: 5 × 1.08 × 1.20 = 6.48 → 7. Крит ×1.5 — позже (02 §7): floor(1.5 × 7) = 10.
+3. **Уклонение.** Прибавки 0.08 + 0.05 = 0.13. В оглушении добавляется жёсткая замена −1 (приоритет 10): итог −1, уклонение невозможно (02 §12). Во время рывка вдобавок +1 (10): при равных приоритетах первым стоит большее значение, итог +1.
+4. **Входящий удар.** Нестатусный огонь 40; получаемый урон ×1.10; броня 4 × 0.05 = 0.2; таблица огня ×0.75: 40 × 1.10 × 0.80 × 0.75 = 26.4 → 27. Тот же удар как статусный тик: элементный множитель ×1, остальное не применяется.
+5. **Плоский урон.** Проклятая жёсткая замена «получаемый урон = 99»: любое нестатусное попадание с исходным уроном > 0 даёт 99; яд-тик — как обычно.
+6. **Перезарядка.** База 4 с; облик −0.15, вещь −0.10: 4 × 0.85 × 0.90 = 3.06 с.
+7. **Сложность.** D = 2, режим «трудный», удар врага 10: 10 × 1.06 = 10.6 → 11; перезарядка 5 → 4.7 с; здоровье +10, враг создаётся с полным здоровьем.
+
+## Критерии приёмки
+
+Headless:
+- Порядок видов: набор из всех шести, итог совпадает с формулой п. 3; перестановка добавления не меняет итог.
+- Жёсткая замена исключает все остальные; при двух — побеждает меньший приоритет, при равном — большее значение.
+- Замена с тем же id не складывается; снятие по id возвращает значение в точности к прежнему (без дрейфа после 1000 циклов вкл/выкл).
+- Целые поля округляются вверх; дробные — нет; итог не ниже `min`.
+- Здоровье: рост максимума без флага текущее не трогает; с флагом — доливает; падение максимума срезает текущее.
+- Примеры 1–7 воспроизводятся до знака.
+- Булев стат: два модификатора разных приоритетов, победа меньшего числа.
+- Долив: здоровье врага с модификатором «долить» — любое последующее добавление/снятие другого модификатора здоровья доливает до полного; облик с флагом обновления при снятии ставит текущее здоровье = максимум.
+- Чтение поля арканы: уровни 0 и 1 дают значение 1-го элемента; массив из 2 значений на уровне 5 даёт 2-й; целое поле с множителем +0.08 при базе 5 → 6.
+- Облик с заменой стата: при надетом облике вещь на тот же стат не меняет итог; после снятия облика вещь снова действует.
+- Сложность: D = 0 в обычном забеге даёт −10 к здоровью врага; D = 4 — +70; в трудном режиме при D = 2 — +10 к здоровью с доливом.
+- Плоский урон: после «замена + снятие» признак «есть жёсткая замена» ложен (вычисление по списку).
+- Определённость: тот же сид и инпуты → тот же хеш.
+
+Визуально: число урона меняет цвет/размер/значок по п. 14; при подборе вещи с уроном/скоростью цифры в HUD/на манекене меняются сразу; статус-замедление видно по скорости и значку.
+
+## Открытые вопросы
+
+Закрыто:
+1. Обрезка итога по минимуму один раз в конце, а не после каждого шага — наше осознанное отличие (технический выбор, п. 1 раздела «Поведение»).
+2. Выбор «замены базы» и булевых модификаторов — первый по приоритету, у оригинала последний (наше отличие, технический выбор).
+4. Идущий отсчёт перезарядки не пересчитывается — как в оригинале.
+5. Пересчёт при смене базы (п. 1), вычисление признака жёсткой замены по списку (п. 8) и инверсия порядка побед булевых статов (п. 6) — наши осознанные отличия; реплеи оригинала с этими статами не переносятся без отображения приоритетов.
+
+Осталось:
+3. Верхняя граница прибавок уклонения/крит-шанса и нижняя для множителя перезарядки — решение баланса (при стеке вещей возможны уклонение ≥ 1 и перезарядка ≈ 0).
+
+Источник: VarStat.cs (AddMod, RemoveMod, SetTopPriorityOverride, Recalculate, Reprioritize), NumVarStat.cs (BaseValue, ModifiedValue, CurrentValue), SyncedNumVarStat.cs, VarStatMod.cs, NumVarStatMod.cs, VarStatModType.cs, BoolVarStat.cs, BoolVarStatMod.cs, EmpowerStatMods.cs, EmpowerModPriority.cs, StatData.cs (GetValue, ApplyVarStatMod, SetValue), StatManager.cs (LoadData, GetStatData, ModifyAllStatData), SkillStats.cs (Initialize, InitField), Health.cs (TakeDamage, RestoreHealth, statusResDict, elemModDict), Attack.cs (ExecuteAttack), Item.cs, ArmorUp.cs, EvadeUp.cs, DamageUp.cs, CritChanceUp.cs, MoveSpeedUp.cs, ReduceCooldown.cs, OverdriveGainUp.cs, OverdriveDurationUp.cs, OverdriveBuildDecayDown.cs, CapDamageItem.cs, OneHPOneDamage.cs, FlatDamage.cs, ElementalResistanceUp.cs, OutfitModStat.cs (Initialize, SetTargetVarStatList, SetModStatus), Outfit.cs, EnemyGlobalStatManager.cs (CalculateScaling, ResetScaling, SetModStatus), SlowDotEffect.cs, RootDotEffect.cs, Player.cs (RunState, ParryState, PlayerHurtState, ChaosCloneDash, UseChaosMirror, UseWindDefense, overdrive stats), Movement.cs, Cooldown.cs, player.json (prefab).

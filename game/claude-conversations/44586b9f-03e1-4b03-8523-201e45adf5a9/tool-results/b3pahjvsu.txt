@@ -1,0 +1,1002 @@
+=========== ThunderArcher
+using System.Collections.Generic;
+using UnityEngine;
+
+public class ThunderArcher : Archer
+{
+	public class ThunderArcherShockArrowState : ArcherAttackSkillState
+	{
+		private static Vector3 altScale = new Vector3(0.8f, 0.8f, 1f);
+
+		public new ThunderArcher parent;
+
+		public ThunderArcherShockArrowState(string newName, FSM newFSM, ThunderArcher newEnt)
+			: base(newName, newFSM, newEnt)
+		{
+			parent = newEnt;
+		}
+
+		public override void SetVars()
+		{
+			projectilePrefab = ShockSpear.Prefab;
+			attackRangeModifier = 2.5f;
+			targetLineRange = 16f;
+		}
+
+		public override Projectile CreateProjectile()
+		{
+			base.CreateProjectile();
+			currentProjectile.transform.localScale = altScale;
+			currentProjectile.flyTime = 0.25f;
+			currentProjectile.moveSpeed = 64f;
+			currentProjectile.disableOnHit = true;
+			return currentProjectile;
+		}
+
+		public override void HoldProjectile()
+		{
+			if (!(currentProjectile == null))
+			{
+				currentProjectile.RefreshFlightTime();
+				currentProjectile.transform.position = parent.arrowSpawn.position - aimVector * 0.25f;
+				currentProjectile.transform.localEulerAngles = Globals.GetRotationVector(aimVector);
+			}
+		}
+
+		public override void SetReleaseVars()
+		{
+			if (!(currentProjectile == null))
+			{
+				currentProjectile.ricochet = false;
+				((ShockSpear)currentProjectile).SetMode("Flying");
+				SoundManager.PlayWithDistAndSPR("BallLightningEnd", currentProjectile.transform.position, 1.2f);
+				PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(5, currentProjectile.transform.position, LightningAuraEffect.SmallMedAuraOverride);
+			}
+		}
+	}
+
+	public class ThunderArcherThunderAnchorState : SkillState
+	{
+		private Vector2 currentPosition;
+
+		private Vector2 perpendVec;
+
+		private ThunderAnchor currentTA;
+
+		private ThunderAnchor leftTA;
+
+		private ThunderAnchor rightTA;
+
+		private new ThunderArcher parent;
+
+		public ThunderArcherThunderAnchorState(string newName, FSM newFSM, ThunderArcher newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			parent = newEnt;
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.movement.EndMovement();
+			parent.anim.Play("Throw", -1, 0f);
+			windupStopwatchID = ChaosStopwatch.Begin(StdWindupTime);
+			parent.SetLFStatus(givenStatus: true, parent.hurtBoxTransform, 0.25f, 20f);
+		}
+
+		public override void WindupUpdate()
+		{
+			parent.anim.Play("Throw", -1, 0f);
+		}
+
+		public override void ExecuteSkill()
+		{
+			base.ExecuteSkill();
+			DeactivatePowerUpEffect();
+			parent.anim.Play("Throw", -1, 0.5f);
+			parent.SetLFStatus(givenStatus: false);
+			currentPosition = parent.transform.position;
+			perpendVec = Globals.GetPerpendicular(targetVector) * 0.8f;
+			leftTA = CreateThunderAnchor(currentPosition, (targetVector + perpendVec).normalized);
+			rightTA = CreateThunderAnchor(currentPosition, (targetVector - perpendVec).normalized);
+			leftTA.SetParentInfo(rightTA.streamTrans, parent.health);
+			leftTA.SetBurstInfo(3, 0.5f, givenStart: false);
+			rightTA.SetParentInfo(leftTA.streamTrans, parent.health);
+			rightTA.SetBurstInfo(2, 0.5f);
+			SoundManager.PlayWithDistAndSPR("StandardThrow", currentPosition);
+		}
+
+		public override void OnExit()
+		{
+			base.OnExit();
+			parent.SetLFStatus(givenStatus: false);
+		}
+
+		private ThunderAnchor CreateThunderAnchor(Vector2 givenPosition, Vector2 givenVector)
+		{
+			currentTA = ChaosInst<ThunderAnchor>(ThunderAnchor.Prefab, givenPosition + givenVector * 0.25f);
+			currentTA.lifeTime = 4f;
+			currentTA.SetSkillInfo(parent.skillCategory, skillID);
+			currentTA.positionOffset = -givenVector * 0.75f;
+			currentTA.baseFlightTime = 0.4f;
+			currentTA.ThrowToTargetVector(givenPosition + givenVector * 3.75f);
+			return currentTA;
+		}
+	}
+
+	public class ThunderArcherThunderSpreadState : SkillState
+	{
+		private ShockDart currentSD;
+
+		private List<Vector2> atkList = new List<Vector2>();
+
+		private int atkStopwatchID;
+
+		private int atkCount = 5;
+
+		private int atkCounter;
+
+		private Vector2 currentVec;
+
+		private Vector2 leftVec;
+
+		private Vector2 rightVec;
+
+		private new ThunderArcher parent;
+
+		public ThunderArcherThunderSpreadState(string newName, FSM newFSM, ThunderArcher newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			parent = newEnt;
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.anim.Play("Slide", -1, 1f);
+			parent.movement.EndMovement();
+			windupTime = StdWindupTime * 1.25f;
+			windupStopwatchID = ChaosStopwatch.Begin(windupTime);
+			currentVec = Globals.GetPerpendicular(targetVector) * 0.2f;
+			leftVec = targetVector + currentVec;
+			rightVec = targetVector - currentVec;
+			currentVec = parent.hurtBoxTransform.position;
+			CreateLightWarning(currentVec, currentVec + targetVector * 10f);
+			atkList.Clear();
+			atkList.Add(targetVector);
+			for (int i = 1; i < atkCount; i++)
+			{
+				atkList.Add(Vector2.Lerp(leftVec, rightVec, Random.value).normalized);
+			}
+			atkStopwatchID = ChaosStopwatch.Begin(windupTime, useInterval: true, 0.125f, atkCount);
+			atkCounter = 0;
+		}
+
+		public override void ExecuteSkill()
+		{
+			switch (ChaosStopwatch.CheckInterval(atkStopwatchID))
+			{
+			case StopwatchState.Ready:
+				CreateShockArrow(atkList[atkCounter]);
+				CameraController.ShakeCamera(0.15f);
+				atkCounter++;
+				break;
+			case StopwatchState.Done:
+				base.ExecuteSkill();
+				break;
+			}
+		}
+
+		private void CreateLightWarning(Vector2 givenStart, Vector2 givenEnd)
+		{
+			ChaosInst<LightningWarning>(LightningWarning.Prefab, givenStart).Init(givenStart, givenEnd, windupTime * 0.75f);
+			SoundManager.PlayWithDistAndSPR("StaticCrackle", givenStart);
+		}
+
+		private void CreateShockArrow(Vector3 givenVector)
+		{
+			currentSD = (ShockDart)Projectile.CreateProjectile(parent, ShockDart.Prefab, parent.hurtBoxTransform.position, Globals.GetRotationQuaternion(givenVector));
+			currentSD.attackBox.SetAttackInfo(parent.skillCategory, skillID);
+			currentSD.attackBox.knockbackOverwriteVector = givenVector;
+			currentSD.moveVector = givenVector;
+			parent.anim.Play("AttackRelease", -1, 0f);
+			givenVector = Globals.GetRotationVector(givenVector);
+			if (!parent.isFacingRight)
+			{
+				givenVector.z *= -1f;
+			}
+			givenVector.z += 90f;
+			parent.bowArm.localEulerAngles = givenVector;
+		}
+	}
+
+	private ParticleEffect currentLF;
+
+	private ParticleSystemOverride lfOverride = new ParticleSystemOverride();
+
+	public override void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Idle";
+		fsm.AddState(new IdleState("Idle", fsm, this));
+		fsm.AddState(new GoBackState("GoBack", fsm, this));
+		fsm.AddState(new ChaseState("Chase", fsm, this));
+		fsm.AddState(new EnemyDeadState("Dead", fsm, this));
+		fsm.AddState(new EnemyHurtState("Hurt", fsm, this));
+		fsm.AddState(new EnemyFallState("Fall", fsm, this));
+		fsm.AddState(new EnemyFrozenState("Frozen", fsm, this));
+		fsm.AddState(new DashState("Dash", fsm, this, 1, 10, 0f, 5f, 3f)
+		{
+			dashAway = true,
+			dashOverPits = true,
+			randomOffSet = 1f,
+			castingAnimName = "Dash"
+		});
+		attackSkillID = "ThunderArcherShockArrow";
+		fsm.AddState(new ThunderArcherShockArrowState("Attack", fsm, this));
+		fsm.AddState(new ThunderArcherThunderSpreadState("ThunderArcherThunderSpread", fsm, this, 1, 5, 0f, attackRadius, 7.5f));
+		fsm.AddState(new ThunderArcherThunderAnchorState("ThunderArcherThunderAnchor", fsm, this, 2, 5, 0f, attackRadius, 8f));
+		fsm.ChangeState(fsm.defaultStateName);
+	}
+
+	private void SetLFStatus(bool givenStatus, Transform givenTrans = null, float givenRadius = 1f, float givenCount = 1f)
+	{
+		if (givenStatus)
+		{
+			if (!(givenTrans == null) && currentLF == null)
+			{
+				lfOverride.radius = givenRadius;
+				lfOverride.simulationSpace = ParticleSystemSimulationSpace.Local;
+				currentLF = PoolManager.GetPoolItem<ParticleEffect>("LightningField");
+				ParticleEffect particleEffect = currentLF;
+				float? emissionRate = givenCount;
+				Vector3? position = givenTrans.position;
+				ParticleSystemOverride overrides = lfOverride;
+				particleEffect.Play(emissionRate, position, overrides, null, givenTrans);
+			}
+		}
+		else if (currentLF != null)
+		{
+			currentLF.Stop();
+			currentLF = null;
+		}
+	}
+}
+=========== ThunderKnight
+using System;
+using System.Collections;
+using UnityEngine;
+
+public class ThunderKnight : Knight
+{
+	public class ThunderKnightThunderBoomState : SkillState
+	{
+		private ThunderBoom currentTB;
+
+		private ParticleEffect currentLF;
+
+		private bool firstFrame;
+
+		private new ThunderKnight parent;
+
+		public ThunderKnightThunderBoomState(string newName, FSM newFSM, ThunderKnight newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			parent = newEnt;
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.movement.EndMovement();
+			parent.anim.Play("Forehand", -1, 0f);
+			windupStopwatchID = ChaosStopwatch.Begin(StdWindupTime);
+			firstFrame = true;
+		}
+
+		public override void WindupUpdate()
+		{
+			if (firstFrame)
+			{
+				firstFrame = false;
+				currentLF = parent.CreateLF(parent.leftHandTrans, 0.25f, 20f);
+				SoundManager.PlayWithDistAndSPR("BallLightningLoop", parent.transform.position);
+			}
+			else
+			{
+				parent.anim.Play("Forehand", -1, 0f);
+			}
+		}
+
+		public override void ExecuteSkill()
+		{
+			base.ExecuteSkill();
+			parent.StopLF(currentLF, parent.leftHandTrans);
+			currentLF = null;
+			parent.anim.Play("Forehand", -1, 0.8f);
+			CameraController.ShakeCamera(0.18f);
+			DeactivatePowerUpEffect();
+			parent.movement.moveVector = targetVector;
+			parent.movement.MoveToMoveVector(8f);
+			CreateThunderBoom();
+		}
+
+		public override void OnExit()
+		{
+			base.OnExit();
+			parent.StopLF(currentLF, parent.leftHandTrans);
+			currentLF = null;
+		}
+
+		private void CreateThunderBoom()
+		{
+			currentTB = ChaosInst<ThunderBoom>(ThunderBoom.Prefab, (Vector2)parent.hurtBoxTransform.position + targetVector * 1.5f, Globals.GetRotationQuaternion(targetVector));
+			currentTB.attack.SetAttackInfo(parent.skillCategory, skillID);
+			currentTB.attack.knockbackOverwriteVector = targetVector;
+			currentTB.atkVector = targetVector;
+		}
+	}
+
+	public class ThunderKnightThunderShieldState : SkillState
+	{
+		private NumVarStatMod kbMod;
+
+		private ChaosQuickStopwatch burstStopwatch = new ChaosQuickStopwatch();
+
+		private ChaosQuickStopwatch shieldStopwatch = new ChaosQuickStopwatch(4f);
+
+		private bool shieldActive;
+
+		private ThunderBlast currentTB;
+
+		private float attackRadius = 3f;
+
+		private ParticleEffect currentLF;
+
+		private new ThunderKnight parent;
+
+		public ThunderKnightThunderShieldState(string newName, FSM newFSM, ThunderKnight newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			parent = newEnt;
+			kbMod = new NumVarStatMod(skillID, -0.75f, 10, VarStatModType.Multiplicative);
+		}
+
+		public override bool IsReady()
+		{
+			return !shieldActive && base.IsReady();
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.movement.EndMovement();
+			parent.anim.Play("ChargeAlt", -1, 0f);
+			windupTime = StdWindupTime;
+			windupStopwatchID = ChaosStopwatch.Begin(windupTime);
+			burstStopwatch.SetDelay(windupTime * 2f);
+		}
+
+		public override void ExecuteSkill()
+		{
+			base.ExecuteSkill();
+			DeactivatePowerUpEffect();
+			Globals.ChaosInst<LightningStrike>(LightningStrike.Prefab, null, parent.transform.position).spawnBurnMark = false;
+			CameraController.ShakeCamera(0.25f);
+			parent.StopLF(currentLF, parent.hurtBoxTransform);
+			currentLF = parent.CreateLF(parent.hurtBoxTransform, 1f, 5f);
+			parent.StartCoroutine(CreateThunderShield());
+		}
+
+		public IEnumerator CreateThunderShield()
+		{
+			shieldActive = true;
+			parent.health.knockbackModifierStat.Modify(kbMod, addMod: true);
+			ChaosQuickStopwatch audioStopwatch = new ChaosQuickStopwatch(0.5f);
+			shieldStopwatch.IsRunning = true;
+			while (shieldStopwatch.IsRunning)
+			{
+				if (parent == null)
+				{
+					yield break;
+				}
+				if (parent.fsm.currentStateName == "Dead")
+				{
+					parent.StopLF(currentLF, parent.hurtBoxTransform);
+					yield break;
+				}
+				if (parent.fsm.currentStateName == "Hurt")
+				{
+					shieldStopwatch.IsRunning = false;
+					burstStopwatch.IsRunning = true;
+					CreateThunderBlast(parent.transform.position, burstStopwatch.Delay, attackRadius);
+					parent.StopLF(currentLF, parent.hurtBoxTransform);
+					currentLF = null;
+				}
+				else
+				{
+					if (!audioStopwatch.IsRunning)
+					{
+						audioStopwatch.IsRunning = true;
+						SoundManager.PlayWithDistAndSPR("BallLightningLoop", parent.transform.position);
+					}
+					yield return null;
+				}
+			}
+			audioStopwatch.SetDelay(0.125f, stopCurrent: true);
+			while (burstStopwatch.IsRunning)
+			{
+				if (!audioStopwatch.IsRunning)
+				{
+					audioStopwatch.IsRunning = true;
+					SoundManager.PlayWithDistAndSPR("BallLightningLoop", parent.transform.position, 1.15f);
+				}
+				yield return null;
+			}
+			shieldActive = false;
+			if (parent != null)
+			{
+				parent.StopLF(currentLF, parent.hurtBoxTransform);
+				currentLF = null;
+				parent.health.knockbackModifierStat.Modify(kbMod, addMod: false);
+				StartCooldown();
+			}
+		}
+
+		private void CreateThunderBlast(Vector2 givenPosition, float givenDelay, float givenRadius)
+		{
+			if (!(parent == null))
+			{
+				currentTB = Globals.ChaosInst<ThunderBlast>(ThunderBlast.Prefab, parent.transform, givenPosition);
+				currentTB.SetSkillData(parent.skillCategory, skillID, 1);
+				currentTB.delayTime = givenDelay;
+				currentTB.atkRadius = givenRadius;
+				CastingCirclePool.Spawn("Draw", givenPosition, disableWithParentVal: true, currentTB.gameObject, trackParentVal: true, useCastTimeVal: true, givenDelay, givenRadius, 0f, CastingCircle.enemyColor).transform.localEulerAngles = Vector3.zero;
+			}
+		}
+	}
+
+	public class ThunderKnightThunderChargeState : SkillState
+	{
+		private Attack currentATK;
+
+		private ParticleEffect currentLF;
+
+		private Vector2 currentPosition;
+
+		private NumVarStatMod dashSpeedMod;
+
+		private NumVarStatMod dashDurationMod;
+
+		private bool dashStarted;
+
+		private bool dashCompleted;
+
+		private bool targetHit;
+
+		private new ThunderKnight parent;
+
+		public ThunderKnightThunderChargeState(string newName, FSM newFSM, ThunderKnight newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			parent = newEnt;
+			dashSpeedMod = new NumVarStatMod(newName, 55f, 10, VarStatModType.OverrideWithMods);
+			dashDurationMod = new NumVarStatMod(newName, 0.1f, 10, VarStatModType.OverrideWithMods);
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.anim.Play("LungeWindup");
+			parent.movement.EndMovement();
+			parent.movement.dashVector = targetVector;
+			parent.movement.moveVector = targetVector;
+			windupTime = StdWindupTime;
+			windupStopwatchID = ChaosStopwatch.Begin(windupTime);
+			currentPosition = parent.hurtBoxTransform.position;
+			ChaosInst<LightningWarning>(LightningWarning.Prefab, currentPosition).Init(currentPosition, currentPosition + targetVector * 5.5f, windupTime);
+			currentLF = parent.CreateLF(parent.hurtBoxTransform, 1f, 40f);
+			SoundManager.PlayWithDistAndSPR("LightningBurst", currentPosition, 1.2f);
+			parent.ToggleFloorContact(allyCollisionOn: false);
+			targetHit = false;
+			dashStarted = false;
+			dashCompleted = false;
+		}
+
+		public override void ExecuteSkill()
+		{
+			if (!dashStarted)
+			{
+				dashStarted = true;
+				parent.anim.Play("Dash");
+				DeactivatePowerUpEffect();
+				CameraController.ShakeCamera(0.14f);
+				currentATK = ChaosInst<Attack>(Attack.CirclePrefab, parent.hurtBoxTransform.position);
+				currentATK.SetAttackInfo(parent.skillCategory, skillID);
+				currentATK.knockbackOverwriteVector = targetVector;
+				currentATK.transform.localScale *= 2f;
+				Attack attack = currentATK;
+				attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+				Attack attack2 = currentATK;
+				attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+				parent.movement.dashSpeedStat.AddMod(dashSpeedMod);
+				parent.movement.dashDurationStat.AddMod(dashDurationMod);
+				parent.movement.dashTimer = dashDurationMod.modValue;
+				SoundManager.PlayWithDistAndSPR("BallLightningEnd", parent.transform.position, 1.2f);
+			}
+			if (dashCompleted)
+			{
+				base.ExecuteSkill();
+				parent.StopLF(currentLF, parent.hurtBoxTransform);
+				currentLF = null;
+				if (targetHit)
+				{
+					LightningBurst.CreateBurst(parent.hurtBoxTransform.position, parent.skillCategory, skillID, 2, 2f);
+				}
+			}
+		}
+
+		public override void FixedUpdate()
+		{
+			if (dashStarted && !dashCompleted && parent.movement.DashToTarget())
+			{
+				dashCompleted = true;
+				parent.movement.MoveToMoveVector();
+				DestroyAttackCircle();
+				parent.anim.Play("AttackRight", -1, 1f);
+			}
+		}
+
+		public override void LateUpdate()
+		{
+			if (dashStarted && !dashCompleted && currentATK != null)
+			{
+				currentATK.transform.position = parent.hurtBoxTransform.position;
+			}
+		}
+
+		public override void OnExit()
+		{
+			base.OnExit();
+			parent.ToggleFloorContact();
+			parent.movement.dashSpeedStat.RemoveMod(skillID);
+			parent.movement.dashDurationStat.RemoveMod(skillID);
+			DestroyAttackCircle();
+			parent.StopLF(currentLF, parent.hurtBoxTransform);
+			currentLF = null;
+		}
+
+		private void DestroyAttackCircle()
+		{
+			if (!(currentATK == null))
+			{
+				Attack attack = currentATK;
+				attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+				if (currentATK.gameObject != null)
+				{
+					UnityEngine.Object.Destroy(currentATK.gameObject);
+				}
+				currentATK = null;
+			}
+		}
+
+		private void OnTargetHit(Entity givenEnt)
+		{
+			if (!targetHit && !(givenEnt == null) && !(givenEnt is Destructible))
+			{
+				targetHit = true;
+				dashCompleted = true;
+				DestroyAttackCircle();
+				parent.anim.Play("SwordPlant", -1, 0f);
+				parent.movement.EndMovement();
+				windupStopwatchID = ChaosStopwatch.Begin(0.25f);
+			}
+		}
+	}
+
+	private ParticleEffect tempLF;
+
+	private ParticleSystemOverride lfOverride = new ParticleSystemOverride
+	{
+		simulationSpace = ParticleSystemSimulationSpace.Local
+	};
+
+	public override void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Idle";
+		attackSkillID = "ThunderKnightAttack";
+		fsm.AddState(new IdleState("Idle", fsm, this)
+		{
+			multiAnimIdle = true
+		});
+		fsm.AddState(new GoBackState("GoBack", fsm, this));
+		fsm.AddState(new ChaseState("Chase", fsm, this));
+		fsm.AddState(new SurroundState("Surround", fsm, this));
+		fsm.AddState(new AttackState("Attack", fsm, this));
+		fsm.AddState(new EnemyHurtState("Hurt", fsm, this));
+		fsm.AddState(new EnemyDeadState("Dead", fsm, this));
+		fsm.AddState(new EnemyFallState("Fall", fsm, this));
+		fsm.AddState(new EnemyFrozenState("Frozen", fsm, this));
+		fsm.AddState(new DashState("Dash", fsm, this, 0, 10, 0f, 16f, 0.35f)
+		{
+			allowReset = true,
+			dashOverPits = true,
+			onlyDashOverPits = true,
+			castingAnimName = "Dash"
+		});
+		fsm.AddState(new ThunderKnightThunderBoomState("ThunderKnightThunderBoom", fsm, this, 0, 7, 0f, 3.5f, 7.5f));
+		fsm.AddState(new ThunderKnightThunderShieldState("ThunderKnightThunderShield", fsm, this, 1, 5, 0f, alertRadius, 8f));
+		fsm.AddState(new ThunderKnightThunderChargeState("ThunderKnightThunderCharge", fsm, this, 2, 9, 0f, 4.5f, 7f));
+		fsm.ChangeState(fsm.defaultStateName);
+	}
+
+	private ParticleEffect CreateLF(Transform givenTrans, float givenRadius, float givenCount)
+	{
+		if (givenTrans == null)
+		{
+			return null;
+		}
+		lfOverride.radius = givenRadius;
+		tempLF = PoolManager.GetPoolItem<ParticleEffect>("LightningField");
+		ParticleEffect particleEffect = tempLF;
+		float? emissionRate = givenCount;
+		Vector3? position = givenTrans.position;
+		ParticleSystemOverride overrides = lfOverride;
+		particleEffect.Play(emissionRate, position, overrides, null, givenTrans);
+		return tempLF;
+	}
+
+	private void StopLF(ParticleEffect givenEffect, Transform givenTrans)
+	{
+		if (givenEffect != null && givenTrans != null && givenEffect.followTransform == givenTrans)
+		{
+			givenEffect.Stop();
+		}
+	}
+}
+=========== ThunderLancer
+using System;
+using Chaos.AnimatorExtensions;
+using UnityEngine;
+
+public class ThunderLancer : Lancer
+{
+	public class ThunderLancerPiercingShockState : SkillState
+	{
+		private NumVarStatMod dashSpeedMod;
+
+		private NumVarStatMod dashDurationMod;
+
+		private float dashSpeed = 40f;
+
+		private float dashDuration = 0.15f;
+
+		private bool dashStarted;
+
+		private bool dashCompleted;
+
+		private bool targetHit;
+
+		private ChaosQuickStopwatch onHitStopwatch = new ChaosQuickStopwatch(0.6f);
+
+		private Vector3 psHoldOffset;
+
+		private PiercingShock currentPS;
+
+		private LightningStream currentLStream;
+
+		private LightningStrike currentLStrike;
+
+		public ThunderLancerPiercingShockState(string newName, FSM newFSM, Enemy newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			dashSpeedMod = new NumVarStatMod("dashOverride", dashSpeed, 10, VarStatModType.OverrideWithMods);
+			dashDurationMod = new NumVarStatMod("dashOverride", dashDuration, 10, VarStatModType.OverrideWithMods);
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.movement.EndMovement();
+			parent.movement.dashVector = targetVector;
+			parent.movement.dashSpeedStat.AddMod(dashSpeedMod);
+			parent.movement.dashDurationStat.AddMod(dashDurationMod);
+			parent.movement.dashTimer = dashDuration;
+			windupStopwatchID = ChaosStopwatch.Begin(StdWindupTime);
+			exitTime = StdExitTime;
+			parent.attack.transform.localEulerAngles = ((!parent.isFacingRight) ? (-Globals.GetRotationVector(targetVector)) : Globals.GetRotationVector(targetVector));
+			parent.ToggleFloorContact(allyCollisionOn: false);
+			dashStarted = false;
+			dashCompleted = false;
+			targetHit = false;
+			parent.anim.PlayDirectional("AttackWindup");
+			psHoldOffset = targetVector * 1.5f;
+			CreatePiercingShock();
+		}
+
+		public override void WindupUpdate()
+		{
+			parent.anim.PlayDirectional("AttackWindup");
+			if (currentPS != null)
+			{
+				currentPS.transform.position = parent.attack.transform.position + psHoldOffset;
+			}
+		}
+
+		public override void FixedUpdate()
+		{
+			if (dashStarted && !dashCompleted)
+			{
+				if (parent.movement.DashToTarget())
+				{
+					dashCompleted = true;
+					parent.ToggleFloorContact();
+					parent.movement.moveVector = targetVector;
+					parent.movement.MoveToMoveVector(10f);
+				}
+				if (currentPS != null)
+				{
+					currentPS.transform.position = parent.attack.transform.position + psHoldOffset;
+					currentPS.attack.atkInfo.knockbackMultiplier = parent.rigidbody2D.velocity.magnitude * 1.5f;
+				}
+			}
+		}
+
+		public override void ExecuteSkill()
+		{
+			if (!dashStarted)
+			{
+				dashStarted = true;
+				parent.anim.PlayDirectional("Attack" + parent.facingDirection, -1, 1f);
+				currentPS.attack.SetAttackInfo(parent.skillCategory, skillID);
+				currentPS.attack.knockbackOverwriteVector = targetVector;
+				currentPS.attack.collider.enabled = false;
+				currentPS.attack.collider.enabled = true;
+			}
+			if (dashCompleted && !onHitStopwatch.IsRunning)
+			{
+				CleanupPiercingShock();
+				DeactivatePowerUpEffect();
+				if (targetHit)
+				{
+					targetHit = false;
+					onHitStopwatch.IsRunning = true;
+					exitTime *= 0.75f;
+					CreateLightStream(parent.attack.transform.position);
+				}
+				else
+				{
+					base.ExecuteSkill();
+				}
+			}
+		}
+
+		public override void OnExit()
+		{
+			base.OnExit();
+			parent.ToggleFloorContact();
+			CleanupPiercingShock();
+		}
+
+		private void CreatePiercingShock()
+		{
+			currentPS = ChaosInst<PiercingShock>(PiercingShock.Prefab, parent.attack.transform.position + psHoldOffset, Globals.GetRotationQuaternion(targetVector));
+			currentPS.anim.Play("IdleNeedle");
+			Attack attack = currentPS.attack;
+			attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+			Attack attack2 = currentPS.attack;
+			attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+		}
+
+		private void CleanupPiercingShock()
+		{
+			if (currentPS != null)
+			{
+				Attack attack = currentPS.attack;
+				attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+				currentPS.Reset();
+				currentPS = null;
+			}
+		}
+
+		private void OnTargetHit(Entity givenEnt)
+		{
+			targetHit = true;
+			if (currentPS != null)
+			{
+				Attack attack = currentPS.attack;
+				attack.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(OnTargetHit));
+			}
+		}
+
+		private void CreateLightStream(Vector2 givenPosition)
+		{
+			currentLStream = ChaosInst<LightningStream>(LightningStream.Prefab, givenPosition, Globals.GetRotationQuaternion(targetVector));
+			currentLStream.targetLocation = Globals.GetLinecastVector(givenPosition, givenPosition + targetVector * 8f, ChaosCollisions.layerUpperWall);
+			currentLStream.hitCount = 5;
+			currentLStream.hitInterval = 0.1f;
+			currentLStream.attack.SetAttackInfo(parent.skillCategory, skillID, 2);
+			currentLStream.attack.knockbackOverwriteVector = targetVector;
+			currentLStrike = ChaosInst<LightningStrike>(LightningStrike.Prefab, givenPosition, Globals.GetRotationQuaternion(targetVector));
+			currentLStrike.anim.Play("Loop", -1, 0f);
+			currentLStrike.spriteRenderer.sortingLayerName = "TargetLineAir";
+			UnityEngine.Object.Destroy(currentLStrike.gameObject, onHitStopwatch.Delay);
+		}
+	}
+
+	public class ThunderLancerThunderJavelinState : LancerLeapAttackState
+	{
+		private ThunderJavelin currentTJ;
+
+		private Vector2 currentPosition;
+
+		private Vector2 targetLocation;
+
+		public ThunderLancerThunderJavelinState(string newName, FSM newFSM, Lancer newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD)
+			: base(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+		{
+			useCastingCircle = false;
+			emitFloorCrater = false;
+		}
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			windupTime = StdWindupTime * 0.75f;
+			windupStopwatchID = ChaosStopwatch.Begin(windupTime);
+			currentPosition = parent.transform.position;
+			targetLocation = parent.closestTargetInfo.position;
+			SetJumpVars(4f, 0.5f);
+			if (Vector2.SqrMagnitude(currentPosition - targetLocation) > 6.25f)
+			{
+				jumpLocation -= targetVector * 2.5f;
+			}
+			else
+			{
+				jumpLocation = currentPosition;
+			}
+			if (!Globals.CheckCircle(jumpLocation, 0.25f, ChaosCollisions.layerPit))
+			{
+				jumpLocation = currentPosition;
+			}
+			string animName = "Draw";
+			Vector3 spawnPos = targetLocation + targetVector * 0.5f;
+			bool disableWithParentVal = false;
+			float castTimeVal = windupTime + 0.5f;
+			castingCircle = CastingCirclePool.Spawn(animName, spawnPos, disableWithParentVal, null, trackParentVal: true, useCastTimeVal: true, castTimeVal, 2.5f, 0f, CastingCircle.enemyColor, windupTime + 0.5f);
+		}
+
+		public override void Update()
+		{
+			base.Update();
+			if (hasJumped && !attackCreated)
+			{
+				parent.anim.Play("JumpAlt", -1, 0f);
+			}
+		}
+
+		public override void OnLanding()
+		{
+			parent.anim.Play("CrouchLand", -1, 0f);
+			base.OnLanding();
+		}
+
+		public override void CreateLanceStrike()
+		{
+			currentPosition = parent.transform.position;
+			currentTJ = ChaosInst<ThunderJavelin>(ThunderJavelin.Prefab, currentPosition + targetVector);
+			currentTJ.InitJavelin(parent.skillCategory, skillID, 1, givenUlt: false, parent.throwScript.throwHeight, 0f, targetLocation + targetVector * 0.5f);
+			parent.anim.Play("JumpAttack", -1, 0f);
+			SetJumpVars(5f, 0.5f);
+			parent.throwScript.ThrowToTargetVector(currentPosition - targetVector);
+		}
+
+		private void SetJumpVars(float givenHeight, float givenTime)
+		{
+			parent.throwScript.throwHeight = givenHeight;
+			parent.throwScript.baseFlightTime = givenTime;
+		}
+	}
+
+	public class ThunderLancerGroundShockState(string newName, FSM newFSM, Enemy newEnt, int newReq, int newPriority, float newMin, float newMax, float newCD) : SkillState(newName, newFSM, newEnt, newReq, newPriority, newMin, newMax, newCD)
+	{
+		private int atkStopwatchID;
+
+		private Vector2[] strikeArr = new Vector2[4];
+
+		private Vector2 strikeVector;
+
+		private Vector2 offsetVector;
+
+		private float strikeDist;
+
+		private Vector3 lanceOffset = new Vector3(0.7f, -0.25f, 0f);
+
+		private Vector2 currentPosition;
+
+		private Vector2 targetPosition;
+
+		public override void OnEnter()
+		{
+			base.OnEnter();
+			parent.anim.Play("CrouchLand");
+			parent.movement.EndMovement();
+			windupTime = StdWindupTime * 1.25f;
+			windupStopwatchID = ChaosStopwatch.Begin(windupTime);
+			atkStopwatchID = ChaosStopwatch.Begin(windupTime, useInterval: true, 0.175f, 3);
+			lanceOffset.x = ((!parent.isFacingRight) ? (-0.7f) : 0.7f);
+			currentPosition = parent.transform.position;
+			targetPosition = parent.closestTargetInfo.position;
+			PoolManager.GetPoolItem<ParticleEffect>("LightningField").Emit(5, targetPosition, new ParticleSystemOverride
+			{
+				radius = 2f
+			});
+			ChaosInst<LightningWarning>(LightningWarning.Prefab, currentPosition).Init(currentPosition, targetPosition, windupTime);
+			SoundManager.PlayAudioWithDistance("BallLightningLoop", currentPosition, null, 24f, 0.5f);
+		}
+
+		public override void ExecuteSkill()
+		{
+			switch (ChaosStopwatch.CheckInterval(atkStopwatchID))
+			{
+			case StopwatchState.Ready:
+				CreateGroundShock(parent.transform.position + lanceOffset, targetPosition + UnityEngine.Random.insideUnitCircle);
+				break;
+			case StopwatchState.Done:
+				DeactivatePowerUpEffect();
+				base.ExecuteSkill();
+				break;
+			}
+		}
+
+		private void CreateGroundShock(Vector2 givenStart, Vector2 givenEnd)
+		{
+			strikeDist = Vector2.Distance(givenStart, givenEnd) * 0.4f;
+			strikeVector = (givenEnd - givenStart).normalized;
+			offsetVector = (strikeVector + Globals.GetPerpendicular(strikeVector, Globals.RandBool) * 0.2f).normalized;
+			strikeArr[0] = givenStart;
+			ref Vector2 reference = ref strikeArr[1];
+			reference = givenStart + offsetVector * strikeDist;
+			ref Vector2 reference2 = ref strikeArr[2];
+			reference2 = givenEnd - offsetVector * strikeDist;
+			strikeArr[3] = givenEnd;
+			for (int i = 0; i < 3; i++)
+			{
+				LightningStream.Create(strikeArr[i], strikeArr[i + 1], parent.skillCategory, skillID);
+			}
+			ChaosInst<LightningStrike>(LightningStrike.Prefab, givenStart);
+			ChaosInst<LightningStrike>(LightningStrike.Prefab, givenEnd);
+			LightningBurst.CreateBurst(givenEnd, parent.skillCategory, skillID, 2, 1.5f);
+		}
+	}
+
+	public override void InitFSM()
+	{
+		fsm = new FSM();
+		fsm.defaultStateName = "Idle";
+		attackSkillID = "ThunderLancerAttack";
+		fsm.AddState(new IdleState("Idle", fsm, this));
+		fsm.AddState(new GoBackState("GoBack", fsm, this));
+		fsm.AddState(new ChaseState("Chase", fsm, this));
+		fsm.AddState(new LancerAttackStateRotational("Attack", fsm, this)
+		{
+			multiAnimAttack = true
+		});
+		fsm.AddState(new EnemyDeadState("Dead", fsm, this));
+		fsm.AddState(new EnemyHurtState("Hurt", fsm, this));
+		fsm.AddState(new EnemyFallState("Fall", fsm, this));
+		fsm.AddState(new EnemyFrozenState("Frozen", fsm, this));
+		fsm.AddState(new DashState("Dash", fsm, this, 0, 10, 0f, 16f, 0.35f)
+		{
+			allowReset = true,
+			dashOverPits = true,
+			onlyDashOverPits = true,
+			castingAnimName = "Dash"
+		});
+		fsm.AddState(new ThunderLancerThunderJavelinState("ThunderLancerThunderJavelin", fsm, this, 0, 9, 0f, 7f, 7.75f));
+		fsm.AddState(new ThunderLancerPiercingShockState("ThunderLancerPiercingShock", fsm, this, 1, 5, 0f, 7f, 8f));
+		fsm.AddState(new ThunderLancerGroundShockState("ThunderLancerGroundShock", fsm, this, 2, 5, 0f, alertRadius, 7.5f));
+		fsm.ChangeState(fsm.defaultStateName);
+	}
+}

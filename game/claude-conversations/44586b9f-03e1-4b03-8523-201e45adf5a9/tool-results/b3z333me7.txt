@@ -1,0 +1,1189 @@
+using ProjectTower.particles.particles;
+using ProjectTower.particles.particles.debris;
+using ProjectTower.particles.particles.glows;
+using ProjectTower.particles.particles.gore;
+using ProjectTower.particles.particles.hit;
+using ProjectTower.particles.particles.magic;
+using ProjectTower.particles.particles.magic.holy;
+using ProjectTower.particles.particles.pickup;
+using ProjectTower.particles.particles.proj;
+using ProjectTower.particles.particles.pyro;
+using ProjectTower.particles.particles.swords;
+using ProjectTower.particles.particles.zaps;
+
+namespace ProjectTower.particles;
+
+public class ParticleCatalog
+{
+	public static BaseParticle[] particle;
+
+	public const int SMOKE = 0;
+
+	public const int FIRE = 1;
+
+	public const int DUST = 2;
+
+	public const int BLOOD_ARC = 3;
+
+	public const int SPURT_SUB = 4;
+
+	public const int HIT = 5;
+
+	public const int GLOB_SUB = 6;
+
+	public const int BONE_DUST = 7;
+
+	public const int SPARK = 8;
+
+	public const int SLASH = 9;
+
+	public const int WOOSH = 10;
+
+	public const int ARROW = 11;
+
+	public const int ARROW_TRAIL = 12;
+
+	public const int SPLASH_NORM = 13;
+
+	public const int WISP = 14;
+
+	public const int ASH = 15;
+
+	public const int PICKUP_GLOW = 16;
+
+	public const int PICKUP_SMOKE = 17;
+
+	public const int SMASH_BIT = 18;
+
+	public const int SMASH_SMOKE = 19;
+
+	public const int SMASH_DUST = 20;
+
+	public const int MAGIC_BUILD = 21;
+
+	public const int SPELL_FIRE = 22;
+
+	public const int SPELL_SMOKE = 23;
+
+	public const int MAGIC_SPELL = 24;
+
+	public const int BLOOD_SPELL = 25;
+
+	public const int DOOR_GLOW = 26;
+
+	public const int BLOOD_BUILD = 27;
+
+	public const int ZAP = 28;
+
+	public const int ZAP_ARC = 29;
+
+	public const int DUST_FARM = 30;
+
+	public const int SANCTUARY_GLOW = 31;
+
+	public const int SANCTUARY_BEAM = 32;
+
+	public const int BACK_SLIDE_CRASH = 33;
+
+	public const int BACK_BACK_SLIDE_CRASH = 34;
+
+	public const int MAGIC_AURA = 35;
+
+	public const int HEAL_AURA = 36;
+
+	public const int HEAL_GLOW = 37;
+
+	public const int STATUE_WISP = 38;
+
+	public const int TENDENCY_BIT = 39;
+
+	public const int ELEMENTAL_BIT = 40;
+
+	public const int ELEMENTAL_DECAY = 41;
+
+	public const int NOVA_SOURCE = 42;
+
+	public const int NOVA_BLAST = 43;
+
+	public const int NOVA_BOLT = 44;
+
+	public const int POISON = 45;
+
+	public const int BODYFIRE = 46;
+
+	public const int FACEBREATH = 47;
+
+	public const int SWORD_RUNE_CIRCLE = 48;
+
+	public const int SWORD_RUNE = 49;
+
+	public const int SWORD_RUNE_GLOW = 50;
+
+	public const int POISON_BARF = 51;
+
+	public const int AXE_LOB = 52;
+
+	public const int FIREPOT = 53;
+
+	public const int FLAME_TRAIL = 54;
+
+	public const int GRENADO = 55;
+
+	public const int GRENADO_TRAIL = 56;
+
+	public const int SPARK_FARM = 57;
+
+	public const int SPARK_GLOW = 58;
+
+	public const int GLOW_SPARK = 59;
+
+	public const int GRENADO_HIT = 60;
+
+	public const int DAGGER = 61;
+
+	public const int WATERPOT = 62;
+
+	public const int REFRACT_SMOKE = 63;
+
+	public const int REFRACT_SANCT_WATER = 64;
+
+	public const int SANCT_WATER = 65;
+
+	public const int REFRACT_HOLY_WATER = 66;
+
+	public const int HOLY_WATER = 67;
+
+	public const int WATER_HIT = 68;
+
+	public const int LIT_BALL_ZAP = 69;
+
+	public const int SORCEROR_BOLT = 70;
+
+	public const int SORCEROR_TRAIL = 71;
+
+	public const int SORCERORY = 72;
+
+	public const int SORCERY_RUNE = 73;
+
+	public const int SORCERY_RUNE_BOLT = 74;
+
+	public const int MEGA_SMASH_FARM = 75;
+
+	public const int MEGA_SMASH_BIT = 76;
+
+	public const int MEGA_SMASH_FARM_SHORT = 77;
+
+	public const int DRAGON_FIRE = 78;
+
+	public const int TAIL_SMASH_FARM = 79;
+
+	public const int DRAGON_FIRE_BIT = 80;
+
+	public const int HOLY_CONE_FARM = 81;
+
+	public const int HOLY_CONE_FARM_BIT = 82;
+
+	public const int HOLY_CONE_BIT = 83;
+
+	public const int DEMON_SPURT = 84;
+
+	public const int DEMON_SPLASH = 85;
+
+	public const int METAL_SPURT = 86;
+
+	public const int DEMON_GLOB = 87;
+
+	public const int GOO_SPURT = 88;
+
+	public const int GOO_SPLASH = 89;
+
+	public const int GOO_GLOB = 90;
+
+	public const int GOLEM_FIRE = 91;
+
+	public const int SCYTHE = 92;
+
+	public const int SCYTHE_TRAIL = 93;
+
+	public const int POTS_FIRE = 94;
+
+	public const int POTS_POISON = 95;
+
+	public const int POTS_FIRE_CHASERS = 96;
+
+	public const int POTS_AUX = 97;
+
+	public const int POTS_AUX_GAS = 98;
+
+	public const int HOOK = 99;
+
+	public const int FLAME_JET = 100;
+
+	public const int BUILD_GLOW = 101;
+
+	public const int BUILD_GLOW_BIT = 102;
+
+	public const int BUILD_GLOW_BLAST = 103;
+
+	public const int AURA_FARM = 104;
+
+	public const int AURA_FARM_BIT = 105;
+
+	public const int WILD_FIRE = 106;
+
+	public const int ROT_WOOD_BIT = 107;
+
+	public const int BLUNDER_SHOT = 108;
+
+	public const int BLUNDER_BIT = 109;
+
+	public const int MUZZLE_FLASH = 110;
+
+	public const int BLUNDER_RAIN_FARM = 111;
+
+	public const int GOLD = 112;
+
+	public const int OBELISK_GLOW = 113;
+
+	public const int GOLD_GLOW = 114;
+
+	public const int POISON_FIRE = 115;
+
+	public const int LAVA_BARF = 116;
+
+	public const int BOLT = 117;
+
+	public const int SPELL_BLADE = 118;
+
+	public const int FLAME_BLADE_TRAP = 119;
+
+	public const int GOLEM_SPARK = 120;
+
+	public const int TORCH_SPARK = 121;
+
+	public const int BRAIN_BIT = 122;
+
+	public const int EGG = 123;
+
+	public const int RUNE_GLOW = 124;
+
+	public const int JUMP_GLOW = 125;
+
+	public const int FLINT_SHOT = 126;
+
+	public const int HIT_NUMBER = 127;
+
+	public const int MAGIC_SPRAY = 128;
+
+	public const int BLOOD_TRAIL = 129;
+
+	public const int DEMON_BLOOD_TRAIL = 130;
+
+	public const int DESECRATION_GLOW = 131;
+
+	public const int DESECRATION_BIT = 132;
+
+	public const int HANG_IDEA = 133;
+
+	public const int EYE_GLOW = 134;
+
+	public const int REFRACT_CAVE_TRICKLE = 135;
+
+	public const int CANDLE = 136;
+
+	public const int AIR_WOOSH = 137;
+
+	public const int ROTAT_AIR_WOOSH = 138;
+
+	public const int PRIEST_TRAP = 139;
+
+	public const int PRIEST_TRAP_FARM = 140;
+
+	public const int BLOCK_GLOW = 141;
+
+	public const int BOULDER = 142;
+
+	public const int MEGA_SMASH_FARM_FAST = 143;
+
+	public const int GAS_BLAST_FARM = 144;
+
+	public const int GAS_BLAST_BIT = 145;
+
+	public const int BLOOD_SPRAY = 146;
+
+	public const int DEMON_BLOOD_SPRAY = 147;
+
+	public const int REFRACT_SPRAY = 148;
+
+	public const int BLUEZAP_BUILD = 149;
+
+	public const int BLUEZAP_ZAP = 150;
+
+	public const int BLUENOVA = 151;
+
+	public const int BLUENOVA_TRAIL = 152;
+
+	public const int BLUENOVA_EXPLODE = 153;
+
+	public const int NIGHTMARESCREAM_FARM = 154;
+
+	public const int NIGHTMARESCREAM_BIT = 155;
+
+	public const int NAMEBLADE = 156;
+
+	public const int NAME_VOID_FARM = 157;
+
+	public const int NAME_VOID_BIT = 158;
+
+	public const int NAME_VOID_ZAP = 159;
+
+	public const int CLOAK_BLADE_FARM = 160;
+
+	public const int CLOAK_BLADE = 161;
+
+	public const int BLOOD_MAGIC_TRAIL = 162;
+
+	public const int WATER_SPLASH = 163;
+
+	public const int WATER_SPLASH_BIT = 164;
+
+	public const int SPELL_WORD = 165;
+
+	public const int SPELL_WORD_FARM = 166;
+
+	public const int REFRACT_ARC_SPRAY = 167;
+
+	public const int END_WATER_SPLASH = 168;
+
+	public const int END_WATER_SPLASH_BIT = 169;
+
+	public const int GUIDE_DOOR = 170;
+
+	public const int GUIDE_DOOR_BIT = 171;
+
+	public const int MEGA_SMASH_FARM_TALL = 172;
+
+	public const int FAST_MEGA_SMASH_BIT = 173;
+
+	public const int BLOOD_POT = 174;
+
+	public const int BLOOD_HIT = 175;
+
+	public const int TORTURE_SMASH = 176;
+
+	public const int TORTURE_SMASH_BIT = 177;
+
+	public const int STARFALL_FARM = 178;
+
+	public const int UPGRADE_AURA = 179;
+
+	public const int SMASH_SPARK = 180;
+
+	public const int ELEMENTAL_STRIKE = 181;
+
+	public const int MANA_GLOW = 182;
+
+	public const int TOTAL_PARTICLES = 183;
+
+	public static void Init()
+	{
+		particle = new BaseParticle[183];
+		particle[0] = new Smoke();
+		particle[1] = new Fire();
+		particle[2] = new Dust();
+		particle[3] = new BloodArc();
+		particle[4] = new Spurt();
+		particle[5] = new Hit();
+		particle[6] = new Glob();
+		particle[7] = new BoneDust();
+		particle[8] = new Spark();
+		particle[9] = new Slash();
+		particle[10] = new Woosh();
+		particle[11] = new Arrow();
+		particle[12] = new ArrowTrail();
+		particle[13] = new Splash();
+		particle[14] = new Wisp();
+		particle[15] = new Ash();
+		particle[16] = new PickupGlow();
+		particle[17] = new PickupSmoke();
+		particle[18] = new Smashbit();
+		particle[19] = new SmashSmoke();
+		particle[20] = new SmashDust();
+		particle[21] = new MagicBuild();
+		particle[24] = new MagicSpell();
+		particle[25] = new BloodSpell();
+		particle[26] = new DoorGlow();
+		particle[27] = new BloodBuild();
+		particle[28] = new Zap();
+		particle[29] = new ZapArc();
+		particle[30] = new DustFarm();
+		particle[22] = new SpellFire();
+		particle[23] = new SpellSmoke();
+		particle[31] = new SanctuaryGlow();
+		particle[32] = new SanctuaryBeam();
+		particle[33] = new BackSlideCrash();
+		particle[34] = new BackBackSlideCrash();
+		particle[35] = new MagicAura();
+		particle[36] = new HealAura();
+		particle[37] = new HealGlow();
+		particle[38] = new StatueWisp();
+		particle[39] = new TendencyBit();
+		particle[40] = new ElementalBit();
+		particle[41] = new ElementalDecay();
+		particle[42] = new NovaSource();
+		particle[43] = new NovaBlast();
+		particle[44] = new NovaBolt();
+		particle[45] = new Poison();
+		particle[46] = new BodyFire();
+		particle[47] = new FaceBreath();
+		particle[48] = new SwordRuneCircle();
+		particle[49] = new SwordRune();
+		particle[50] = new SwordRuneGlow();
+		particle[51] = new PoisonBarf();
+		particle[52] = new AxeLob();
+		particle[53] = new Firepot();
+		particle[54] = new FlameTrail();
+		particle[55] = new Grenado();
+		particle[56] = new GrenadoTrail();
+		particle[57] = new SparkFarm();
+		particle[59] = new GlowSpark();
+		particle[58] = new SparkGlow();
+		particle[60] = new GrenadoHit();
+		particle[61] = new Dagger();
+		particle[62] = new Waterpot();
+		particle[63] = new RefractSmoke();
+		particle[64] = new RefractSanctWater();
+		particle[65] = new SanctWater();
+		particle[66] = new RefractHolyWater();
+		particle[67] = new HolyWater();
+		particle[68] = new WaterHit();
+		particle[69] = new LitBallZap();
+		particle[70] = new SorcerorBolt();
+		particle[71] = new SorcerorTrail();
+		particle[72] = new Sorcerory();
+		particle[73] = new SorceryRune();
+		particle[74] = new SorceryRuneBolt();
+		particle[75] = new MegaSmashFarm();
+		particle[76] = new MegaSmashBit();
+		particle[77] = new MegaSmashFarmShort();
+		particle[78] = new DragonFire();
+		particle[79] = new TailSmashFarm();
+		particle[80] = new DragonFireBit();
+		particle[81] = new HolyConeFarm();
+		particle[82] = new HolyConeFarmBit();
+		particle[83] = new HolyConeBit();
+		particle[84] = new DemonSpurt();
+		particle[85] = new DemonSplash();
+		particle[86] = new MetalSpurt();
+		particle[87] = new DemonGlob();
+		particle[88] = new GooSpurt();
+		particle[89] = new GooSplash();
+		particle[90] = new GooGlob();
+		particle[91] = new GolemFire();
+		particle[92] = new Scythe();
+		particle[93] = new ScytheTrail();
+		particle[94] = new PotsFire();
+		particle[95] = new PotsPoison();
+		particle[96] = new PotsFireChasers();
+		particle[97] = new PotsAux();
+		particle[98] = new PotsAuxGas();
+		particle[99] = new Hook();
+		particle[100] = new FlameJet();
+		particle[101] = new BuildGlow();
+		particle[102] = new BuildGlowBit();
+		particle[103] = new BuildGlowBlast();
+		particle[104] = new AuraFarm();
+		particle[105] = new AuraFarmBit();
+		particle[106] = new WildFire();
+		particle[107] = new RotWoodBit();
+		particle[108] = new BlunderShot();
+		particle[109] = new BlunderBit();
+		particle[110] = new MuzzleFlash();
+		particle[111] = new BlunderRainFarm();
+		particle[112] = new Gold();
+		particle[114] = new GoldGlow();
+		particle[113] = new ObeliskGlow();
+		particle[115] = new PoisonFire();
+		particle[116] = new LavaBarf();
+		particle[117] = new Bolt();
+		particle[118] = new SpellBlade();
+		particle[119] = new FlameBladeTrap();
+		particle[120] = new GolemSpark();
+		particle[121] = new TorchSpark();
+		particle[122] = new BrainBit();
+		particle[123] = new Egg();
+		particle[124] = new RuneGlow();
+		particle[125] = new JumpGlow();
+		particle[126] = new Flintshot();
+		particle[127] = new HitNumber();
+		particle[128] = new MagicSpray();
+		particle[129] = new BloodTrail();
+		particle[130] = new DemonBloodTrail();
+		particle[131] = new DesecrationGlow();
+		particle[132] = new DesecrationBit();
+		particle[133] = new HangIdea();
+		particle[134] = new EyeGlow();
+		particle[135] = new CaveTrickle();
+		particle[136] = new Candle();
+		particle[137] = new AirWoosh();
+		particle[138] = new RotatairWoosh();
+		particle[139] = new PriestTrap();
+		particle[140] = new PriestTrapFarm();
+		particle[141] = new BlockGlow();
+		particle[142] = new Boulder();
+		particle[143] = new MegaSmashFarmFast();
+		particle[144] = new GasBlastFarm();
+		particle[145] = new GasBlastBit();
+		particle[146] = new Spray();
+		particle[147] = new DemonSpray();
+		particle[148] = new RefractSpray();
+		particle[149] = new BlueZapBuild();
+		particle[150] = new BlueZapZap();
+		particle[151] = new BlueNova();
+		particle[152] = new BlueNovaTrail();
+		particle[153] = new BlueNovaExplode();
+		particle[154] = new NightmareScreamFarm();
+		particle[155] = new NightmareScreamBit();
+		particle[156] = new NameBlade();
+		particle[157] = new NameVoidFarm();
+		particle[158] = new NameVoidBit();
+		particle[159] = new NameVoidZap();
+		particle[160] = new CloakBladeFarm();
+		particle[161] = new CloakBlade();
+		particle[162] = new BloodMagicTrail();
+		particle[163] = new WaterSplash();
+		particle[164] = new WaterSplashBit();
+		particle[165] = new SpellWord();
+		particle[166] = new SpellWordFarm();
+		particle[167] = new RefractArcSpray();
+		particle[168] = new EndWaterSplash();
+		particle[169] = new EndWaterSplashBit();
+		particle[170] = new GuideDoor();
+		particle[171] = new GuideDoorBit();
+		particle[172] = new MegaSmashFarmTall();
+		particle[173] = new FastMegaSmashBit();
+		particle[174] = new BloodPot();
+		particle[175] = new BloodHit();
+		particle[176] = new TortureSmash();
+		particle[177] = new TortureSmashBit();
+		particle[178] = new StarfallFarm();
+		particle[179] = new UpgradeAura();
+		particle[180] = new SmashSpark();
+		particle[181] = new ElementalStrike();
+		particle[182] = new ManaGlow();
+	}
+}
+using System.IO;
+using System.Threading;
+using MapEdit;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
+using ProjectTower;
+using ProjectTower.io;
+using ProjectTower.steam.ugc;
+using ProjectTower.storage;
+using ProjectTower.texturesheet;
+
+namespace SheetEdit.TextureSheet;
+
+public class XTexture
+{
+	public XSprite[] cell;
+
+	public Texture2D texture;
+
+	public string name = "";
+
+	public const int TYPE_NORMAL = 0;
+
+	public const int TYPE_CLOTHES = 1;
+
+	public const int TYPE_MAP = 2;
+
+	public const int TYPE_CHARACTER = 3;
+
+	public const int TYPE_CHAR = 4;
+
+	public const int TYPE_CHAR_VAR = 5;
+
+	public const int MAX_CELLS = 128;
+
+	public const string VERSION_TREE = "Tree 1.0";
+
+	public int ugcPackageIdx = -1;
+
+	public int ugcSheetIdx = -1;
+
+	private bool isLoading;
+
+	private bool isLoaded;
+
+	public bool needsUnload;
+
+	public int type;
+
+	public XTexture()
+	{
+		cell = new XSprite[128];
+		type = 0;
+	}
+
+	public XTexture(Texture2D t, string[] chars)
+	{
+		texture = t;
+		cell = new XSprite[chars.Length];
+		type = 3;
+		for (int i = 0; i < chars.Length; i++)
+		{
+			cell[i] = new XSprite();
+			XSprite xSprite = cell[i];
+			xSprite.name = chars[i];
+			xSprite.srcRect = new Rectangle(0, 0, 200, 400);
+			xSprite.origin = new Vector2((float)xSprite.srcRect.Width / 2f, (float)xSprite.srcRect.Height - 20f);
+		}
+	}
+
+	public XTexture(ContentManager Content, string path)
+	{
+		texture = Content.Load<Texture2D>(path);
+		Read(path + ".zsx");
+	}
+
+	public XTexture(ContentManager Content, string filePath, string texPath)
+	{
+		texture = Content.Load<Texture2D>(texPath);
+		Read(filePath);
+	}
+
+	public XTexture(ContentManager Content, string filePath, Texture2D texture)
+	{
+		this.texture = texture;
+		Read(filePath);
+	}
+
+	public void Read(string path)
+	{
+		FileMgr.Open(path);
+		ReadData(FileMgr.reader);
+		FileMgr.Close();
+	}
+
+	public void ReadData(BinaryReader reader)
+	{
+		type = reader.ReadInt32();
+		int num = reader.ReadInt32();
+		cell = new XSprite[num];
+		for (int i = 0; i < num; i++)
+		{
+			if (reader.ReadBoolean())
+			{
+				cell[i] = new XSprite();
+				XSprite xSprite = cell[i];
+				xSprite.name = reader.ReadString();
+				xSprite.srcRect = new Rectangle(reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+				xSprite.origin = new Vector2(reader.ReadSingle(), reader.ReadSingle());
+				switch (type)
+				{
+				case 1:
+					xSprite.char_ref = reader.ReadInt32();
+					xSprite.flags = reader.ReadInt32();
+					break;
+				case 2:
+					xSprite.flags = reader.ReadInt32();
+					break;
+				case 4:
+					xSprite.flags = reader.ReadInt32();
+					break;
+				}
+			}
+		}
+	}
+
+	public Rectangle GetSpriteRect(int idx)
+	{
+		if (idx < cell.Length && cell[idx] != null)
+		{
+			if (ugcPackageIdx > -1 && ugcSheetIdx > -1 && idx < UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell.Length)
+			{
+				return UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell[idx].srcRect;
+			}
+			return cell[idx].srcRect;
+		}
+		return default;
+	}
+
+	public string GetSpriteName(int idx)
+	{
+		if (idx < cell.Length && cell[idx] != null)
+		{
+			return cell[idx].name;
+		}
+		return "";
+	}
+
+	public Vector2 GetSpriteOrigin(int idx)
+	{
+		if (idx < cell.Length)
+		{
+			if (ugcPackageIdx > -1 && ugcSheetIdx > -1 && idx < UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell.Length)
+			{
+				return UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell[idx].origin;
+			}
+			if (cell[idx] != null)
+			{
+				return cell[idx].origin;
+			}
+		}
+		return default;
+	}
+
+	public void SetSpriteRect(int idx, Rectangle rect)
+	{
+		if (idx < cell.Length)
+		{
+			if (cell[idx] == null)
+			{
+				cell[idx] = new XSprite();
+			}
+			cell[idx].srcRect = rect;
+		}
+	}
+
+	public void SetSpriteOrigin(int idx, Vector2 origin)
+	{
+		if (idx < cell.Length)
+		{
+			if (cell[idx] == null)
+			{
+				cell[idx] = new XSprite();
+			}
+			cell[idx].origin = origin;
+		}
+	}
+
+	public virtual void Draw(Vector2 loc, int idx, Vector2 scale, float rotation, float r, float g, float b, float a)
+	{
+		if (idx < 0 || idx >= cell.Length || texture == null || texture == null)
+		{
+			return;
+		}
+		XSprite xSprite = GetCell(idx);
+		if (xSprite != null)
+		{
+			if (float.IsNaN(rotation))
+			{
+				rotation = 0f;
+			}
+			SpriteTools.sprite.Draw(texture, loc, xSprite.srcRect, new Color(r, g, b, a), rotation, xSprite.origin - new Vector2(xSprite.srcRect.X, xSprite.srcRect.Y), scale, SpriteEffects.None, 0f);
+		}
+	}
+
+	public XSprite GetCell(int idx)
+	{
+		if (ugcPackageIdx > -1 && ugcSheetIdx > -1 && idx < UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell.Length)
+		{
+			return UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell[idx];
+		}
+		return cell[idx];
+	}
+
+	public XSprite GetOriginalCell(int idx)
+	{
+		return cell[idx];
+	}
+
+	public int GetCellCount()
+	{
+		if (ugcPackageIdx > -1 && ugcSheetIdx > -1)
+		{
+			return UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].cell.Length;
+		}
+		return cell.Length;
+	}
+
+	public int GetOriginalCellCount()
+	{
+		return cell.Length;
+	}
+
+	public virtual void DrawFlipped(Vector2 loc, int idx, Vector2 scale, float rotation, float r, float g, float b, float a)
+	{
+		XSprite xSprite = GetCell(idx);
+		try
+		{
+			if (float.IsNaN(rotation))
+			{
+				rotation = 0f;
+			}
+			float num = scale.X;
+			if (scale.Y > scale.X)
+			{
+				num = scale.Y;
+			}
+			Vector2 vector = (xSprite.origin - new Vector2(xSprite.srcRect.Left, xSprite.srcRect.Top)) * num * 1.4f;
+			Vector2 vector2 = (new Vector2(xSprite.srcRect.Right, xSprite.srcRect.Bottom) - xSprite.origin) * num * 1.4f;
+			if (vector2.X > vector.X)
+			{
+				vector.X = vector2.X;
+			}
+			if (vector2.Y > vector.Y)
+			{
+				vector.Y = vector2.Y;
+			}
+			if (!(loc.X + vector.X < 0f) && !(loc.Y + vector.Y < 0f) && !(loc.X - vector.X > ScrollManager.totalScreenSize.X) && !(loc.Y - vector.Y > ScrollManager.totalScreenSize.Y))
+			{
+				Vector2 origin = xSprite.origin - new Vector2(xSprite.srcRect.X, xSprite.srcRect.Y);
+				origin.X = (float)xSprite.srcRect.Width - origin.X;
+				SpriteTools.sprite.Draw(texture, loc, xSprite.srcRect, new Color(r, g, b, a), rotation, origin, scale, SpriteEffects.FlipHorizontally, 0f);
+			}
+		}
+		catch
+		{
+		}
+	}
+
+	public XTexture(BinaryReader reader, ContentManager Content)
+	{
+		name = reader.ReadString();
+		ReadData(reader);
+		switch (type)
+		{
+		case 1:
+		case 4:
+			isLoaded = false;
+			isLoading = false;
+			break;
+		case 0:
+			switch (name)
+			{
+			case "sprites":
+			case "swooshes":
+			case "logosegs":
+			case "smashables":
+			case "smashbits":
+				texture = Content.Load<Texture2D>("gfx/" + name);
+				isLoaded = true;
+				break;
+			default:
+				isLoaded = false;
+				isLoading = false;
+				break;
+			}
+			break;
+		default:
+			texture = Content.Load<Texture2D>("gfx/" + name);
+			isLoaded = true;
+			break;
+		}
+	}
+
+	public bool IsLoaded()
+	{
+		if (needsUnload)
+		{
+			if (isLoading)
+			{
+				return false;
+			}
+			needsUnload = false;
+			isLoaded = false;
+		}
+		if (!isLoaded && !isLoading)
+		{
+			Point point = UGCManager.CheckReplace(name);
+			ugcPackageIdx = point.X;
+			ugcSheetIdx = point.Y;
+		}
+		if (isLoaded)
+		{
+			return true;
+		}
+		if (isLoading)
+		{
+			return false;
+		}
+		if (StorageJobMgr.busy)
+		{
+			return false;
+		}
+		if (StorageJobMgr.timeOut > 0f)
+		{
+			return false;
+		}
+		isLoading = true;
+		isLoaded = false;
+		Thread thread = new Thread(ThreadedLoader);
+		try
+		{
+			thread.Start();
+		}
+		catch
+		{
+		}
+		return false;
+	}
+
+	private void ThreadedLoader()
+	{
+		while (Textures.loading)
+		{
+			Thread.Sleep(Rand.GetRandomInt(100, 1000));
+		}
+		while (StorageJobMgr.jobWorking)
+		{
+			Thread.Sleep(Rand.GetRandomInt(100, 1000));
+		}
+		if (!Monitor.TryEnter(Textures.textureSemaphore, 1000))
+		{
+			return;
+		}
+		try
+		{
+			Textures.loading = true;
+			if (ugcPackageIdx > -1 && ugcSheetIdx > -1)
+			{
+				FileStream fileStream = new FileStream(Path.Combine(UGCManager.packages[ugcPackageIdx].directory, UGCManager.packages[ugcPackageIdx].sheets[ugcSheetIdx].name + ".PNG"), FileMode.Open);
+				texture = Texture2D.FromStream(Game1.graphics.GraphicsDevice, fileStream);
+				fileStream.Close();
+			}
+			else
+			{
+				texture = Textures.StreamingContent.Load<Texture2D>("gfx/" + name);
+			}
+			isLoaded = true;
+			isLoading = false;
+			Textures.loading = false;
+		}
+		finally
+		{
+			Monitor.Exit(Textures.textureSemaphore);
+		}
+	}
+
+	public XTexture(string name, BinaryReader reader, Texture2D tex)
+	{
+		this.name = name;
+		ReadData(reader);
+		texture = tex;
+	}
+
+	public Texture2D GetTexture()
+	{
+		return texture;
+	}
+}
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using Microsoft.Xna.Framework.Graphics;
+using ProjectTower.gamestate;
+using ProjectTower.texturesheet;
+using SheetEdit.TextureSheet;
+
+namespace SheetEdit.sheetUGC;
+
+public class SheetUGCPackage
+{
+	public bool enabled;
+
+	public string previewPath;
+
+	public Texture2D previewTexture;
+
+	public string directory;
+
+	public string fileName;
+
+	public StringBuilder nameStr;
+
+	public float alpha;
+
+	public string name;
+
+	public string description;
+
+	public string tags;
+
+	public string meta;
+
+	public ulong publishedFileId;
+
+	public bool userNeedsToAcceptWorkshopLegalAgreement;
+
+	public List<XTexture> sheets;
+
+	public SheetUGCPackage()
+	{
+		Init("", "", "", "", "", "", "");
+	}
+
+	public SheetUGCPackage(string directory, string filename, string name, string description, string tags, string meta, string previewPath)
+	{
+		Init(directory, filename, name, description, tags, meta, previewPath);
+	}
+
+	public void Init(string directory, string filename, string name, string description, string tags, string meta, string previewPath)
+	{
+		this.directory = directory;
+		fileName = filename;
+		this.name = name;
+		this.description = description;
+		this.tags = tags;
+		this.meta = meta;
+		this.previewPath = previewPath;
+		sheets = new List<XTexture>();
+	}
+
+	public string GetFullPath()
+	{
+		return Path.Combine(directory, fileName + ".sltpkg");
+	}
+
+	public void RefreshTextures(GraphicsDevice dev)
+	{
+		for (int i = 0; i < sheets.Count; i++)
+		{
+			if (sheets[i].texture == null)
+			{
+				FileStream fileStream = new FileStream(Path.Combine(directory, sheets[i].name + ".PNG"), FileMode.Open);
+				sheets[i].texture = Texture2D.FromStream(dev, fileStream);
+				fileStream.Close();
+			}
+		}
+	}
+
+	public void Read(string path)
+	{
+		directory = Path.GetDirectoryName(path);
+		fileName = Path.GetFileNameWithoutExtension(path);
+		BinaryReader binaryReader = new BinaryReader(File.Open(GetFullPath(), FileMode.Open, FileAccess.Read));
+		userNeedsToAcceptWorkshopLegalAgreement = binaryReader.ReadBoolean();
+		publishedFileId = binaryReader.ReadUInt64();
+		name = binaryReader.ReadString();
+		description = binaryReader.ReadString();
+		tags = binaryReader.ReadString();
+		meta = binaryReader.ReadString();
+		previewPath = binaryReader.ReadString();
+		previewPath = previewPath.Substring(previewPath.LastIndexOf('\\') + 1);
+		int num = binaryReader.ReadInt32();
+		sheets = new List<XTexture>();
+		for (int i = 0; i < num; i++)
+		{
+			XTexture xTexture = new XTexture();
+			xTexture.name = binaryReader.ReadString();
+			if (File.Exists(Path.Combine(directory, xTexture.name + ".zsx")) && File.Exists(Path.Combine(directory, xTexture.name + ".PNG")))
+			{
+				xTexture.Read(Path.Combine(directory, xTexture.name + ".zsx"));
+				sheets.Add(xTexture);
+			}
+		}
+		binaryReader.Close();
+	}
+
+	internal bool IsValid()
+	{
+		if (directory == null || directory == "" || fileName == null || fileName == "")
+		{
+			return false;
+		}
+		if (Directory.Exists(directory) && File.Exists(GetFullPath()))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	internal void UpdateAffectedTextures()
+	{
+		for (int i = 0; i < sheets.Count; i++)
+		{
+			int textureIdx = Textures.GetTextureIdx(sheets[i].name);
+			if (textureIdx > -1)
+			{
+				Textures.tex[textureIdx].needsUnload = true;
+				GameConsole.WriteLine("Unloading: " + sheets[i].name);
+			}
+		}
+	}
+}
+7:	public const int MAP_FLAGS_NONE = 0;
+9:	public const int MAP_FLAGS_LAYERBUMP = 1;
+11:	public const int MAP_FLAGS_4XLAYERBUMP = 2;
+13:	public const int MAP_FLAGS_8XLAYERBUMP = 3;
+15:	public const int MAP_FLAGS_TORCH = 4;
+17:	public const int MAP_FLAGS_SWAY = 5;
+19:	public const int MAP_FLAGS_CANDLE = 6;
+21:	public const int MAP_FLAGS_CAMP_FIRE = 7;
+23:	public const int MAP_FLAGS_FOG = 8;
+25:	public const int MAP_FLAGS_V_ELEVATOR_X3 = 9;
+27:	public const int MAP_FLAGS_H_ELEVATOR_X3 = 10;
+29:	public const int MAP_FLAGS_SANCTUARY = 11;
+31:	public const int MAP_FLAGS_WATER = 12;
+33:	public const int MAP_FLAGS_TRIGGER = 13;
+35:	public const int MAP_FLAGS_DOOR = 14;
+37:	public const int MAP_FLAGS_LADDER_KICK = 15;
+39:	public const int MAP_FLAGS_BOSS_ARENA = 16;
+41:	public const int MAP_FLAGS_FIREPLACE = 17;
+43:	public const int MAP_FLAGS_BRAZIER = 18;
+45:	public const int MAP_FLAGS_LANTERN = 19;
+47:	public const int MAP_FLAGS_WAVE = 20;
+49:	public const int MAP_FLAGS_RAIN = 21;
+51:	public const int MAP_FLAGS_BOSS_CANDLES = 22;
+53:	public const int MAP_FLAGS_SPIN_BASE = 23;
+55:	public const int MAP_FLAGS_SPIN_PLAT = 24;
+57:	public const int MAP_FLAGS_GLOW_MUSHROOM_BIG = 25;
+59:	public const int MAP_FLAGS_GLOW_MUSHROOM_SMALL = 26;
+61:	public const int MAP_FLAGS_SWAMP_WATER = 27;
+63:	public const int MAP_FLAGS_ROT_WOOD = 28;
+65:	public const int MAP_FLAGS_SECRET_DOOR = 29;
+67:	public const int MAP_FLAGS_SECRET_SLASH = 30;
+69:	public const int MAP_FLAGS_OBELISK_LIMIT = 31;
+71:	public const int MAP_FLAGS_WATERWHEEL_BASE = 32;
+73:	public const int MAP_FLAGS_WATERWHEEL_PLAT = 33;
+75:	public const int MAP_FLAGS_GRASS = 34;
+77:	public const int MAP_FLAGS_SLOW_SWAY = 35;
+79:	public const int MAP_FLAGS_AREA_BEACH = 36;
+81:	public const int MAP_FLAGS_AREA_TOWER_O_STORMS = 37;
+83:	public const int MAP_FLAGS_AREA_SUNKEN_KEEP = 38;
+85:	public const int MAP_FLAGS_AREA_PARTY_FORT = 39;
+87:	public const int MAP_FLAGS_AREA_VILLAGE = 40;
+89:	public const int MAP_FLAGS_AREA_CAVEY_CAVE = 41;
+91:	public const int MAP_FLAGS_AREA_BANDITS_PASS = 42;
+93:	public const int MAP_FLAGS_AREA_FOREST = 43;
+95:	public const int MAP_FLAGS_AREA_RED_DUNGEON = 44;
+97:	public const int MAP_FLAGS_AREA_DOMEY_DOME = 45;
+99:	public const int MAP_FLAGS_AREA_ZIGGURAT = 46;
+101:	public const int MAP_FLAGS_AREA_RUINS = 47;
+103:	public const int MAP_FLAGS_AREA_DARK_WOODS = 48;
+105:	public const int MAP_FLAGS_AREA_SIAM_LAKE = 49;
+107:	public const int MAP_FLAGS_AREA_FAR_BEACH = 50;
+109:	public const int MAP_FLAGS_AREA_SWAMPY_SWAMP = 51;
+111:	public const int MAP_FLAGS_AREA_COASTAL_FORT = 52;
+113:	public const int MAP_FLAGS_BLINK_MAIN_1 = 53;
+115:	public const int MAP_FLAGS_BLINK_MAIN_2 = 54;
+117:	public const int MAP_FLAGS_BLINK_QUICK_1 = 55;
+119:	public const int MAP_FLAGS_BLINK_QUICK_2 = 56;
+121:	public const int MAP_FLAGS_BLINK_QUICK_3 = 57;
+123:	public const int MAP_FLAGS_BLINK_QUICK_4 = 58;
+125:	public const int MAP_FLAGS_BLINK_QUICK_5 = 59;
+127:	public const int MAP_FLAGS_BLINK_QUICK_6 = 60;
+129:	public const int MAP_FLAGS_LEAF_SWAY = 61;
+131:	public const int MAP_FLAGS_BRANCH_SWAY = 62;
+133:	public const int MAP_FLAGS_TRICKLE = 63;
+135:	public const int MAP_FLAGS_BIG_TRICKLE = 64;
+137:	public const int MAP_FLAGS_CANDLE_ROW = 65;
+139:	public const int MAP_FLAGS_TUBE_1 = 66;
+141:	public const int MAP_FLAGS_TUBE_2 = 67;
+143:	public const int MAP_FLAGS_TUBE_3 = 68;
+145:	public const int MAP_FLAGS_TUBE_D1 = 69;
+147:	public const int MAP_FLAGS_TUBE_D2 = 70;
+149:	public const int MAP_FLAGS_VESSEL_1 = 71;
+151:	public const int MAP_FLAGS_VESSEL_2 = 72;
+153:	public const int MAP_FLAGS_VESSEL_3 = 73;
+155:	public const int MAP_FLAGS_SPRITECANDLE = 74;
+157:	public const int MAP_FLAGS_WOOSH = 75;
+159:	public const int MAP_FLAGS_WOOSH_CW = 76;
+161:	public const int MAP_FLAGS_WOOSH_CCW = 77;
+163:	public const int MAP_FLAGS_RED_BLOCKER = 78;
+165:	public const int MAP_FLAGS_BLUE_ETHEREAL = 79;

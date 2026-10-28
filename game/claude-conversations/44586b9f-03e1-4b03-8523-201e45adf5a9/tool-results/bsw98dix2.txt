@@ -1,0 +1,1601 @@
+using MapEdit;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using ProjectTower.texturesheet;
+using SheetEdit.TextureSheet;
+namespace ProjectTower.particles.particles;
+public class BaseParticle
+{
+ public virtual void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.exists = true;
+ }
+ public void TrimFrame(Particle p)
+ {
+ if (ParticleManager.particleList[p.particleType].totalParticles > 100)
+ {
+ p.frame -= Game1.frameTime;
+ }
+ if (ParticleManager.particleList[p.particleType].totalParticles > 200)
+ {
+ p.frame -= Game1.frameTime;
+ }
+ }
+ public virtual void Update(Particle p, float frameTime)
+ {
+ p.loc += p.traj * frameTime;
+ p.frame -= frameTime;
+ if (p.frame <= 0f)
+ {
+ p.exists = false;
+ }
+ }
+ public virtual void Draw(Particle p, float brite)
+ {
+ }
+ public virtual void DrawFromTexture(Vector3 loc, int idx, Vector2 scale, float rotation, float r, float g, float b, float a)
+ {
+ DrawFromTexture(loc, idx, scale, rotation, r, g, b, a, SpriteEffects.None);
+ }
+ public virtual void DrawFromTexture(Vector3 loc, int idx, Vector2 scale, float rotation, float r, float g, float b, float a, SpriteEffects se)
+ {
+ XSprite cell = Textures.tex[ParticleManager.spritesTexIdx].GetCell(idx);
+ if (float.IsNaN(rotation))
+ {
+ rotation = 0f;
+ }
+ SpriteTools.sprite.Draw(Textures.tex[ParticleManager.spritesTexIdx].GetTexture(), ScrollManager.GetScreenLoc(loc, 0), cell.srcRect, new Color(r, g, b, a), rotation, cell.origin - new Vector2(cell.srcRect.X, cell.srcRect.Y), scale * ScrollManager.cannedDepth[0], se, 1f);
+ }
+}
+=== ProjectTower.particles.particles.hit/TortureSmash.cs
+public class TortureSmash : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.face = ((traj.X > 0f) ? 1 : 0);
+ p.frame = 0.4f;
+ p.rotation = 0f;
+ p.traj = traj;
+ p.aux = 1;
+ p.owner = owner;
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ for (int i = 0; i < 2; i++)
+ {
+ float frame = p.frame;
+ p.rotation += p.rDir * frameTime;
+ if (p.aux == 1 && HitManager.CheckHit(p))
+ {
+ p.aux = 0;
+ }
+ base.Update(p, frameTime);
+ if (!p.exists)
+ {
+ break;
+ }
+ if ((int)(frame * 60f) != (int)(p.frame * 60f))
+ {
+ ParticleManager.AddNormalParticle(177, p.loc, p.traj * Rand.GetRandomFloat(0f, 0.1f), Rand.GetRandomFloat(1f, 2f), 0f, -1, -1);
+ }
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0], p.rotation, 1f, 1f, 1f, 0.1f);
+ }
+}
+=== ProjectTower.particles.particles.hit/TortureSmashBit.cs
+public class TortureSmashBit : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.rotation = rotation;
+ p.flags = Rand.GetRandomInt(41, 50);
+ p.size = size;
+ p.frame = Rand.GetRandomFloat(0.4f, 0.7f);
+ p.rotation = Rand.GetRandomFloat(0f, (float)Math.PI * 2f);
+ p.rDir = Rand.GetRandomFloat(-1f, 1f);
+ p.traj = traj;
+ p.owner = owner;
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ p.rotation += p.rDir * Game1.frameTime;
+ base.Update(p, frameTime);
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.flags, new Vector2(1f, 0.5f) * ScrollManager.cannedDepth[0] * p.size * (1.7f - p.frame), p.rotation, 1f, 1f, 1f, p.frame * 2f);
+ }
+}
+=== ProjectTower.particles.particles.hit/Woosh.cs
+internal class Woosh : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = Rand.GetRandomFloat(1f, 2f);
+ p.flags = Rand.GetRandomInt(1, 5);
+ p.owner = owner;
+ p.frame = Rand.GetRandomFloat(0.01f, 0.2f);
+ p.rotation = Trig.GetAngle(default, traj);
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ base.Update(p, frameTime);
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ float num = p.frame * 2f;
+ if (num > 0.25f)
+ {
+ num = 0.25f;
+ }
+ ScrollManager.GetScreenLoc(p.loc, 0);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.flags, new Vector2(p.size * 0.3f, 0.3f + (0.2f - p.frame)) * ScrollManager.cannedDepth[0], p.rotation, 1f, 1f, 1f, num * 0.25f);
+ }
+}
+=== ProjectTower.particles.particles.magic.holy/HolyConeBit.cs
+internal class HolyConeBit : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 1f;
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ for (int i = 0; i < 4; i++)
+ {
+ float frame = p.frame;
+ if (HitManager.CheckHit(p))
+ {
+ p.exists = false;
+ }
+ if (!p.exists)
+ {
+ break;
+ }
+ base.Update(p, frameTime);
+ if (!p.exists)
+ {
+ break;
+ }
+ if ((int)(p.frame * 30f) == (int)(frame * 30f))
+ {
+ continue;
+ }
+ _ = (1f - p.frame) * 2f;
+ Rand.GetRandomFloat(0f, 0.1f);
+ if (Rand.CoinToss(0.5f))
+ {
+ ParticleManager.AddAdditiveParticle(17, p.loc + Rand.GetRandomVec2(-80f, 80f, -20f, 0f), Rand.GetRandomVec2(-10f, 10f, -300f, 0f), Rand.GetRandomFloat(0.1f, 1f), 0f, -1, -1);
+ }
+ else if (Rand.CoinToss(0.5f))
+ {
+ int num = ParticleManager.AddAdditiveParticle(32, p.loc + Rand.GetRandomVec2(-40f, 40f, 0f, 0f), Rand.GetRandomVec2(-10f, 10f, -100f, 0f), 500f, 0f, -1, p.owner);
+ if (num > -1)
+ {
+ ParticleManager.particleList[5].particle[num].rotation = (float)Math.PI / 2f + Rand.GetRandomFloat(-1f, 1f) * 0.01f;
+ ParticleManager.particleList[5].particle[num].frame = 1.5f;
+ ParticleManager.particleList[5].particle[num].size = Rand.GetRandomFloat(0f, 50f);
+ }
+ }
+ else
+ {
+ int num2 = ParticleManager.AddBackAdditiveParticle(32, p.loc + Rand.GetRandomVec2(-40f, 40f, 0f, 0f), default, 500f, 0f, -1, p.owner);
+ if (num2 > -1)
+ {
+ ParticleManager.particleList[2].particle[num2].rotation = (float)Math.PI / 2f + Rand.GetRandomFloat(-1f, 1f) * 0.01f;
+ ParticleManager.particleList[2].particle[num2].frame = 1.5f;
+ ParticleManager.particleList[2].particle[num2].size = Rand.GetRandomFloat(0f, 50f);
+ }
+ }
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ }
+}
+=== ProjectTower.particles.particles.magic.holy/HolyConeFarm.cs
+internal class HolyConeFarm : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 1f;
+ p.rDir = Rand.GetRandomFloat(-9f, 9f);
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ float frame = p.frame;
+ base.Update(p, frameTime);
+ if (!p.exists || !(p.frame > 0.8f) || (int)(p.frame * 60f) == (int)(frame * 60f))
+ {
+ return;
+ }
+ for (int i = 0; i < 6; i++)
+ {
+ float num = 1f - p.frame;
+ num *= 2f;
+ num += Rand.GetRandomFloat(0f, 0.1f);
+ if (i == 0)
+ {
+ ParticleManager.AddRefractParticle(66, p.loc + Rand.GetRandomVec2(-1f, 1f, -1f, 1f) * new Vector2(60f, 10f) + new Vector2(0f, num * -1500f), default, 25f, 0f, -1, p.owner);
+ }
+ if (Rand.CoinToss(0.5f))
+ {
+ int num2 = ParticleManager.AddAdditiveParticle(32, p.loc + Rand.GetRandomVec2(-1f, 1f, -1f, 1f) * new Vector2(60f, 10f) + new Vector2(0f, num * -1500f), default, 500f, 0f, -1, p.owner);
+ if (num2 > -1)
+ {
+ ParticleManager.particleList[5].particle[num2].rotation = (float)Math.PI / 2f + Rand.GetRandomFloat(-1f, 1f) * 0.05f;
+ ParticleManager.particleList[5].particle[num2].frame = 1.5f;
+ if (i % 2 == 0)
+ {
+ ParticleManager.particleList[5].particle[num2].size = 50f;
+ continue;
+ }
+ ParticleManager.particleList[5].particle[num2].size = 250f;
+ float x = ParticleManager.particleList[5].particle[num2].loc.X - p.loc.X;
+ ParticleManager.particleList[5].particle[num2].traj.X = x;
+ }
+ continue;
+ }
+ int num3 = ParticleManager.AddBackAdditiveParticle(32, p.loc + Rand.GetRandomVec2(-1f, 1f, -1f, 1f) * new Vector2(60f, 10f) + new Vector2(0f, num * -1500f), default, 500f, 0f, -1, p.owner);
+ if (num3 > -1)
+ {
+ ParticleManager.particleList[2].particle[num3].rotation = (float)Math.PI / 2f + Rand.GetRandomFloat(-1f, 1f) * 0.05f;
+ ParticleManager.particleList[2].particle[num3].frame = 1.5f;
+ if (i % 2 == 0)
+ {
+ ParticleManager.particleList[2].particle[num3].size = 50f;
+ continue;
+ }
+ ParticleManager.particleList[2].particle[num3].size = 250f;
+ float x2 = ParticleManager.particleList[2].particle[num3].loc.X - p.loc.X;
+ ParticleManager.particleList[2].particle[num3].traj.X = x2;
+ }
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ float num = 1f;
+ if (p.frame > 0.7f)
+ {
+ float num2 = p.frame - 0.7f;
+ num = ((num2 > 0.15f) ? (0.3f - num2) : num2) * 5f;
+ for (int i = 0; i < 4; i++)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc + new Vector2(0f, (float)i * -500f) + new Vector2(0f, -20f), 0), 0, new Vector2(1f, 2f) * ScrollManager.cannedDepth[0] * 5f, 0f, 1f, 0.9f, 0.8f, num * 1f);
+ }
+ }
+ num = p.frame;
+ if (p.frame > 0.9f)
+ {
+ num *= (1f - p.frame) * 10f;
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc + new Vector2(0f, 0f), 0), 0, new Vector2(2f, 0.5f) * ScrollManager.cannedDepth[0] * 5f, 0f, 1f, 0.9f, 0.8f, num);
+ }
+}
+=== ProjectTower.particles.particles.magic.holy/HolyConeFarmBit.cs
+internal class HolyConeFarmBit : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 0.125f;
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ for (int i = 0; i < 4; i++)
+ {
+ float frame = p.frame;
+ base.Update(p, frameTime);
+ if (!p.exists)
+ {
+ break;
+ }
+ if ((int)(p.frame * 60f) != (int)(frame * 60f))
+ {
+ ParticleManager.AddAdditiveParticle(83, p.loc, new Vector2(0f, -1000f), 0f, 0f, p.flags, p.owner);
+ }
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ }
+}
+=== ProjectTower.particles.particles.magic/AuraFarm.cs
+internal class AuraFarm : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 0.5f;
+ switch (p.flags)
+ {
+ case 32:
+ p.frame = 10f;
+ break;
+ case 22:
+ p.frame = 10f;
+ break;
+ case 23:
+ p.frame = 60f;
+ if (GameModeMgr.IsGameEnhanced())
+ {
+ p.frame = 30f;
+ }
+ break;
+ case 24:
+ p.frame = 10f;
+ break;
+ case 25:
+ p.frame = 30f;
+ break;
+ case 43:
+ p.frame = 10f;
+ break;
+ case 45:
+ p.frame = 60f;
+ if (GameModeMgr.IsGameEnhanced())
+ {
+ p.frame = 30f;
+ }
+ p.aux = 0;
+ if (owner > -1)
+ {
+ p.face = CharMgr.character[p.owner].face;
+ }
+ break;
+ }
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ float frame = p.frame;
+ base.Update(p, frameTime);
+ if (!p.exists)
+ {
+ return;
+ }
+ int flags = p.flags;
+ if ((uint)(flags - 9) <= 1u)
+ {
+ p.loc.Y = CharCols.GetGround(p.loc + new Vector2(0f, -32f));
+ }
+ switch (p.flags)
+ {
+ case 23:
+ {
+ if (p.owner <= -1)
+ {
+ break;
+ }
+ Character character2 = CharMgr.character[p.owner];
+ Vector2 vector3 = character2.loc + new Vector2((0.5f - (float)character2.face) * 180f, -180f) + new Vector2((float)Math.Cos(p.frame * 4f), (float)Math.Sin(p.frame * 5f)) * 30f;
+ p.loc += (vector3 - p.loc) * frameTime * 10f;
+ if ((int)(p.frame * 60f) != (int)(frame * 60f))
+ {
+ ParticleManager.AddAdditiveParticle(28, p.loc, default, Rand.GetRandomFloat(0.1f, 0.3f), 0f, p.flags, p.owner);
+ }
+ if ((int)(p.frame / 2f) != (int)(frame / 2f) && p.frame < 59f && p.frame > 2f)
+ {
+ int closeTarg = GetCloseTarg(800f, character2);
+ if (closeTarg > -1)
+ {
+ Vector2 v = CharMgr.character[closeTarg].rects.GetCenter() - p.loc;
+ float angle = Trig.GetAngle(v, default);
+ v = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * 800f;
+ int num7 = ParticleManager.AddAdditiveParticle(24, p.loc, v, 0f, 0f, 1, p.owner);
+ if (num7 > -1)
+ {
+ ParticleManager.particleList[5].particle[num7].grounded = true;
+ }
+ Sound.Play3DSound("zexplode", p.loc, 0);
+ }
+ }
+ if (character2.hp <= 0f)
+ {
+ p.frame = -1f;
+ }
+ break;
+ }
+ case 25:
+ {
+ if (p.owner <= -1)
+ {
+ break;
+ }
+ Character sOwner = CharMgr.character[p.owner];
+ float num13 = 2f;
+ if (GameModeMgr.IsGameEnhanced())
+ {
+ num13 = 2f;
+ }
+ if ((int)(p.frame / num13) == (int)(frame / num13) || !(p.frame < 29f) || !(p.frame > num13))
+ {
+ break;
+ }
+ float maxDist = 800f;
+ if (GameModeMgr.IsGameEnhanced())
+ {
+ maxDist = 1100f;
+ }
+ int closeTarg2 = GetCloseTarg(maxDist, sOwner);
+ if (closeTarg2 > -1)
+ {
+ Vector2 vector6 = p.loc + new Vector2(0f, -90f) + new Vector2((float)Math.Cos(p.frame * 4f), (float)Math.Sin(p.frame * 6f)) * new Vector2(8f, 10f);
+ Vector2 v2 = CharMgr.character[closeTarg2].rects.GetCenter() - vector6;
+ float angle2 = Trig.GetAngle(v2, default);
+ v2 = new Vector2((float)Math.Cos(angle2), (float)Math.Sin(angle2)) * 400f;
+ int num14 = ParticleManager.AddAdditiveParticle(24, vector6, v2, 0f, 0f, 7, p.owner);
+ if (num14 > -1)
+ {
+ ParticleManager.particleList[5].particle[num14].grounded = true;
+ }
+ Sound.Play3DSound("flame", p.loc, 0);
+ }
+ break;
+ }
+ case 45:
+ {
+ if (p.owner <= -1)
+ {
+ break;
+ }
+ Character character = CharMgr.character[p.owner];
+ float size = p.size;
+ if (p.aux == 0)
+ {
+ p.face = character.face;
+ if (character.keys.keyAttack || character.keys.keyStrong)
+ {
+ bool flag = false;
+ if (character.playerIdx > -1)
+ {
+ flag = character.GetPlayer().CheckingInv();
+ }
+ if (!flag)
+ {
+ p.aux = 1;
+ p.size = 1.5f;
+ if (GameModeMgr.IsGameEnhanced())
+ {
+ p.size = 1.125f;
+ }
+ }
+ }
+ }
+ else if (p.aux == 1)
+ {
+ p.size -= Game1.frameTime;
+ if (p.size <= 0.2f)
+ {
+ p.aux = 0;
+ }
+ if (size > 0.8f && p.size <= 0.8f)
+ {
+ Sound.Play3DSound("holybolt", p.loc, 0);
+ }
+ }
+ else
+ {
+ p.aux = 0;
+ }
+ Vector2 vector = character.loc + new Vector2((0.5f - (float)p.face) * 180f, -100f) + new Vector2((float)Math.Cos(p.frame * 2f), (float)Math.Sin(p.frame * 3f)) * 20f;
+ float num = ((float)p.face - 0.5f) * -0.5f + (float)Math.Cos(p.frame * 3f) * 0.25f;
+ float num2 = 5f;
+ if (p.aux == 1)
+ {
+ Vector2 vector2 = character.loc + new Vector2(300f * ((p.face == 1) ? 1f : (-1f)), -40f);
+ float num3 = ((p.face == 1) ? 5.340708f : (-5.340708f));
+ float num4 = 0f;
+ if (p.size > 0.9f)
+ {
+ vector.Y -= (1.5f - p.size) * 300f;
+ }
+ else if (p.size > 0.8f)
+ {
+ num4 = (0.9f - p.size) * 10f;
+ num2 = 1f + num4 * 10f;
+ }
+ else if (p.size > 0.6f)
+ {
+ num4 = 1f;
+ num2 = 10f;
+ }
+ else if (p.size > 0.1f)
+ {
+ num4 = (p.size - 0.1f) * 2f;
+ while (num3 > (float)Math.PI)
+ {
+ num3 -= (float)Math.PI * 2f;
+ }
+ for (; num3 < -(float)Math.PI; num3 += (float)Math.PI * 2f)
+ {
+ }
+ while (p.rotation > (float)Math.PI)
+ {
+ p.rotation -= (float)Math.PI * 2f;
+ }
+ while (p.rotation < -(float)Math.PI)
+ {
+ p.rotation += (float)Math.PI * 2f;
+ }
+ }
+ else
+ {
+ num4 = 0f;
+ }
+ vector += (vector2 - vector) * num4;
+ num += (num3 - num) * num4;
+ }
+ p.loc += (vector - p.loc) * frameTime * num2;
+ p.rotation += (num - p.rotation) * frameTime * num2;
+ if ((int)(p.frame * 60f) != (int)(frame * 60f))
+ {
+ int num5 = 1;
+ if (p.aux == 1 && p.size > 0.6f && p.size < 0.9f)
+ {
+ num5 = 10;
+ }
+ for (int i = 0; i < num5; i++)
+ {
+ ParticleManager.AddAdditiveParticle(41, p.loc + new Vector2((float)Math.Cos(p.rotation + (float)Math.PI / 2f), (float)Math.Sin(p.rotation + (float)Math.PI / 2f)) * Rand.GetRandomFloat(-10f, 100f), default, 1f, 0f, 5, p.owner);
+ }
+ }
+ if (p.aux == 1 && p.size > 0.6f && p.size < 0.9f && (int)(p.frame * 30f) != (int)(frame * 30f))
+ {
+ HitManager.CheckHit(p);
+ }
+ break;
+ }
+ case 24:
+ {
+ if (p.owner <= -1)
+ {
+ break;
+ }
+ Character character3 = CharMgr.character[p.owner];
+ Vector2 vector5 = character3.loc + new Vector2((0.5f - (float)character3.face) * 180f, -180f) + new Vector2((float)Math.Cos(p.frame * 4f), (float)Math.Sin(p.frame * 5f)) * 80f;
+ if ((int)(p.frame * 60f) != (int)(frame * 60f))
+ {
+ ParticleManager.AddAdditiveParticle(42, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f), Rand.GetRandomFloat(0.2f, 0.6f), 0f, -1, -1);
+ }
+ int num8 = -1;
+ if (p.frame < 9f)
+ {
+ num8 = GetCloseTarg(1200f, character3);
+ if (num8 > -1)
+ {
+ vector5 = CharMgr.character[num8].rects.GetCenter();
+ if (p.frame < 8f && (int)p.frame != (int)frame)
+ {
+ _ = vector5 - p.loc;
+ int num9 = ParticleManager.AddAdditiveParticle(24, p.loc, p.traj * 0.1f, 0f, 0f, 19, p.owner);
+ if (num9 > -1)
+ {
+ ParticleManager.particleList[5].particle[num9].grounded = true;
+ ParticleManager.particleList[5].particle[num9].frame = 0.1f;
+ p.frame -= 1.25f;
+ }
+ }
+ }
+ }
+ p.loc += (vector5 - p.loc) * frameTime * 2f;
+ break;
+ }
+ case 43:
+ if (frame >= 10f && p.frame < 10f)
+ {
+ for (int j = 0; j < ParticleManager.particleList[5].particle.Length; j++)
+ {
+ Particle particle = ParticleManager.particleList[5].particle[j];
+ if (particle.exists && particle.type == 105 && particle.flags == 43 && particle.owner == p.owner)
+ {
+ particle.exists = false;
+ }
+ }
+ for (int k = 0; k < 5; k++)
+ {
+ int num6 = ParticleManager.AddAdditiveParticle(105, p.loc, default, 0f, 0f, p.flags, p.owner);
+ if (num6 > -1)
+ {
+ ParticleManager.particleList[5].particle[num6].aux = k;
+ }
+ }
+ }
+ if (CharMgr.character[p.owner].hp <= 0f)
+ {
+ p.frame = -1f;
+ }
+ break;
+ case 32:
+ if (frame >= 10f && p.frame < 10f)
+ {
+ for (int n = 0; n < ParticleManager.particleList[5].particle.Length; n++)
+ {
+ Particle particle3 = ParticleManager.particleList[5].particle[n];
+ if (particle3.exists && particle3.type == 105 && particle3.flags == 32 && particle3.owner == p.owner)
+ {
+ particle3.exists = false;
+ }
+ }
+ for (int num11 = 0; num11 < 4; num11++)
+ {
+ int num12 = ParticleManager.AddAdditiveParticle(105, p.loc, default, 0f, 0f, p.flags, p.owner);
+ if (num12 > -1)
+ {
+ ParticleManager.particleList[5].particle[num12].aux = num11;
+ }
+ }
+ }
+ if (CharMgr.character[p.owner].hp <= 0f)
+ {
+ p.frame = -1f;
+ }
+ break;
+ case 22:
+ if (frame >= 10f && p.frame < 10f)
+ {
+ for (int l = 0; l < ParticleManager.particleList[5].particle.Length; l++)
+ {
+ Particle particle2 = ParticleManager.particleList[5].particle[l];
+ if (particle2.exists && particle2.type == 105 && particle2.flags == 22 && particle2.owner == p.owner)
+ {
+ particle2.exists = false;
+ }
+ }
+ for (int m = 0; m < 4; m++)
+ {
+ int num10 = ParticleManager.AddAdditiveParticle(105, p.loc, default, 0f, 0f, p.flags, p.owner);
+ if (num10 > -1)
+ {
+ ParticleManager.particleList[5].particle[num10].aux = m;
+ }
+ }
+ }
+ if (CharMgr.character[p.owner].hp <= 0f)
+ {
+ p.frame = -1f;
+ }
+ break;
+ case 9:
+ if ((int)(p.frame * 20f) != (int)(frame * 20f))
+ {
+ Vector2 vector4 = p.loc + new Vector2(Rand.GetRandomFloat(-180f, 180f), 0f);
+ vector4.Y = CharCols.GetGround(vector4);
+ ParticleManager.AddAdditiveParticle(105, vector4, default, 0f, 0f, p.flags, p.owner);
+ }
+ break;
+ case 10:
+ if (frame == 0.5f)
+ {
+ Sound.Play3DSound("rainthunder", p.loc, 0);
+ }
+ if ((int)(p.frame * 20f) != (int)(frame * 20f))
+ {
+ ParticleManager.AddAdditiveParticle(105, p.loc + Rand.GetRandomVec2(-80f, 80f, -500f, -300f), default, 0f, 0f, p.flags, p.owner);
+ }
+ break;
+ }
+ }
+ private int GetCloseTarg(float maxDist, Character sOwner)
+ {
+ float num = -1f;
+ int num2 = -1;
+ for (int i = 0; i < CharMgr.character.Length; i++)
+ {
+ Character character = CharMgr.character[i];
+ _ = character.playerIdx;
+ _ = -1;
+ if (!character.exists || !(character.hp > 0f) || character.ID == sOwner.ID || (!character.aggrod && character.playerIdx <= -1))
+ {
+ continue;
+ }
+ int type = MonsterCatalog.catalog[character.monsterIdx].type;
+ if ((uint)(type - 2) > 4u && !HitTeam.GetSameTeam(character, sOwner))
+ {
+ Vector2 vector = character.rects.GetCenter() - sOwner.loc;
+ float num3 = Math.Abs(vector.X) + Math.Abs(vector.Y);
+ if (num3 < num || num2 == -1)
+ {
+ num2 = i;
+ num = num3;
+ }
+ }
+ }
+ if (num < maxDist)
+ {
+ return num2;
+ }
+ return -1;
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ switch (p.flags)
+ {
+ case 24:
+ {
+ float num = p.frame * 2f;
+ if (num > 1f)
+ {
+ num = 1f;
+ }
+ if (p.frame > 9.5f)
+ {
+ num = (10f - p.frame) * 2f;
+ }
+ for (int j = 0; j < 6; j++)
+ {
+ for (int k = 0; k < 2; k++)
+ {
+ float num2 = p.frame * 16f;
+ Vector2 screenLoc = ScrollManager.GetScreenLoc(p.loc + new Vector2(((float)k - 0.5f) * (float)j * 20f, (float)Math.Sin(num2 + (float)j * 0.5f) * (2f + (float)j * 5f)), 0);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(screenLoc, 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * (10f - (float)j) / 15f, ((float)j - 0.5f) * p.frame * 0.5f, 1f, 1f, 1f, num * 0.125f);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(screenLoc, (j + k) % 3 + 56, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * ((8f - (float)j) / 15f) * Rand.GetRandomFloat(0.9f, 1.1f), Rand.GetRandomFloat(0f, (float)Math.PI * 2f), 1f, 1f, 1f, Rand.GetRandomFloat(0f, 1f) * num);
+ if (Rand.CoinToss(0.1f))
+ {
+ Vector2 realLoc = ScrollManager.GetRealLoc(screenLoc, 1f);
+ ParticleManager.AddAdditiveParticle(28, realLoc, Rand.GetRandomVec2(-1f, 1f, -50f, 10f), Rand.GetRandomFloat(0f, 0.45f), 0f, -1, -1);
+ }
+ }
+ }
+ break;
+ }
+ case 25:
+ {
+ float num3 = p.frame * 2f;
+ if (num3 > 1f)
+ {
+ num3 = 1f;
+ }
+ if (p.frame > 29.5f)
+ {
+ num3 = (30f - p.frame) * 2f;
+ }
+ for (int l = 0; l < 2; l++)
+ {
+ if (l == 0)
+ {
+ SpriteTools.End();
+ SpriteTools.BeginAlpha();
+ }
+ for (int m = 0; m < 10; m++)
+ {
+ float num4 = p.frame * 6f + (float)l * (float)Math.PI;
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc + new Vector2((float)Math.Cos(num4 + (float)m * 0.5f) * ((float)m * 1.5f + 8f), (float)Math.Cos(num4 + (float)m * 0.5f) * (float)m - (float)m * 10f - 10f), 0), (m + l) % 4 + 5, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * (15f - (float)m) / 30f, ((float)m - 0.5f) * p.frame * 0.5f, 1f, 1f, 1f, (12f - (float)m) / 15f * num3);
+ }
+ if (l == 0)
+ {
+ SpriteTools.End();
+ SpriteTools.BeginAdditive();
+ }
+ }
+ for (int n = 0; n < 4; n++)
+ {
+ float num5 = p.frame - (float)n * 0.25f;
+ num5 -= (float)(int)num5;
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 5 + n, new Vector2(1f, 0.3f) * ScrollManager.cannedDepth[0] * (1f - num5) * 1.8f, 0f, 1f, 1f, 1f, num5 * 2f * num3);
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc + new Vector2(0f, -90f) + new Vector2((float)Math.Cos(p.frame * 4f), (float)Math.Sin(p.frame * 6f)) * new Vector2(8f, 10f), 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.5f, 0f, 1f, 1f, 1f, num3);
+ break;
+ }
+ case 23:
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0], 0f, 1f, 1f, 1f, 0.2f);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.2f, 0f, 1f, 1f, 1f, 0.2f);
+ for (int i = 56; i < 59; i += 2)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), i, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.5f, ((float)i - 57f) * p.frame * 10f, 1f, 1f, 1f, 0.125f);
+ }
+ break;
+ }
+ case 45:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 165, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.5f, p.rotation, 1f, 1f, 1f, 1f);
+ break;
+ }
+ }
+}
+=== ProjectTower.particles.particles.magic/AuraFarmBit.cs
+internal class AuraFarmBit : BaseParticle
+{
+ public const int AUX_STAR_FARM_TRAP = 10;
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 1f;
+ switch (p.flags)
+ {
+ case 32:
+ p.traj = default;
+ p.frame = 10f;
+ break;
+ case 22:
+ p.frame = 10f;
+ break;
+ case 43:
+ p.frame = 10f;
+ p.rDir = Rand.GetRandomFloat(0f, 1f);
+ p.size = Rand.GetRandomFloat(4f, 5f);
+ if (Rand.CoinToss(0.5f))
+ {
+ p.size = 0f - p.size;
+ p.rDir = 0f - p.rDir;
+ }
+ break;
+ }
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ float frame = p.frame;
+ base.Update(p, frameTime);
+ if (!p.exists)
+ {
+ return;
+ }
+ switch (p.flags)
+ {
+ case 43:
+ if (p.owner > -1 && p.aux > -1 && p.aux < 10)
+ {
+ Vector2 vector = CharMgr.character[p.owner].loc + new Vector2(0f, -50f);
+ float num2 = (float)p.aux * 0.5f + 0.95f;
+ float num3 = 100f;
+ if (MonsterCatalog.catalog[CharMgr.character[p.owner].monsterIdx].boxHeight > 300f)
+ {
+ num3 = 200f;
+ }
+ vector += new Vector2((float)Math.Cos(num2), (float)Math.Sin(num2)) * num3 * new Vector2((CharMgr.character[p.owner].face == 1) ? 1f : (-1f), -1f);
+ p.loc += (vector - p.loc) * Game1.frameTime * 10f;
+ p.size += p.rDir * Game1.frameTime;
+ if (p.frame < 8f && (int)((p.frame + num2) * 3f) != (int)((frame + num2) * 3f))
+ {
+ int num4 = MagicSpell.FindTarg(p);
+ if (num4 > -1)
+ {
+ p.frame = 4f;
+ p.aux = -1;
+ p.rotation = Trig.GetAngle(CharMgr.character[num4].rects.GetCenter(), p.loc);
+ p.traj = new Vector2((float)Math.Cos(p.rotation), (float)Math.Sin(p.rotation)) * 1000f;
+ Sound.Play3DSound("holybolt", p.loc, 0);
+ }
+ }
+ }
+ if (p.aux == 10)
+ {
+ float num5 = p.loc.Y - (float)(int)p.loc.Y;
+ if (p.frame < 9f && (int)((p.frame + num5) * 3f) != (int)((frame + num5) * 3f))
+ {
+ p.frame = 4f;
+ p.aux = -1;
+ p.traj = new Vector2((float)Math.Cos(p.rotation), (float)Math.Sin(p.rotation)) * 1000f;
+ Sound.Play3DSound("holybolt", p.loc, 0);
+ }
+ }
+ if (p.aux != -1)
+ {
+ break;
+ }
+ if (CharCols.TestCol(p.loc, falling: false, 0f))
+ {
+ p.frame = -1f;
+ }
+ else if (HitManager.CheckHit(p))
+ {
+ for (int i = 0; i < 4; i++)
+ {
+ ParticleManager.AddAdditiveParticle(14, p.loc, Rand.GetRandomVec2(-1f, 1f, -1f, 1f) * 40f, Rand.GetRandomFloat(0f, 1f), 0f, -1, -1);
+ }
+ Sound.Play3DSound("holybolt", p.loc, 0);
+ p.frame = -1f;
+ }
+ break;
+ case 32:
+ if (p.owner <= -1)
+ {
+ break;
+ }
+ if (p.traj.X == 0f && p.traj.Y == 0f)
+ {
+ float num6 = p.frame * 5f + (float)p.aux * ((float)Math.PI / 2f);
+ Character character2 = CharMgr.character[p.owner];
+ p.loc = character2.loc + new Vector2((float)Math.Cos(num6), (float)Math.Sin(num6)) * 100f + new Vector2(0f, -50f);
+ if (p.frame < 8f && (int)(p.frame * 3f) != (int)(frame * 3f) && Math.Sin(num6) < -0.6000000238418579)
+ {
+ int num7 = MagicSpell.FindTarg(p);
+ if (num7 > -1)
+ {
+ p.frame = 4f;
+ p.aux = num7;
+ p.traj.Normalize();
+ p.rotation = num6 - (float)Math.PI / 2f;
+ Sound.Play3DSound("holybolt", p.loc, 0);
+ }
+ }
+ }
+ else
+ {
+ float num8;
+ for (num8 = Trig.GetAngle(CharMgr.character[p.aux].loc + new Vector2(0f, -50f), p.loc) - p.rotation; num8 > (float)Math.PI; num8 -= (float)Math.PI * 2f)
+ {
+ }
+ for (; num8 < -(float)Math.PI; num8 += (float)Math.PI * 2f)
+ {
+ }
+ float num9 = (4f - p.frame) * 8f;
+ if (num9 > 5f)
+ {
+ num9 = 5f;
+ }
+ p.rotation += frameTime * num9 * ((num8 > 0f) ? 1f : (-1f));
+ while (p.rotation > (float)Math.PI * 2f)
+ {
+ p.rotation -= (float)Math.PI * 2f;
+ }
+ while (p.rotation < 0f)
+ {
+ p.rotation += (float)Math.PI * 2f;
+ }
+ float num10 = (5f - p.frame) * 2f;
+ if (num10 > 2f)
+ {
+ num10 = 2f;
+ }
+ p.traj = new Vector2((float)Math.Cos(p.rotation), (float)Math.Sin(p.rotation)) * 300f * num10;
+ }
+ if ((int)(p.frame * 30f) != (int)(frame * 30f))
+ {
+ int num11 = ParticleManager.AddAdditiveParticle(71, p.loc, Rand.GetRandomVec2(-10f, 10f, -100f, -40f), Rand.GetRandomFloat(0.25f, 0.5f), 0f, -1, -1);
+ ParticleManager.particleList[5].particle[num11].aux = 5;
+ ParticleManager.particleList[5].particle[num11].rotation = Rand.GetRandomFloat(0f, (float)Math.PI * 2f);
+ }
+ if (HitManager.CheckHit(p))
+ {
+ Sound.Play3DSound("holybolt", p.loc, 0);
+ p.frame = -1f;
+ }
+ break;
+ case 22:
+ if (p.owner > -1)
+ {
+ Character character = CharMgr.character[p.owner];
+ p.loc = character.loc + new Vector2((float)Math.Cos(p.frame * 5f + (float)p.aux * ((float)Math.PI / 2f)), (float)Math.Sin(p.frame * 5f + (float)p.aux * ((float)Math.PI / 2f))) * 100f + new Vector2(0f, -50f);
+ if ((int)(p.frame * 30f) != (int)(frame * 30f))
+ {
+ ParticleManager.AddAdditiveParticle(1, p.loc, Rand.GetRandomVec2(-10f, 10f, -100f, -40f), Rand.GetRandomFloat(0.25f, 0.5f), 0f, 0, -1);
+ }
+ if (HitManager.CheckHit(p))
+ {
+ p.frame = -1f;
+ }
+ }
+ break;
+ case 10:
+ if (frame < 1f && p.frame > 0.5f && (int)(p.frame * 10f) != (int)(frame * 10f))
+ {
+ int num = ParticleManager.AddAdditiveParticle(24, p.loc + new Vector2(0f, -10f), Rand.GetRandomVec2(-100f, 100f, 1000f, 1000f), 0f, 0f, 0, p.owner);
+ QuakeManager.SetQuake(0.5f, p.loc);
+ if (num > -1)
+ {
+ ParticleManager.particleList[5].particle[num].aux = 5;
+ }
+ }
+ break;
+ default:
+ if ((int)(p.frame * 30f) != (int)(frame * 30f))
+ {
+ ParticleManager.AddAdditiveParticle(106, p.loc + new Vector2(0f, -10f), Rand.GetRandomVec2(-10f, 10f, -1000f, -400f), Rand.GetRandomFloat(0.5f, 1f), 0f, -1, (frame == 1f) ? p.owner : (-1));
+ QuakeManager.SetQuake(0.5f, p.loc);
+ }
+ break;
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ float num = p.frame * 2f;
+ if (num > 1f)
+ {
+ num = 1f;
+ }
+ if (p.frame > 0.9f)
+ {
+ num = (1f - p.frame) * 10f;
+ }
+ switch (p.flags)
+ {
+ case 43:
+ if (p.aux > -1)
+ {
+ float num2 = p.frame;
+ if (num2 > 0.4f)
+ {
+ num2 = 0.4f;
+ }
+ for (int i = 0; i < 5; i++)
+ {
+ float num3 = 1.5f;
+ switch (i)
+ {
+ case 0:
+ num3 = 1.27f;
+ break;
+ case 1:
+ num3 = 1.9f;
+ break;
+ case 2:
+ num3 = 1.1f;
+ break;
+ case 3:
+ num3 = 2.75f;
+ break;
+ case 4:
+ num3 = 2.8f;
+ break;
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 164, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.35f * Rand.GetRandomFloat(0f, 2f), p.size * num3, 0.8f, 0.9f, 1f, num2);
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.35f * Rand.GetRandomFloat(0f, 2f), 0f, 0.8f, 0.9f, 1f, num2);
+ }
+ else
+ {
+ if (p.frame > 3.9f)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * (p.frame - 3.9f) * 20f, 0f, 0.8f, 0.9f, 1f, 1f);
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 164, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.35f * Rand.GetRandomFloat(1f, 2f), p.rotation + (float)Math.PI, 0.8f, 0.9f, 1f, 1f);
+ }
+ break;
+ case 32:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.4f, p.rotation, 1f, 0.9f, 0.8f, p.frame);
+ break;
+ case 22:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.4f, p.rotation, 1f, 0.9f, 0.8f, p.frame);
+ break;
+ case 9:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 0.2f) * ScrollManager.cannedDepth[0] * 1.5f, p.rotation, 1f, 0.9f, 0.8f, num);
+ break;
+ case 10:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 0.25f) * ScrollManager.cannedDepth[0] * 1.5f, p.rotation, 0.1f, 0.5f, 1f, num);
+ break;
+ }
+ }
+}
+=== ProjectTower.particles.particles.magic/BloodBuild.cs
+internal class BloodBuild : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ p.flags = flags;
+ p.aux = Rand.GetRandomInt(145, 151);
+ p.owner = owner;
+ p.frame = Rand.GetRandomFloat(0.3f, 0.7f);
+ p.rDir = Rand.GetRandomFloat(-2f, 2f);
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ TrimFrame(p);
+ p.rotation += p.rDir * frameTime;
+ base.Update(p, frameTime);
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ if (p.flags == 0)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.aux, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * p.size * Rand.GetRandomFloat(1.8f, 2f), p.rotation, 0.5f, 1f, Rand.GetRandomFloat(0.5f, 1f), p.frame * 10f);
+ }
+ else
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.aux, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * p.size * Rand.GetRandomFloat(1.8f, 2f), p.rotation, 0.5f, 1f, Rand.GetRandomFloat(0.5f, 1f), p.frame * 10f);
+ }
+ base.Draw(p, brite);
+ }
+}
+=== ProjectTower.particles.particles.magic/BloodMagicTrail.cs
+internal class BloodMagicTrail : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = rotation;
+ if (Rand.CoinToss(0.5f))
+ {
+ p.rotation += (float)Math.PI;
+ }
+ p.flags = flags;
+ p.aux = Rand.GetRandomInt(41, 50);
+ p.owner = owner;
+ p.frame = Rand.GetRandomFloat(0.4f, 0.5f);
+ p.rDir = Rand.GetRandomFloat(-1f, 1f);
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ p.rotation += p.rDir * frameTime;
+ base.Update(p, frameTime);
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ switch (p.flags)
+ {
+ case 0:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.aux, ScrollManager.cannedDepth[0] * Rand.GetRandomVec2(0.5f, 0.6f, 0.5f * p.size, 1f * p.size), p.rotation, 0.5f, 1f, Rand.GetRandomFloat(0.5f, 1f), p.frame * 10f);
+ break;
+ case 1:
+ {
+ float num = 0.5f - p.frame;
+ num *= 5f;
+ if (num > 0.8f)
+ {
+ num = 0.8f;
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.aux, ScrollManager.cannedDepth[0] * new Vector2(1.5f, num), p.rotation, 0.5f, 1f, Rand.GetRandomFloat(0.5f, 1f), p.frame * 5f);
+ break;
+ }
+ }
+ base.Draw(p, brite);
+ }
+}
+=== ProjectTower.particles.particles.magic/BloodSpell.cs
+internal class BloodSpell : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = Trig.GetAngle(traj, default);
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 3f;
+ p.rDir = Rand.GetRandomFloat(-9f, 9f);
+ switch (p.flags)
+ {
+ case 0:
+ {
+ int num = -1;
+ float num2 = -1f;
+ for (int i = 0; i < CharMgr.maxChars; i++)
+ {
+ if (i == p.owner || !CharMgr.character[i].exists)
+ {
+ continue;
+ }
+ int type = MonsterCatalog.catalog[CharMgr.character[i].monsterIdx].type;
+ if ((type == 1 || type == 8) && !HitTeam.GetSameTeam(CharMgr.character[p.owner], CharMgr.character[i]) && (CharMgr.character[i].loc - p.loc).LengthSquared() < 810000f)
+ {
+ float num3;
+ for (num3 = Trig.GetAngle(CharMgr.character[i].loc, p.loc) - p.rotation; num3 > (float)Math.PI; num3 -= (float)Math.PI * 2f)
+ {
+ }
+ for (; num3 < -(float)Math.PI; num3 += (float)Math.PI * 2f)
+ {
+ }
+ if (num3 < 0f)
+ {
+ num3 = 0f - num3;
+ }
+ if (num3 < 1.5f && (num3 < num2 || num == -1))
+ {
+ num2 = num3;
+ num = i;
+ }
+ }
+ }
+ if (num > -1)
+ {
+ p.rotation += ((p.traj.X > 0f) ? Rand.GetRandomFloat(-1.5f, 1f) : Rand.GetRandomFloat(-1f, 1.5f));
+ }
+ else
+ {
+ float randomFloat = Rand.GetRandomFloat(-1f, 1f);
+ p.rotation += randomFloat;
+ p.rDir = (0f - randomFloat) * Rand.GetRandomFloat(1f, 1.5f);
+ }
+ p.traj = new Vector2((float)Math.Cos(p.rotation), (float)Math.Sin(p.rotation)) * 400f;
+ p.aux = num;
+ break;
+ }
+ case 1:
+ p.frame = 1f;
+ break;
+ }
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ int num = 1;
+ switch (p.flags)
+ {
+ case 0:
+ num = 4;
+ break;
+ case 1:
+ num = 4;
+ break;
+ }
+ for (int i = 0; i < num; i++)
+ {
+ if (p.flags == 0)
+ {
+ if (p.aux > -1)
+ {
+ if (p.frame > 2f)
+ {
+ float angle = Trig.GetAngle(CharMgr.character[p.aux].loc + new Vector2(0f, -60f), p.loc);
+ float num2;
+ for (num2 = p.rotation - angle; num2 > (float)Math.PI; num2 -= (float)Math.PI * 2f)
+ {
+ }
+ for (; num2 < -(float)Math.PI; num2 += (float)Math.PI * 2f)
+ {
+ }
+ p.rotation -= ((num2 > 0f) ? 1f : (-1f)) * 2f * frameTime;
+ while (p.rotation > (float)Math.PI * 2f)
+ {
+ p.rotation -= (float)Math.PI * 2f;
+ }
+ while (p.rotation < 0f)
+ {
+ p.rotation += (float)Math.PI * 2f;
+ }
+ p.traj = new Vector2((float)Math.Cos(p.rotation), (float)Math.Sin(p.rotation)) * 400f;
+ }
+ }
+ else if (p.frame > 2f)
+ {
+ p.rotation += p.rDir * frameTime;
+ p.traj = new Vector2((float)Math.Cos(p.rotation), (float)Math.Sin(p.rotation)) * 400f;
+ }
+ }
+ p.loc += p.traj * frameTime;
+ if (HitManager.CheckHit(p))
+ {
+ p.exists = false;
+ }
+ if (CharCols.TestCol(p.loc, falling: false, 0f))
+ {
+ p.exists = false;
+ }
+ float frame = p.frame;
+ p.frame -= frameTime;
+ if (!p.exists)
+ {
+ switch (p.flags)
+ {
+ case 0:
+ {
+ for (int k = 0; k < 3; k++)
+ {
+ ParticleManager.AddSubtractiveParticle(146, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f) * 10f, Rand.GetRandomFloat(0f, 1f), 0f, 0, -1);
+ ParticleManager.AddSubtractiveParticle(0, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f) * 5f, Rand.GetRandomFloat(0f, 1f), 0f, -1, -1);
+ }
+ break;
+ }
+ case 1:
+ {
+ for (int j = 0; j < 8; j++)
+ {
+ ParticleManager.AddSubtractiveParticle(146, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f) * 10f, Rand.GetRandomFloat(0f, 1f), 0f, 0, -1);
+ ParticleManager.AddSubtractiveParticle(0, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f) * 5f, Rand.GetRandomFloat(0f, 1f), 0f, -1, -1);
+ }
+ break;
+ }
+ }
+ }
+ else
+ {
+ switch (p.flags)
+ {
+ case 0:
+ if ((int)(p.frame * 60f) != (int)(frame * 60f))
+ {
+ ParticleManager.AddSubtractiveParticle(162, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f), Rand.GetRandomFloat(0f, 0.2f), p.rotation, 0, -1);
+ }
+ if ((int)(p.frame * 10f) != (int)(frame * 10f) && Rand.CoinToss(0.5f))
+ {
+ ParticleManager.AddSubtractiveParticle(0, p.loc, Rand.GetRandomVec2(-10f, 10f, -100f, 10f), Rand.GetRandomFloat(0f, 0.35f), 0f, -1, -1);
+ }
+ break;
+ case 1:
+ if ((int)(p.frame * 30f) != (int)(frame * 30f))
+ {
+ ParticleManager.AddSubtractiveParticle(162, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f) + p.traj * (1f - p.frame), Rand.GetRandomFloat(0.9f, 1f), p.rotation, 1, -1);
+ ParticleManager.AddSubtractiveParticle(27, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f), Rand.GetRandomFloat(0.3f, 0.5f), p.rotation, 1, -1);
+ }
+ if ((int)(p.frame * 10f) != (int)(frame * 10f) && Rand.CoinToss(0.5f))
+ {
+ ParticleManager.AddSubtractiveParticle(0, p.loc, Rand.GetRandomVec2(-10f, 10f, -100f, 10f), Rand.GetRandomFloat(0f, 0.35f), 0f, -1, -1);
+ }
+ break;
+ }
+ }
+ if (p.frame <= 0f)
+ {
+ p.exists = false;
+ }
+ if (!p.exists)
+ {
+ break;
+ }
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ switch (p.flags)
+ {
+ case 0:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 0.3f) * ScrollManager.cannedDepth[0], p.rotation, 0.4f, 1f, 4f, 0.1f);
+ break;
+ case 1:
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 0.3f) * ScrollManager.cannedDepth[0], p.rotation, 0.4f, 1f, 4f, 0.1f);
+ break;
+ }
+ }
+}
+=== ProjectTower.particles.particles.magic/BlueNovaExplode.cs
+internal class BlueNovaExplode : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.rotation = rotation;
+ if (flags == 1)
+ {
+ p.grounded = true;
+ }
+ else
+ {
+ p.grounded = false;
+ }
+ p.flags = Rand.GetRandomInt(65, 67);
+ p.aux = Rand.GetRandomInt(41, 50);
+ p.traj = traj;
+ p.frame = Rand.GetRandomFloat(1f, 2f);
+ p.size = Rand.GetRandomFloat(0f, p.frame);
+ p.rotation = Rand.GetRandomFloat(0f, (float)Math.PI * 2f);
+ p.rDir = Rand.GetRandomFloat(-1f, 1f);
+ p.owner = owner;
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ float frame = p.frame;
+ p.rotation += p.rDir * frameTime;
+ base.Update(p, frameTime);
+ if (p.exists)
+ {
+ if (p.grounded && frame > p.size && p.frame <= p.size)
+ {
+ Sound.Play3DSound("zelem", p.loc, 0);
+ }
+ if ((int)(frame * 20f) != (int)(p.frame * 20f))
+ {
+ p.traj *= 0.5f;
+ }
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ if (p.grounded)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.aux, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 1f, p.rotation, 1f, 1f, 1f, p.frame * 1f);
+ float num = p.frame - p.size;
+ if (num < 0f)
+ {
+ num = 0f - num;
+ }
+ if (num < 0.1f)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.flags, new Vector2(1f, Rand.GetRandomFloat(0.5f, 1f)) * ScrollManager.cannedDepth[0] * 0.5f, p.rotation, 1f, 1f, 1f, (0.1f - num) * 10f);
+ }
+ }
+ else
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.aux, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 1.5f, p.rotation, 0f, 0f, 0.5f, p.frame * 5f);
+ }
+ }
+}
+=== ProjectTower.particles.particles.magic/BlueZapBuild.cs
+internal class BlueZapBuild : BaseParticle
+{
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = Rand.GetRandomFloat(0f, (float)Math.PI * 2f);
+ p.flags = Rand.GetRandomInt(56, 59);
+ p.owner = owner;
+ p.frame = Rand.GetRandomFloat(0.3f, 0.7f);
+ p.rDir = Rand.GetRandomFloat(-1f, 1f);
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ p.rotation += p.rDir * frameTime;
+ base.Update(p, frameTime);
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), p.flags, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * p.size, p.rotation, 1f, 1f, 1f, p.frame * 0.5f);
+ float num = p.frame * 4f - 2f;
+ if (num > 0f)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 65 + p.flags % 3, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * p.size, p.rotation, 1f, 1f, 1f, num);
+ }
+ MapMgr.glowMgr.Add(0, ScrollManager.GetScreenLoc(p.loc, 0), 1f, 1f, 1f, ScrollManager.cannedDepth[0] * p.frame * 4f, 0);
+ MapMgr.glowMgr.Add(1, ScrollManager.GetScreenLoc(p.loc, 0), p.frame * 0.01f, p.frame * 0.01f, p.frame * 0.1f, ScrollManager.cannedDepth[0] * 5f, 0);
+ base.Draw(p, brite);
+ }
+}
+=== ProjectTower.particles.particles.magic/BlueZapZap.cs
+internal class BlueZapZap : BaseParticle
+{
+ private const int AUX_SHOOT = 0;
+ private const int AUX_MINE = 1;
+ public override void Init(Particle p, Vector2 loc, Vector2 traj, float size, float rotation, int flags, int owner)
+ {
+ p.loc = loc;
+ p.traj = traj;
+ p.size = size;
+ p.rotation = Trig.GetAngle(traj, default);
+ p.flags = flags;
+ p.owner = owner;
+ p.frame = 2f;
+ p.rDir = Rand.GetRandomFloat(-9f, 9f);
+ p.aux = 0;
+ base.Init(p, loc, traj, size, rotation, flags, owner);
+ }
+ public override void Update(Particle p, float frameTime)
+ {
+ switch (p.aux)
+ {
+ case 0:
+ {
+ for (int i = 0; i < 4; i++)
+ {
+ Vector2 loc = p.loc;
+ p.loc += p.traj * frameTime;
+ _ = CharMgr.character[p.owner];
+ if (HitManager.CheckHit(p))
+ {
+ p.frame = -1f;
+ }
+ if (CharCols.TestCol(p.loc, falling: false, 0f))
+ {
+ p.loc = loc;
+ p.frame = Rand.GetRandomFloat(3f, 5f);
+ p.aux = 1;
+ Sound.Play3DSound("zelem", p.loc, 0);
+ break;
+ }
+ float frame = p.frame;
+ p.frame -= frameTime;
+ if (p.frame <= 0f)
+ {
+ int num = ParticleManager.AddAdditiveParticle(71, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f) * 4f + p.traj * 0.5f, Rand.GetRandomFloat(0f, 1f), Rand.GetRandomFloat(0f, (float)Math.PI * 2f), -1, -1);
+ if (num > -1)
+ {
+ ParticleManager.particleList[5].particle[num].aux = 99;
+ }
+ Sound.Play3DSound("zelem", p.loc, 0);
+ }
+ else if ((int)(p.frame * 60f) != (int)(frame * 60f))
+ {
+ ParticleManager.AddBackSubtractiveParticle(28, p.loc, Rand.GetRandomVec2(-10f, 10f, -100f, 10f), Rand.GetRandomFloat(0f, 0.75f), 0f, -1, -1);
+ int num2 = 2;
+ for (int j = 0; j < num2; j++)
+ {
+ int num3 = ParticleManager.AddParticle((j == 0) ? 2 : 5, 71, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f), Rand.GetRandomFloat(0.2f, 0.6f), p.rotation, -1, -1);
+ if (num3 > -1)
+ {
+ ParticleManager.particleList[(j == 0) ? 2 : 5].particle[num3].aux = 99;
+ }
+ if (i == 0)
+ {
+ ParticleManager.AddBackRefractParticle(63, p.loc, Rand.GetRandomVec2(-10f, 10f, -10f, 10f), Rand.GetRandomFloat(0.2f, 0.6f), 0f, -1, -1);
+ }
+ }
+ }
+ if (p.frame <= 0f)
+ {
+ p.exists = false;
+ break;
+ }
+ }
+ break;
+ }
+ case 1:
+ _ = p.frame;
+ p.frame -= frameTime;
+ if (p.frame > 0.5f && HitManager.CheckHit(p))
+ {
+ p.frame = -1f;
+ }
+ if (p.frame <= 0f)
+ {
+ p.exists = false;
+ }
+ break;
+ }
+ }
+ public override void Draw(Particle p, float brite)
+ {
+ switch (p.aux)
+ {
+ case 0:
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.25f, 0f, 1f, 1f, 1f, 1f);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(4f, 1f) * ScrollManager.cannedDepth[0] * 0.25f, p.rotation, 1f, 1f, 1f, 1f);
+ float num2 = p.frame - 1.9f;
+ if (num2 > 0f)
+ {
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 3f, 0f, 1f, 1f, 1f, num2 * 10f);
+ }
+ break;
+ }
+ case 1:
+ {
+ float num = p.frame * 2f;
+ if (num > 1f)
+ {
+ num = 1f;
+ }
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * 0.25f, 0f, 1f, 1f, 1f, num);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 0, new Vector2(4f, 1f) * ScrollManager.cannedDepth[0] * 0.25f, p.rotation, 1f, 1f, 1f, num);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc + new Vector2(0f, -40f), 0), 0, new Vector2(1f, Rand.GetRandomFloat(10f, 14f)) * ScrollManager.cannedDepth[0] * 0.25f, 0f, 1f, 1f, 1f, num);
+ Textures.tex[ParticleManager.spritesTexIdx].Draw(ScrollManager.GetScreenLoc(p.loc, 0), 65 + Rand.GetRandomInt(0, 3), new Vector2(1f, 1f) * ScrollManager.cannedDepth[0] * Rand.GetRandomFloat(0.5f, 0.6f), -(float)Math.PI / 2f, 1f, 1f, 1f, num);
+ break;
+ }
+ }
+ }
+}

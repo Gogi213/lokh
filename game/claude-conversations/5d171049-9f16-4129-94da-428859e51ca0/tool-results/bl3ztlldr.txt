@@ -1,0 +1,648 @@
+  143 crab.py
+  188 lighthouse.py
+  309 lib.py
+   93 sheet_render.py
+   78 compose_sheet.py
+   11 export.py
+   65 check_sizes.py
+  887 total
+"""Общие функции лоуполи-моделей «крашеный лоуполи»: расписанные текстуры nearest, контур, треипланарные UV.
+Запуск: из Blender (execute_blender_code): exec(open(путь).read()). Единицы: 1 юнит = 1 метр."""
+import bpy, bmesh, math, random
+import numpy as np
+from mathutils import Vector
+
+TEXEL = 24.0          # текселей на метр (видимый тексель, как в v3)
+TEX = 64              # размер тайла текстуры
+OUTLINE = (0.07, 0.04, 0.16, 1.0)   # тёмный сине-фиолетовый контур
+
+
+def hexc(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+
+def paint(name, colors, kind='cloth', seed=1, size=TEX):
+    """Расписанная текстура: мазки по кисти, цветовой сдвиг, тёмные крапинки; colors — список hex."""
+    rnd = np.random.RandomState(seed)
+    cols = np.array([hexc(c) for c in colors])
+    # основа: первый цвет с плавным сдвигом к соседним (низкая частота), поверх — редкие мазки кисти
+    yy, xx = np.mgrid[0:size, 0:size] / size
+    low = 0.5 + 0.25 * np.sin(xx * 6.28 * 2 + seed) + 0.25 * np.sin(yy * 6.28 + seed * 2)
+    img = cols[0] * (1 - 0.45 * low[..., None]) + cols[1 % len(cols)] * (0.45 * low[..., None])
+    for _ in range(int(size * 1.1)):
+        x, y = rnd.randint(0, size, 2)
+        ln = rnd.randint(3, 8)
+        c = cols[rnd.randint(len(cols))]
+        for i in range(ln):
+            if kind == 'cloth':
+                px_, py_ = x, (y + i) % size
+            elif kind == 'stone':
+                px_, py_ = (x + i) % size, y
+            else:
+                px_, py_ = (x + i) % size, (y + i // 2) % size
+            img[py_, px_] = img[py_, px_] * 0.45 + c * 0.55
+    if kind == 'stone':   # швы кладки
+        for r in range(0, size, 16):
+            img[r, :] *= 0.55
+            off = 0 if (r // 16) % 2 == 0 else 16
+            for cx in range(off, size, 32):
+                img[r:r + 16, cx] *= 0.55
+    # тёмные крапинки и светлые блики
+    sp = rnd.rand(size, size)
+    img[sp < 0.025] *= 0.72
+    img[sp > 0.97] = np.clip(img[sp > 0.97] * 1.25 + 0.05, 0, 1)
+    px = np.ones((size, size, 4))
+    px[:, :, :3] = img
+    im = bpy.data.images.get(name) or bpy.data.images.new(name, size, size, alpha=False)
+    im.pixels = px.flatten().tolist()
+    im.pack()
+    return im
+
+
+def material(name, im, emit=0.0, emit_color=None):
+    m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new('ShaderNodeOutputMaterial')
+    bs = nt.nodes.new('ShaderNodeBsdfPrincipled')
+    tx = nt.nodes.new('ShaderNodeTexImage')
+    tx.image = im
+    tx.interpolation = 'Closest'
+    tx.extension = 'REPEAT'
+    nt.links.new(tx.outputs['Color'], bs.inputs['Base Color'])
+    bs.inputs['Roughness'].default_value = 1.0
+    for k in ('Specular IOR Level', 'Specular'):
+        if k in bs.inputs:
+            bs.inputs[k].default_value = 0.0
+    if emit > 0:
+        ec = emit_color or (1.0, 0.7, 0.25, 1.0)
+        bs.inputs['Emission Color'].default_value = ec
+        bs.inputs['Emission Strength'].default_value = emit
+    nt.links.new(bs.outputs['BSDF'], out.inputs['Surface'])
+    return m
+
+
+def outline_material():
+    m = bpy.data.materials.get('outline') or bpy.data.materials.new('outline')
+    m.use_nodes = True
+    nt = m.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new('ShaderNodeOutputMaterial')
+    em = nt.nodes.new('ShaderNodeEmission')
+    em.inputs['Color'].default_value = OUTLINE
+    nt.links.new(em.outputs['Emission'], out.inputs['Surface'])
+    m.use_backface_culling = True
+    return m
+
+
+def _uv(bm, scale=TEXEL / TEX):
+    uv = bm.loops.layers.uv.verify()
+    for f in bm.faces:
+        n = f.normal
+        ax = max(range(3), key=lambda i: abs(n[i]))
+        for l in f.loops:
+            c = l.vert.co
+            a, b = [(1, 2), (0, 2), (0, 1)][ax]
+            l[uv].uv = (c[a] * scale, c[b] * scale)
+
+
+def finish(name, bm, mat, location=(0, 0, 0), outline=0.012, smooth=False, collection=None):
+    _uv(bm)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    (collection or bpy.context.scene.collection).objects.link(ob)
+    ob.location = location
+    ob.data.materials.append(mat)
+    for p in me.polygons:
+        p.use_smooth = smooth
+    if outline:
+        ob.data.materials.append(outline_material())
+        s = ob.modifiers.new('outline', 'SOLIDIFY')
+        s.thickness = -outline
+        s.offset = 1
+        s.use_flip_normals = True
+        s.material_offset = 1
+    return ob
+
+
+def taper(bm, c, size0, size1, h, rot=0.0, segs=4):
+    """Усечённая призма/цилиндр: c — центр основания, size — (rx, ry) основания и верха, segs — граней."""
+    ring0, ring1 = [], []
+    for i in range(segs):
+        a = rot + (i + 0.5) * 2 * math.pi / segs if segs == 4 else rot + i * 2 * math.pi / segs
+        ca, sa = math.cos(a), math.sin(a)
+        k = 1.0 / max(abs(ca), abs(sa)) if segs == 4 else 1.0
+        ring0.append(bm.verts.new((c[0] + ca * k * size0[0], c[1] + sa * k * size0[1], c[2])))
+        ring1.append(bm.verts.new((c[0] + ca * k * size1[0], c[1] + sa * k * size1[1], c[2] + h)))
+    n = segs
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((ring0[i], ring0[j], ring1[j], ring1[i]))
+    bm.faces.new(ring0[::-1])
+    bm.faces.new(ring1)
+    return ring0, ring1
+
+
+def blob(bm, c, r, sub=1, squash=(1, 1, 1)):
+    """Низкополигональная сфера (икосфера) с растяжением."""
+    res = bmesh.ops.create_icosphere(bm, subdivisions=sub, radius=1.0)
+    for v in res['verts']:
+        v.co = Vector((c[0] + v.co.x * r * squash[0], c[1] + v.co.y * r * squash[1], c[2] + v.co.z * r * squash[2]))
+    return res['verts']
+
+
+def box(bm, c, s):
+    """Брусок: c — центр, s — полуразмеры."""
+    res = bmesh.ops.create_cube(bm, size=2.0)
+    for v in res['verts']:
+        v.co = Vector((c[0] + v.co.x * s[0], c[1] + v.co.y * s[1], c[2] + v.co.z * s[2]))
+    return res['verts']
+
+
+def jitter(bm, amt, seed=0):
+    """Лёгкая неровность — ручная, не станочная геометрия."""
+    r = random.Random(seed)
+    for v in bm.verts:
+        v.co += Vector((r.uniform(-amt, amt), r.uniform(-amt, amt), r.uniform(-amt, amt)))
+
+
+def clear_scene():
+    for ob in list(bpy.data.objects):
+        bpy.data.objects.remove(ob, do_unlink=True)
+    for blk in (bpy.data.meshes, bpy.data.materials, bpy.data.images, bpy.data.armatures):
+        for x in list(blk):
+            blk.remove(x)
+
+
+def setup_world(sun_color=(1.0, 0.78, 0.55), sky=(0.55, 0.5, 0.85), sky_strength=1.1, sun_strength=3.5):
+    sc = bpy.context.scene
+    try:
+        sc.render.engine = 'BLENDER_EEVEE_NEXT'
+    except TypeError:
+        sc.render.engine = 'BLENDER_EEVEE'
+    w = bpy.data.worlds.get('World') or bpy.data.worlds.new('World')
+    sc.world = w
+    w.use_nodes = True
+    bg = next(n for n in w.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs['Color'].default_value = (*sky, 1)
+    bg.inputs['Strength'].default_value = sky_strength
+    for ob in list(bpy.data.objects):
+        if ob.type == 'LIGHT':
+            bpy.data.objects.remove(ob, do_unlink=True)
+    ld = bpy.data.lights.new('sun', 'SUN')
+    ld.energy = sun_strength
+    ld.color = sun_color
+    ob = bpy.data.objects.new('sun', ld)
+    sc.collection.objects.link(ob)
+    ob.rotation_euler = (math.radians(50), math.radians(10), math.radians(-35))
+    sc.view_settings.view_transform = 'Standard'
+
+
+# ---- v2 (герой, E-003): лофт-сечения, роспись мазками, градиент и цветная кайма в материале ----
+def paint_streak(name, colors, seed=1, size=TEX, streaks=70, folds=14, patches=None, patch_n=5):
+    """Роспись ткани: вертикальные складки-мазки (длинные, 1-2 px), тёмные линии складок, опц. пятна-заплатки."""
+    rnd = np.random.RandomState(seed)
+    cols = np.array([hexc(c) for c in colors])
+    yy, xx = np.mgrid[0:size, 0:size] / size
+    low = 0.5 + 0.5 * np.sin(xx * 6.28 * 3 + seed) * np.cos(yy * 6.28 + seed)
+    img = cols[0] * (1 - 0.5 * low[..., None]) + cols[1 % len(cols)] * (0.5 * low[..., None])
+    for _ in range(streaks):
+        x, y = rnd.randint(0, size), rnd.randint(0, size)
+        ln, wd = rnd.randint(8, 26), rnd.randint(1, 3)
+        c = cols[rnd.randint(len(cols))]
+        for i in range(ln):
+            for k in range(wd):
+                img[(y + i) % size, (x + k) % size] = img[(y + i) % size, (x + k) % size] * 0.4 + c * 0.6
+    for _ in range(folds):
+        x, y = rnd.randint(0, size), rnd.randint(0, size)
+        for i in range(rnd.randint(14, 34)):
+            img[(y + i) % size, x % size] *= 0.78
+    if patches:
+        pc = np.array([hexc(c) for c in patches])
+        for _ in range(patch_n):
+            cx, cy = rnd.randint(0, size), rnd.randint(0, size)
+            rw, rh = rnd.randint(2, 5), rnd.randint(3, 8)
+            c = pc[rnd.randint(len(pc))]
+            for dy in range(-rh, rh + 1):
+                for dx in range(-rw, rw + 1):
+                    if (dx / rw) ** 2 + (dy / rh) ** 2 <= 1.0:
+                        p = ((cy + dy) % size, (cx + dx) % size)
+                        img[p] = img[p] * 0.3 + c * 0.7
+    sp = rnd.rand(size, size)
+    img[sp < 0.02] *= 0.8
+    px = np.ones((size, size, 4))
+    px[:, :, :3] = np.clip(img, 0, 1)
+    im = bpy.data.images.get(name) or bpy.data.images.new(name, size, size, alpha=False)
+    im.pixels = px.flatten().tolist()
+    im.pack()
+    return im
+
+
+def material2(name, im, low_tint=(0.55, 0.40, 0.75), z0=0.1, z1=1.6, rim_tint=(0.45, 0.32, 0.85), rim=0.6):
+    """material() + градиент к фиолетовому книзу (по высоте объекта) + цветная кайма по краю силуэта (вместо чёрной тени)."""
+    m = material(name, im)
+    nt = m.node_tree
+    tx = next(n for n in nt.nodes if n.type == 'TEX_IMAGE')
+    bs = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    sp = nt.nodes.new('ShaderNodeSeparateXYZ')
+    nt.links.new(tc.outputs['Object'], sp.inputs['Vector'])
+    mr = nt.nodes.new('ShaderNodeMapRange')
+    mr.inputs['From Min'].default_value, mr.inputs['From Max'].default_value = z0, z1
+    mr.inputs['To Min'].default_value, mr.inputs['To Max'].default_value = 1.0, 0.0
+    nt.links.new(sp.outputs['Z'], mr.inputs['Value'])
+    m1 = nt.nodes.new('ShaderNodeMixRGB')
+    m1.blend_type = 'MULTIPLY'
+    nt.links.new(tx.outputs['Color'], m1.inputs['Color1'])
+    m1.inputs['Color2'].default_value = (*low_tint, 1)
+    nt.links.new(mr.outputs['Result'], m1.inputs['Fac'])
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = 0.5
+    m2 = nt.nodes.new('ShaderNodeMixRGB')
+    m2.blend_type = 'MULTIPLY'
+    nt.links.new(m1.outputs['Color'], m2.inputs['Color1'])
+    m2.inputs['Color2'].default_value = (*rim_tint, 1)
+    mr2 = nt.nodes.new('ShaderNodeMapRange')
+    mr2.inputs['From Min'].default_value, mr2.inputs['From Max'].default_value = 0.3, 0.9
+    mr2.inputs['To Min'].default_value, mr2.inputs['To Max'].default_value = 0.0, rim
+    nt.links.new(lw.outputs['Facing'], mr2.inputs['Value'])
+    nt.links.new(mr2.outputs['Result'], m2.inputs['Fac'])
+    nt.links.new(m2.outputs['Color'], bs.inputs['Base Color'])
+    return m
+
+
+def loft(bm, rings, n=12, axis='z', sgn=1, cap=True):
+    """Лофт по сечениям: ring = (t, c1, c2, r1, r2, g). t — позиция вдоль оси; (c1, c2) — центр сечения; r1, r2 — полуоси;
+    g — полуугол разреза спереди (0 = замкнутое сечение; >0 — открытая пола, напр. разрез мантии).
+    axis z: (x=c1+u, y=c2+v, z=t); x: (x=sgn*t, y=c1+u, z=c2+v); y: (x=c1+u, y=t, z=c2+v). Возвращает список колец вершин."""
+    opened = any(r[5] > 0 for r in rings)
+    flip = (axis == 'y') or (axis == 'x' and sgn < 0)
+    cols = []
+    for (t, c1, c2, r1, r2, g) in rings:
+        ring = []
+        for i in range(n):
+            a = (g + (2 * math.pi - 2 * g) * i / (n - 1)) if opened else 2 * math.pi * i / n
+            u, v = max(r1, 0.003) * math.sin(a), -max(r2, 0.003) * math.cos(a)
+            if axis == 'z':
+                p = (c1 + u, c2 + v, t)
+            elif axis == 'x':
+                p = (sgn * t, c1 + u, c2 + v)
+            else:
+                p = (c1 + u, t, c2 + v)
+            ring.append(bm.verts.new(p))
+        cols.append(ring)
+    last = n - 1 if opened else n
+    for k in range(len(cols) - 1):
+        for i in range(last):
+            j = (i + 1) % n
+            f = (cols[k][i], cols[k][j], cols[k + 1][j], cols[k + 1][i])
+            bm.faces.new(f[::-1] if flip else f)
+    if cap and not opened:
+        bm.faces.new(cols[0][::-1] if not flip else cols[0])
+        bm.faces.new(cols[-1] if not flip else cols[-1][::-1])
+    return cols
+
+
+def rbox(bm, c, s, rot_z=0.0):
+    """box(), повёрнутый вокруг Z на rot_z (рад) вокруг своего центра."""
+    vs = box(bm, c, s)
+    ca, sa = math.cos(rot_z), math.sin(rot_z)
+    for v in vs:
+        dx, dy = v.co.x - c[0], v.co.y - c[1]
+        v.co.x, v.co.y = c[0] + dx * ca - dy * sa, c[1] + dx * sa + dy * ca
+    return vs
+"""Краб E-02 «Панцирный»: ~1.0 м в размахе клешней, 4 пары ног, две клешни, панцирь с шипами и ракушками. Перёд = -Y."""
+import sys, importlib
+sys.path.insert(0, r'C:/visual projects/game/tools/blender_models')
+import lib
+importlib.reload(lib)
+from lib import *
+from mathutils import Vector
+
+clear_scene()
+setup_world()
+
+shell = material('crab_shell', paint('t_cshell', ['#cdbf9c', '#e2d6b4', '#a8987a', '#b4a8c0', '#8a7a68'], 'cloth', 11))
+leg_m = material('crab_leg', paint('t_cleg', ['#d9582a', '#e8793a', '#b03a24', '#f08a48', '#c9462a'], 'cloth', 12))
+claw_m = material('crab_claw', paint('t_cclaw', ['#e0602c', '#c9462a', '#f08a48', '#a8352a'], 'cloth', 13))
+barn = material('crab_barnacle', paint('t_barn', ['#e8e0c8', '#f6efd8', '#b8ac98', '#d8c8a8', '#6a9a8a'], 'cloth', 14))
+belly = material('crab_belly', paint('t_belly', ['#3e5078', '#506490', '#34426a'], 'cloth', 15))
+eye_m = material('crab_eye', paint('t_ceye', ['#1a1020', '#ffd45a', '#2a1830'], 'cloth', 16), emit=0.6, emit_color=(1, 0.8, 0.3, 1))
+
+
+def limb(bm, p0, p1, r0, r1, segs=5):
+    """Призма между двумя точками (произвольная ось)."""
+    p0, p1 = Vector(p0), Vector(p1)
+    d = (p1 - p0)
+    ax = d.normalized()
+    t = Vector((0, 0, 1)) if abs(ax.z) < 0.9 else Vector((1, 0, 0))
+    u = ax.cross(t).normalized()
+    w = ax.cross(u).normalized()
+    r_a, r_b = [], []
+    for i in range(segs):
+        a = i * 2 * math.pi / segs
+        o = u * math.cos(a) + w * math.sin(a)
+        r_a.append(bm.verts.new(p0 + o * r0))
+        r_b.append(bm.verts.new(p1 + o * r1))
+    for i in range(segs):
+        j = (i + 1) % segs
+        bm.faces.new((r_a[i], r_a[j], r_b[j], r_b[i]))
+    bm.faces.new(r_a[::-1])
+    bm.faces.new(r_b)
+
+
+objs = []
+
+# ---- панцирь: высокий купол, лоб, венец шипов по краю и гребень
+bm = bmesh.new()
+blob(bm, (0, 0.0, 0.42), 0.33, 2, (1.38, 1.08, 0.62))
+blob(bm, (0, -0.17, 0.36), 0.23, 1, (1.45, 0.9, 0.45))      # лоб
+for i in range(14):                                         # венец шипов по краю панциря (наружу и вверх)
+    a = math.radians(-160 + i * 340 / 13)
+    ex, ey = math.cos(a + math.pi / 2) * 0.45, math.sin(a + math.pi / 2) * 0.35
+    rr = random.Random(i)
+    ring0, ring1 = taper(bm, (ex, ey, 0.40 + 0.03 * rr.random()), (0.05, 0.05), (0.01, 0.01), 0.09 + 0.05 * rr.random(), segs=4)
+    for v in ring1:
+        v.co.x += ex * 0.35
+        v.co.y += ey * 0.35
+for (x, y, h) in [(-0.14, 0.05, 0.13), (0.14, 0.05, 0.13), (0, 0.0, 0.2), (0, 0.16, 0.12)]:  # гребень
+    taper(bm, (x, y, 0.56 - abs(x) * 0.3), (0.06, 0.06), (0.012, 0.012), h, segs=5)
+jitter(bm, 0.012, 21)
+objs.append(finish('crab_carapace', bm, shell, outline=0.014))
+
+# ---- ракушки/уточки на панцире (кучками)
+bm = bmesh.new()
+rb = random.Random(7)
+for (cx, cy) in [(-0.2, 0.12), (0.22, 0.08), (0.02, -0.08), (-0.05, 0.24), (0.3, -0.04), (-0.32, -0.02)]:
+    for _ in range(4):
+        x, y = cx + rb.uniform(-0.07, 0.07), cy + rb.uniform(-0.07, 0.07)
+        z = 0.42 + 0.205 * math.sqrt(max(0.05, 1 - (x / 0.455) ** 2 - (y / 0.356) ** 2)) - 0.012
+        blob(bm, (x, y, z), rb.uniform(0.028, 0.055), 1, (1, 1, 0.75))
+objs.append(finish('crab_barnacles', bm, barn, outline=0.006))
+
+# ---- брюхо: тёмный синий низ, выступает из-под панциря
+bm = bmesh.new()
+blob(bm, (0, -0.03, 0.20), 0.30, 1, (1.32, 1.12, 0.5))
+objs.append(finish('crab_belly', bm, belly, outline=0.01))
+
+# ---- глаза на стебельках
+bm = bmesh.new()
+for sx in (-1, 1):
+    limb(bm, (sx * 0.09, -0.30, 0.46), (sx * 0.11, -0.36, 0.58), 0.016, 0.013, 4)
+    blob(bm, (sx * 0.11, -0.365, 0.60), 0.034, 1)
+objs.append(finish('crab_eyes', bm, eye_m, outline=0.006))
+
+# ---- ноги: 4 пары, дугой — бедро вверх-наружу, колено высоко, голень вниз, лапка с изломом; суставы-шарики
+bm = bmesh.new()
+for sx in (-1, 1):
+    for i, (y, reach, h) in enumerate([(-0.12, 0.36, 0.30), (0.0, 0.42, 0.34), (0.12, 0.40, 0.32), (0.24, 0.32, 0.27)]):
+        yo = y * 1.6 + (0.05 if i > 1 else -0.02)
+        pts = [(sx * 0.26, y * 0.8, 0.30),
+               (sx * (0.26 + reach * 0.50), y * 1.15, 0.30 + h * 1.05),
+               (sx * (0.26 + reach * 0.95), y * 1.45, 0.30 + h * 0.62),
+               (sx * (0.26 + reach * 1.18), yo, 0.0)]
+        radii = [0.085, 0.07, 0.056, 0.016]
+        for j in range(3):
+            limb(bm, pts[j], pts[j + 1], radii[j], radii[j + 1] * 1.05, 6)
+        for j in (1, 2):
+            blob(bm, pts[j], radii[j] * 1.35, 1)
+        blob(bm, pts[3], 0.022, 1)
+jitter(bm, 0.004, 31)
+objs.append(finish('crab_legs', bm, leg_m, outline=0.009))
+
+# ---- клешни: плечо, предплечье, крупная круглая ладонь и два изогнутых крюком пальца
+bm = bmesh.new()
+
+
+def finger(bm, sx, base, ctrl, tip, r0, steps=5):
+    """Палец-крюк: квадратичная кривая base→ctrl→tip, сужающаяся призма по сегментам."""
+    base, ctrl, tip = Vector(base), Vector(ctrl), Vector(tip)
+    prev = base
+    for k in range(1, steps + 1):
+        t = k / steps
+        p = (1 - t) ** 2 * base + 2 * (1 - t) * t * ctrl + t * t * tip
+        limb(bm, prev, p, r0 * (1 - (k - 1) / steps * 0.9), r0 * (1 - k / steps * 0.92) + 0.008, 5)
+        prev = p
+
+
+for sx in (-1, 1):
+    sh = (sx * 0.30, -0.16, 0.34)
+    el = (sx * 0.48, -0.30, 0.46)
+    wr = (sx * 0.46, -0.50, 0.38)
+    limb(bm, sh, el, 0.10, 0.105, 6)
+    blob(bm, el, 0.13, 1)
+    limb(bm, el, wr, 0.10, 0.095, 6)
+    blob(bm, (sx * 0.45, -0.62, 0.36), 0.20, 2, (1.0, 1.15, 0.95))                 # ладонь — крупная и круглая
+    finger(bm, sx, (sx * 0.40, -0.74, 0.28), (sx * 0.38, -1.00, 0.22), (sx * 0.18, -1.02, 0.30), 0.10)   # неподвижный нижний
+    finger(bm, sx, (sx * 0.47, -0.74, 0.46), (sx * 0.52, -1.02, 0.56), (sx * 0.24, -1.02, 0.36), 0.095)  # подвижный верхний
+jitter(bm, 0.006, 41)
+objs.append(finish('crab_claws', bm, claw_m, outline=0.011))
+
+K = 0.66   # итоговый размер: ~1.0 м в размахе
+for ob in objs:
+    for v in ob.data.vertices:
+        v.co *= K
+    for m in ob.modifiers:
+        if m.type == 'SOLIDIFY':
+            m.thickness *= K
+bpy.context.view_layer.update()
+mn = [1e9] * 3; mx = [-1e9] * 3
+for ob in objs:
+    for v in ob.data.vertices:
+        w = ob.matrix_world @ v.co
+        for i in range(3):
+            mn[i] = min(mn[i], w[i]); mx[i] = max(mx[i], w[i])
+print('crab bbox', [round(x, 3) for x in mn], [round(x, 3) for x in mx], 'size', [round(mx[i] - mn[i], 3) for i in range(3)])
+CRAB_OBJS = [o.name for o in objs]
+"""Маяк S-01: 10 м, каменная башня на скальном основании, галерея, фонарная. Два состояния: LH_off (погашен) и LH_lit (горит)."""
+import sys, importlib
+sys.path.insert(0, r'C:/visual projects/game/tools/blender_models')
+import lib
+importlib.reload(lib)
+from lib import *
+
+clear_scene()
+setup_world()
+
+rock = material('lh_rock', paint('t_lrock', ['#7a7488', '#8e8478', '#6a6480', '#9a9080', '#5a5878'], 'stone', 51))
+stone = material('lh_stone', paint('t_lstone', ['#b8b0a4', '#cfc6b4', '#9a94a0', '#a8a090', '#8a8498'], 'stone', 52))
+band = material('lh_band', paint('t_lband', ['#b03a2a', '#d0502e', '#8a2a2a', '#e06a38'], 'cloth', 53))
+wood = material('lh_wood', paint('t_lwood', ['#6b4a2e', '#85603a', '#523824', '#9a7040'], 'cloth', 54))
+iron = material('lh_iron', paint('t_liron', ['#3a3a4a', '#4a4a5c', '#2a2a3a'], 'cloth', 55))
+roof = material('lh_roof', paint('t_lroof', ['#4a6a8a', '#5a7a9a', '#3a5878', '#6a8aa8'], 'cloth', 56))
+glass_off = material('lh_glass_off', paint('t_lgoff', ['#4a5a78', '#5a6a88', '#3a4a68'], 'cloth', 57))
+glass_on = material('lh_glass_on', paint('t_lgon', ['#ffe08a', '#fff0b0', '#ffc860'], 'cloth', 58), emit=6.0, emit_color=(1.0, 0.8, 0.35, 1))
+moss = material('lh_moss', paint('t_lmoss', ['#4a7a58', '#5a8a62', '#3a6a58', '#6a9a6a'], 'cloth', 59))
+
+
+def build(tag, lit, x0):
+    objs = []
+
+    def mk(name, mat, fn, outline=0.03, smooth=False):
+        bm = bmesh.new()
+        fn(bm)
+        ob = finish(f'{tag}_{name}', bm, mat, location=(x0, 0, 0), outline=outline, smooth=smooth)
+        objs.append(ob)
+        return ob
+
+    # скальное основание: глыбы по кругу, 2 яруса
+    def f_rock(bm):
+        rnd = random.Random(5)
+        for ring, (R, n, h, sz) in enumerate([(2.6, 9, 1.0, 1.1), (1.7, 7, 1.9, 0.95)]):
+            for i in range(n):
+                a = (i + rnd.uniform(-0.2, 0.2)) * 2 * math.pi / n
+                x, y = math.cos(a) * R, math.sin(a) * R
+                z = rnd.uniform(0.0, 0.35) + ring * 0.5
+                taper(bm, (x, y, z), (sz * rnd.uniform(0.8, 1.1),) * 2, (sz * 0.55,) * 2, h * rnd.uniform(0.8, 1.2), rot=rnd.uniform(0, 1), segs=5)
+        taper(bm, (0, 0, 0.0), (2.2, 2.2), (1.5, 1.5), 2.0, segs=8)
+        jitter(bm, 0.07, 6)
+    mk('rock', rock, f_rock, outline=0.04)
+
+    # башня: 3 каменных яруса + красные пояса
+    def f_tower(bm):
+        taper(bm, (0, 0, 2.0), (1.35, 1.35), (1.18, 1.18), 2.4, segs=8)
+        taper(bm, (0, 0, 4.4), (1.18, 1.18), (1.0, 1.0), 2.4, segs=8)
+        taper(bm, (0, 0, 6.8), (1.0, 1.0), (0.88, 0.88), 1.6, segs=8)
+        jitter(bm, 0.015, 7)
+    mk('tower', stone, f_tower, outline=0.03)
+
+    def f_band(bm):
+        taper(bm, (0, 0, 3.55), (1.30, 1.30), (1.27, 1.27), 0.35, segs=8)
+        taper(bm, (0, 0, 6.0), (1.05, 1.05), (1.03, 1.03), 0.30, segs=8)
+    mk('band', band, f_band, outline=0.02)
+
+    # дверь и окна-бойницы
+    def f_door(bm):
+        box(bm, (0, -1.33, 2.65), (0.38, 0.06, 0.65))
+    mk('door', wood, f_door, outline=0.02)
+
+    def f_win(bm):
+        for z in (4.2, 5.2, 7.2):
+            a = (z * 1.7) % 6.28
+            c = (math.cos(a) * 0.98, math.sin(a) * 0.98, z)
+            box(bm, (c[0] * (1.04 if z < 6 else 0.92), c[1] * (1.04 if z < 6 else 0.92), z), (0.09, 0.09, 0.28))
+    mk('windows', glass_on if lit else glass_off, f_win, outline=0.012)
+
+    # галерея: плита + стойки + поручень
+    def f_gal(bm):
+        taper(bm, (0, 0, 8.4), (1.65, 1.65), (1.5, 1.5), 0.22, segs=8)
+        for i in range(8):
+            a = i * math.pi / 4
+            taper(bm, (math.cos(a) * 1.55, math.sin(a) * 1.55, 8.62), (0.05, 0.05), (0.05, 0.05), 0.85, segs=4)
+        taper(bm, (0, 0, 9.42), (1.60, 1.60), (1.58, 1.58), 0.07, segs=8)
+    mk('gallery', iron, f_gal, outline=0.015)
+
+    # фонарная: стойки и стекло
+    def f_lant_glass(bm):
+        taper(bm, (0, 0, 8.62), (0.88, 0.88), (0.75, 0.75), 1.2, segs=8)
+    mk('lantern_glass', glass_on if lit else glass_off, f_lant_glass, outline=0.015)
+
+    def f_lant_frame(bm):
+        for i in range(8):
+            a = (i + 0.5) * math.pi / 4
+            taper(bm, (math.cos(a) * 0.84, math.sin(a) * 0.84, 8.62), (0.06, 0.06), (0.05, 0.05), 1.22, segs=4)
+        taper(bm, (0, 0, 9.78), (0.95, 0.95), (0.9, 0.9), 0.1, segs=8)
+    mk('lantern_frame', iron, f_lant_frame, outline=0.015)
+
+    # крыша-конус и шпиль с флюгером
+    def f_roof(bm):
+        taper(bm, (0, 0, 9.85), (1.0, 1.0), (0.12, 0.12), 0.8, segs=8)
+        taper(bm, (0, 0, 10.6), (0.05, 0.05), (0.03, 0.03), 0.4, segs=4)
+    mk('roof', roof, f_roof, outline=0.02)
+
+    # мох на камне и красные вымпелы у основания
+    def f_moss(bm):
+        rnd = random.Random(9)
+        for _ in range(9):
+            a = rnd.uniform(0, 6.28)
+            blob(bm, (math.cos(a) * 1.6, math.sin(a) * 1.6, rnd.uniform(1.2, 2.6)), 0.3, 1, (1, 1, 0.45))
+    mk('moss', moss, f_moss, outline=0.01)
+
+    # деревянная лестница и мостки
+    def f_wood(bm):
+        for i in range(6):
+            box(bm, (0.0, -1.7 - i * 0.28, 0.35 + i * 0.28), (0.55, 0.16, 0.05))
+        for sx in (-1, 1):
+            box(bm, (sx * 0.6, -2.4, 0.9), (0.04, 0.9, 0.4))
+    mk('stairs', wood, f_wood, outline=0.015)
+
+    # флагшток с красным вымпелом на шпиле
+    def f_flag(bm):
+        taper(bm, (0, 0, 11.0), (0.025, 0.025), (0.02, 0.02), 1.3, segs=4)
+        for k in range(4):   # вымпел-«ласточкин хвост», колеблется ломаной
+            taper(bm, (0.0, k * 0.32 + 0.02, 12.05 - k * 0.04), (0.012, 0.16), (0.01, 0.12), 0.34 - k * 0.05, rot=0.0, segs=4)
+    mk('flag', band, f_flag, outline=0.012)
+
+    # внутренний свет — только у горящего: ореол, лучи на кладку, тёплая лампа
+    if lit:
+        gm = bpy.data.materials.get('lh_halo') or bpy.data.materials.new('lh_halo')
+        gm.use_nodes = True
+        nt = gm.node_tree
+        nt.nodes.clear()
+        o_ = nt.nodes.new('ShaderNodeOutputMaterial')
+        em_ = nt.nodes.new('ShaderNodeEmission')
+        em_.inputs['Color'].default_value = (1.0, 0.72, 0.28, 1)
+        em_.inputs['Strength'].default_value = 1.3
+        tr_ = nt.nodes.new('ShaderNodeBsdfTransparent')
+        lw_ = nt.nodes.new('ShaderNodeLayerWeight')
+        lw_.inputs['Blend'].default_value = 0.5
+        mt_ = nt.nodes.new('ShaderNodeMath')
+        mt_.operation = 'SUBTRACT'
+        mt_.inputs[0].default_value = 1.0
+        mx2 = nt.nodes.new('ShaderNodeMixShader')
+        nt.links.new(lw_.outputs['Facing'], mt_.inputs[1])
+        nt.links.new(mt_.outputs[0], mx2.inputs['Fac'])
+        nt.links.new(tr_.outputs[0], mx2.inputs[1])
+        nt.links.new(em_.outputs[0], mx2.inputs[2])
+        nt.links.new(mx2.outputs[0], o_.inputs['Surface'])
+        for attr, val in (('surface_render_method', 'BLENDED'), ('blend_method', 'BLEND')):
+            try:
+                setattr(gm, attr, val)
+            except (TypeError, AttributeError):
+                pass
+        for i, (r, e) in enumerate(((2.4, 1.0), (1.25, 1.0))):   # два слоя: широкий мягкий и яркое ядро
+            bm = bmesh.new()
+            blob(bm, (0, 0, 9.2), r, 2, (1, 1, 0.8))
+            _o = finish(f'{tag}_halo{i}', bm, gm, location=(x0, 0, 0), outline=0, smooth=True)
+            _o.visible_shadow = False
+            objs.append(_o)
+        ld = bpy.data.lights.new(f'{tag}_lamp', 'POINT')
+        ld.energy = 12000
+        ld.color = (1.0, 0.75, 0.35)
+        lo = bpy.data.objects.new(f'{tag}_lamp', ld)
+        bpy.context.scene.collection.objects.link(lo)
+        lo.location = (x0, 0, 9.2)
+        objs.append(lo)
+    return objs
+
+
+LH_OFF = build('LH_off', False, -8.0)
+LH_LIT = build('LH_lit', True, 8.0)
+
+K_LH = 10.0 / 12.458   # итоговая высота маяка (с флагштоком) = 10 м
+for ob in LH_OFF + LH_LIT:
+    if ob.type == 'MESH':
+        for v in ob.data.vertices:
+            v.co *= K_LH
+        for m in ob.modifiers:
+            if m.type == 'SOLIDIFY':
+                m.thickness *= K_LH
+    else:
+        ob.location.z *= K_LH
+        ob.data.energy *= K_LH * K_LH
+
+bpy.context.view_layer.update()
+mn = [1e9] * 3; mx = [-1e9] * 3
+for ob in LH_OFF:
+    if ob.type != 'MESH':
+        continue
+    for v in ob.data.vertices:
+        w = ob.matrix_world @ v.co
+        for i in range(3):
+            mn[i] = min(mn[i], w[i]); mx[i] = max(mx[i], w[i])
+print('lighthouse bbox', [round(x, 3) for x in mn], [round(x, 3) for x in mx], 'height', round(mx[2] - mn[2], 3))
+LH_NAMES = [o.name for o in LH_OFF + LH_LIT]

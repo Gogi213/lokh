@@ -1,0 +1,910 @@
+=== BlizzardIcicle
+public class BlizzardIcicle : MonoBehaviour
+{
+	private static GameObject _prefab;
+	public Animator anim;
+	private SpriteRandomizer spriteRandomizer;
+	private bool playingFlashEffect;
+	private float cachedAnimSpeed;
+	private float flashDuration = 0.1f;
+	private ChaosQuickStopwatch flashStopwatch = new ChaosQuickStopwatch();
+	private Material spriteMaterial;
+	public static GameObject Prefab
+	{
+		get
+		{
+			if (_prefab == null)
+			{
+				_prefab = ChaosBundle.Get("Assets/Prefabs/Effects/Ice/BlizzardIcicle.prefab");
+			}
+			return _prefab;
+		}
+	}
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+		Transform transform = base.transform.Find("Sprite");
+		spriteRandomizer = transform.GetComponent<SpriteRandomizer>();
+		spriteMaterial = transform.GetComponent<SpriteRenderer>().material;
+	}
+	private void Update()
+	{
+		if (playingFlashEffect)
+		{
+			spriteMaterial.SetFloat("_FlashAmount", 1f - flashStopwatch.TimePercentage + 0.1f);
+			if (!flashStopwatch.IsRunning)
+			{
+				playingFlashEffect = false;
+				anim.speed = cachedAnimSpeed;
+				cachedAnimSpeed = 0f;
+			}
+		}
+	}
+	public void Emit(Vector3 position, float distance, bool playFlashEffect = true)
+	{
+		gameObject.SetActive(value: true);
+		transform.position = position;
+		spriteRandomizer.Randomize();
+		anim.speed = Random.Range(2f, 5f);
+		if (playFlashEffect)
+		{
+			cachedAnimSpeed = anim.speed;
+			anim.speed = 0f;
+			playingFlashEffect = true;
+			flashStopwatch.SetDelay(flashDuration, stopCurrent: false, autoStart: true);
+		}
+		anim.Play("Fall", -1, 1f - Mathf.Clamp01(distance * 0.09f));
+	}
+	public void PlayBreakEffect()
+	{
+		PoolManager.GetPoolItem<ParticleEffect>("IcicleFloorBreakEffect").Emit(15, transform.position);
+	}
+	public void DisableGameObject()
+	{
+		gameObject.SetActive(value: false);
+	}
+}
+=== BoltClaymore
+public class BoltClaymore : Projectile
+{
+	private static GameObject prefab;
+	private static Color32 circleEffectColor = new Color32(byte.MaxValue, byte.MaxValue, byte.MaxValue, 80);
+	private CircleCollider2D atkCollider;
+	private Light strikeLight;
+	private LightningStrike lightningStrike;
+	private Vector2 strikePosition;
+	private Vector2 lastPosition;
+	private Vector2 nextPosition;
+	public SpriteRenderer circleSprite;
+	public bool detonated;
+	public bool isEmpowered;
+	private bool isExpanding = true;
+	private ChaosQuickStopwatch expandStopwatch = new ChaosQuickStopwatch(0.5f);
+	private Vector3 startScale = new Vector3(0.25f, 0.25f, 1f);
+	private Vector3 endScale = new Vector3(0.75f, 0.75f, 1f);
+	private float atkRadius;
+	private float maxRadius = 4f;
+	private float lerpValue;
+	protected ParticleEffect lightningAuraEffect;
+	private int idleAudioStopwatchID = -1;
+	private WaitForSeconds waitForStrikeDelay = new WaitForSeconds(0.1f);
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/BoltClaymore.prefab"));
+	public override void Start()
+	{
+		if (isEmpowered)
+		{
+			maxRadius = 5f;
+			endScale = Vector3.one * (maxRadius * 0.25f);
+		}
+		base.Start();
+		Attack attack = attackBox;
+		attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(On
+		Attack attack2 = attackBox;
+		attack2.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Combine(attack2.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler
+		Attack attack3 = attackBox;
+		attack3.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack3.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(
+		Attack attack4 = attackBox;
+		attack4.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Combine(attack4.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler
+		atkCollider = attackBox.GetComponent<CircleCollider2D>();
+		if (projectileLight != null)
+		{
+			strikeLight = projectileLight.GetComponent<Light>();
+		}
+		expandStopwatch.IsRunning = true;
+		lightningAuraEffect = PoolManager.GetPoolItem<ParticleEffect>("LightningAuraEffect");
+		lightningAuraEffect.reqFollowTrans = true;
+		ParticleEffect particleEffect = lightningAuraEffect;
+		float? emissionRate = 8f;
+		Vector3? position = projectileSprite.transform.position;
+		Transform followTransform = projectileSprite.transform;
+		ParticleSystemOverride smallAuraOverride = LightningAuraEffect.SmallAuraOverride;
+		particleEffect.Play(emissionRate, position, smallAuraOverride, null, followTransform);
+	}
+	public override void Update()
+	{
+		if (!detonated)
+		{
+			base.Update();
+			if (ChaosStopwatch.Check(idleAudioStopwatchID))
+			{
+				idleAudioStopwatchID = ChaosStopwatch.Begin(UnityEngine.Random.Range(0.25f, 0.5f));
+				SoundManager.PlayWithDistAndSPR("BallLightningLoop", transform.position);
+			}
+		}
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		if (!detonated && isExpanding)
+		{
+			lerpValue = expandStopwatch.TimePercentage;
+			circleSprite.transform.localScale = Vector3.Lerp(startScale, endScale, lerpValue);
+			atkRadius = Mathf.Lerp(1f, maxRadius, lerpValue);
+			isExpanding = lerpValue < 1f;
+		}
+	}
+	public override void ResetProjectile()
+	{
+		if (!detonated)
+		{
+			Detonate();
+			return;
+		}
+		Attack attack = attackBox;
+		attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(On
+		Attack attack2 = attackBox;
+		attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler(
+		base.ResetProjectile();
+	}
+	private void OnDestroy()
+	{
+		if (attackBox != null)
+		{
+			Attack attack = attackBox;
+			attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(O
+			Attack attack2 = attackBox;
+			attack2.entityCollisionEventHandlers = (Attack.EntityCollisionEventHandler)Delegate.Remove(attack2.entityCollisionEventHandlers, new Attack.EntityCollisionEventHandler
+		}
+		if (lightningAuraEffect != null)
+		{
+			lightningAuraEffect.Stop();
+		}
+	}
+	public void OnInitialImpact(Entity givenEntity)
+	{
+		if (!(givenEntity == null) && !(givenEntity is Destructible))
+		{
+			Detonate();
+		}
+	}
+	public void OnTargetHit(Collider2D col)
+	{
+		if (!(col == null))
+		{
+			PoolManager.GetPoolItem<SectionedTrailEmitter>("LightningLine").Emit(transform.position, col.transform.position, -1, emitEveryOther: false, -1f, snapToFit: true, -1f, 
+			PoolManager.GetPoolItem<SectionedTrailEmitter>("LightningLine").Emit(transform.position, col.transform.position, -1, emitEveryOther: false, -1f, snapToFit: true, -1f, 
+		}
+	}
+	public void Detonate(bool triggered = false)
+	{
+		if (!detonated)
+		{
+			detonated = true;
+			StartCoroutine(Detonation(triggered));
+			PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(5, projectileSprite.transform.position);
+			lightningAuraEffect.Stop();
+		}
+	}
+	private IEnumerator Detonation(bool triggered)
+	{
+		atkCollider.radius = atkRadius;
+		RefreshFlightTime();
+		moveVector = Vector2.zero;
+		strikePosition = transform.position;
+		SpawnLightningStrike(strikePosition);
+		Vector3 givenPosition = strikePosition;
+		float givenScale = atkRadius;
+		LightningBurst.CreateBurst(givenPosition, string.Empty, string.Empty, 1, givenScale);
+		circleSprite.gameObject.SetActive(value: false);
+		lastPosition = strikePosition + Globals.GetCirclePositionVector(12, -1) * atkRadius;
+		for (int i = 0; i < 12; i++)
+		{
+			nextPosition = strikePosition + Globals.GetCirclePositionVector(12, i) * atkRadius;
+			SectionedTrailEmitter poolItem = PoolManager.GetPoolItem<SectionedTrailEmitter>("LightningLine");
+			Vector2 startPos = lastPosition;
+			Vector2 endPos = nextPosition;
+			Color32? startColor = circleEffectColor;
+			poolItem.Emit(startPos, endPos, -1, emitEveryOther: false, -1f, snapToFit: true, -1f, 0f, startColor, useEndEmitter: false);
+			SectionedTrailEmitter poolItem2 = PoolManager.GetPoolItem<SectionedTrailEmitter>("LightningLine");
+			endPos = lastPosition;
+			startPos = nextPosition;
+			startColor = circleEffectColor;
+			poolItem2.Emit(endPos, startPos, -1, emitEveryOther: false, -1f, snapToFit: true, -1f, 0.1f, startColor, useEndEmitter: false);
+			lastPosition = nextPosition;
+		}
+		SoundManager.PlayAudioWithDistance("ThunderClap", strikePosition);
+		SoundManager.PlayAudioWithDistance("BoltClaymore", strikePosition);
+		if (UnityEngine.Random.value < 0.5f)
+		{
+			lightningStrike.transform.localScale = new Vector3(-1f, 1f, 1f);
+		}
+		strikeLight.intensity = 8f;
+		CameraController.ShakeCamera(0.25f, ignoreShakeCount: true);
+		atkCollider.enabled = true;
+		yield return waitForStrikeDelay;
+		atkCollider.enabled = false;
+		SpawnLightningStrike(strikePosition);
+		SoundManager.PlayAudioWithDistance("ThunderClap", strikePosition);
+		if (Globals.RandBool)
+		{
+			lightningStrike.transform.localScale = new Vector3(-1f, 1f, 1f);
+		}
+		CameraController.ShakeCamera(0.25f, ignoreShakeCount: true);
+		LightningBurst currentLB = LightningBurst.CreateBurst(strikePosition, attackBox.atkInfo.skillCategory, attackBox.atkInfo.skillID, (!triggered) ? 2 : 4, atkRadius);
+		yield return waitForStrikeDelay;
+		strikeLight.intensity = 0f;
+		PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(25, projectileSprite.transform.position);
+		projectileSpriteRenderer.enabled = false;
+		ResetProjectile();
+	}
+	private void SpawnLightningStrike(Vector2 givenPosition)
+	{
+		lightningStrike = Globals.ChaosInst<LightningStrike>(LightningStrike.Prefab, null, givenPosition);
+		lightningStrike.playAudio = false;
+		lightningStrike.spawnBurnMark = false;
+	}
+}
+=== BoltRail
+public class BoltRail : MeleeAttackObject
+{
+	private static GameObject prefab;
+	[HideInInspector]
+	public bool isEmpowered;
+	[HideInInspector]
+	public bool addLightningBurst;
+	[HideInInspector]
+	public string category;
+	[HideInInspector]
+	public string burstSkillID;
+	public Transform start;
+	public Transform end;
+	private Vector2 collisionLocation = Vector2.zero;
+	private bool firstFrame = true;
+	private bool colliderActive = true;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/PlayerSkills/BoltRailBasic.prefab"));
+	public override void Start()
+	{
+		PoolManager.GetPoolItem<SectionedTrailEmitter>("LightningLine").Emit(start.position, end.position);
+		PoolManager.GetPoolItem<ParticleEffect>("LightningHitEffect").Emit(4, start.position + (end.position - start.position).normalized * 0.5f, LightningAuraEffect.SmallAuraO
+	}
+	public void FixedUpdate()
+	{
+		if (firstFrame)
+		{
+			firstFrame = false;
+		}
+		else if (colliderActive)
+		{
+			colliderActive = false;
+			attackCol.enabled = false;
+		}
+	}
+	public override void CheckCollision(Collider2D col)
+	{
+		if (collisionOccurred)
+		{
+			return;
+		}
+		collisionOccurred = true;
+		if (addLightningBurst)
+		{
+			CameraController.ShakeCamera(0.3f);
+			collisionLocation = col.transform.position;
+			if (isEmpowered)
+			{
+				Attack attack = Globals.ChaosInst<Attack>(Attack.CirclePrefab, transform, collisionLocation);
+				attack.GetComponent<CircleCollider2D>().radius = 2.5f;
+				attack.SetAttackInfo(category, burstSkillID, 2);
+				attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(
+				attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Combine(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler
+			}
+			else
+			{
+				LightningBurst.CreateBurst(collisionLocation, category, burstSkillID, 1, 1.5f);
+			}
+		}
+	}
+	private void CreateChain(Collider2D givenCol)
+	{
+		if (givenCol != null)
+		{
+			PoolManager.GetPoolItem<SectionedTrailEmitter>("LightningLine").Emit(collisionLocation, givenCol.transform.position);
+			LightningBurst.CreateBurst(givenCol.transform.position, string.Empty, string.Empty);
+		}
+	}
+}
+=== BoltRush
+public class BoltRush : MonoBehaviour
+{
+	private static GameObject markPrefab;
+	private static GameObject burstPrefab;
+	private Dictionary<int, GameObject> markDict;
+	private int currentInstID;
+	private int burstSkillLevel = 2;
+	[HideInInspector]
+	public Transform parentTrans;
+	[HideInInspector]
+	public Attack attackBox;
+	public float lifeTime = 5f;
+	private int lifeTimeStopwatchID;
+	private static GameObject MarkPrefab
+	{
+		get
+		{
+			if (markPrefab == null)
+			{
+				markPrefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/BoltRushMark.prefab");
+			}
+			return markPrefab;
+		}
+	}
+	private static GameObject BurstPrefab
+	{
+		get
+		{
+			if (burstPrefab == null)
+			{
+				burstPrefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/LightningBurst.prefab");
+			}
+			return burstPrefab;
+		}
+	}
+	private void Awake()
+	{
+		markDict = new Dictionary<int, GameObject>();
+		attackBox = transform.Find("AttackBox").GetComponent<Attack>();
+		Attack attack = attackBox;
+		attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Combine(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(A
+	}
+	private void Start()
+	{
+		lifeTimeStopwatchID = ChaosStopwatch.Begin(lifeTime);
+	}
+	private void Update()
+	{
+		if (ChaosStopwatch.Check(lifeTimeStopwatchID))
+		{
+			if (gameObject != null)
+			{
+				UnityEngine.Object.Destroy(gameObject);
+			}
+		}
+		else if (parentTrans != null)
+		{
+			transform.position = parentTrans.position;
+		}
+	}
+	private void AddMark(Collider2D col)
+	{
+		currentInstID = col.GetInstanceID();
+		if (!markDict.ContainsKey(currentInstID))
+		{
+			markDict[currentInstID] = UnityEngine.Object.Instantiate(MarkPrefab, col.transform.position, Quaternion.identity);
+			markDict[currentInstID].transform.SetParent(col.transform);
+		}
+	}
+	private void OnDestroy()
+	{
+		foreach (GameObject value in markDict.Values)
+		{
+			if (value != null)
+			{
+				CreateBurst(value.transform.position);
+				UnityEngine.Object.Destroy(value);
+			}
+		}
+	}
+	private void CreateBurst(Vector3 position)
+	{
+		GameObject gameObject = UnityEngine.Object.Instantiate(BurstPrefab, position, Quaternion.identity);
+		gameObject.transform.Find("Attack").GetComponent<Attack>().SetAttackInfo(attackBox.atkInfo);
+		gameObject.transform.Find("Attack").GetComponent<Attack>().ChangeAttackInfoLevel(burstSkillLevel);
+		if (UnityEngine.Random.value > 0.5f)
+		{
+			gameObject.transform.localScale = new Vector3(-1f, 1f, 1f);
+		}
+		gameObject.transform.localEulerAngles = new Vector3(0f, 0f, UnityEngine.Random.Range(0, 360));
+	}
+}
+=== Boulder
+public class Boulder : Projectile
+{
+	private static GameObject prefab;
+	public Sprite[] sprites;
+	private Vector3 flipVector;
+	[HideInInspector]
+	public bool playAudio;
+	private AudioSource earthLoopAudio;
+	public bool isEmpowered;
+	private EarthBurst currentEB;
+	public bool burstCreated;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/Boulder.prefab"));
+	public override void Start()
+	{
+		base.Start();
+		if (playAudio)
+		{
+			string audioID = "EarthLoop";
+			Transform originTrans = transform;
+			earthLoopAudio = SoundManager.PlayAudioWithDistance(audioID, null, originTrans);
+		}
+	}
+	public override void ResetProjectile()
+	{
+		base.ResetProjectile();
+		if (isEmpowered)
+		{
+			CreateBurst(null);
+		}
+		PoolManager.GetPoolItem<RockMedDebrisEmitter>().EmitSingle(4, transform.position, RockMedDebrisEmitter.SmallCircleExplosionOverride);
+		SoundManager.PlayAudioWithDistance("ImpactEarthAlt", transform.position);
+		if (earthLoopAudio != null)
+		{
+			earthLoopAudio.Stop();
+		}
+	}
+	public void SetMode(BoulderType boulderType)
+	{
+		if (boulderType == BoulderType.FistLeft)
+		{
+			flipVector = projectileSpriteRenderer.transform.localScale;
+			flipVector.x *= -1f;
+			projectileSpriteRenderer.transform.localScale = flipVector;
+			projectileSpriteRenderer.sprite = sprites[1];
+		}
+		else
+		{
+			projectileSpriteRenderer.sprite = sprites[(int)boulderType];
+		}
+	}
+	public void SetEmpowered(bool givenStatus)
+	{
+		isEmpowered = givenStatus;
+		burstCreated = !isEmpowered;
+		Attack attack = attackBox;
+		attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(Cr
+		if (givenStatus)
+		{
+			Attack attack2 = attackBox;
+			attack2.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Combine(attack2.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandle
+		}
+	}
+	private void CreateBurst(Collider2D col)
+	{
+		if (!burstCreated)
+		{
+			burstCreated = true;
+			currentEB = EarthBurst.CreateBurst(transform.position, attackBox.atkInfo.skillCategory, attackBox.atkInfo.skillID, 3, 3.5f);
+		}
+		if (col != null && currentEB != null)
+		{
+			currentEB.attack.ignoreTargetsList.Add(col.gameObject.GetInstanceID());
+		}
+	}
+}
+=== BoulderDrop
+public class BoulderDrop : MonoBehaviour
+{
+	private static GameObject prefab;
+	private Vector2 currentPosition;
+	private Transform spriteTrans;
+	private SpriteRenderer sprite;
+	[HideInInspector]
+	public Attack attack;
+	public Sprite altSprite;
+	public bool useAltSprite;
+	private CircleCollider2D atkCollider;
+	private ParticleSystem explosionEmitter;
+	public float riseHeight = 4f;
+	private float startHeight;
+	public float waitTime = 0.15f;
+	public bool skipFirstAttack;
+	private ChaosQuickStopwatch riseStopwatch = new ChaosQuickStopwatch(0.25f);
+	private ChaosQuickStopwatch waitStopwatch;
+	private ChaosQuickStopwatch fallStopwatch = new ChaosQuickStopwatch(0.0625f);
+	private ChaosQuickStopwatch atkStopwatch = new ChaosQuickStopwatch(0.1f);
+	private bool riseComplete;
+	private bool waitComplete;
+	private bool fallComplete;
+	private bool atkComplete;
+	private Vector2 lerpedPosition = Vector2.zero;
+	private float lerpValue;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/AreaEffects/BoulderDrop.prefab"));
+	private void Awake()
+	{
+		attack = transform.Find("Attack").GetComponent<Attack>();
+		atkCollider = attack.transform.GetComponent<CircleCollider2D>();
+		spriteTrans = transform.Find("Sprite");
+		sprite = spriteTrans.GetComponent<SpriteRenderer>();
+		startHeight = spriteTrans.localPosition.y;
+		explosionEmitter = transform.Find("ExplosionEmitter").GetComponent<ParticleSystem>();
+	}
+	private void Start()
+	{
+		currentPosition = transform.position;
+		riseStopwatch.IsRunning = true;
+		waitStopwatch = new ChaosQuickStopwatch(waitTime);
+		string audioID = "SummonRock";
+		Vector2? soundOrigin = currentPosition;
+		float standardPitchRange = SoundManager.StandardPitchRange;
+		SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+		PoolManager.GetPoolItem<FloorCrackEmitter>().Emit(1, currentPosition);
+		if (useAltSprite)
+		{
+			sprite.sprite = altSprite;
+		}
+		if (!skipFirstAttack)
+		{
+			ActivateAttack(1);
+		}
+	}
+	private void FixedUpdate()
+	{
+		if (!atkComplete && !atkStopwatch.IsRunning)
+		{
+			atkComplete = true;
+			atkCollider.enabled = false;
+		}
+		if (!riseComplete)
+		{
+			lerpValue = riseStopwatch.TimePercentage;
+			lerpValue = lerpValue * lerpValue * (3f - 2f * lerpValue);
+			lerpedPosition.y = Mathf.Lerp(startHeight, riseHeight, lerpValue);
+			spriteTrans.localPosition = lerpedPosition;
+			if (lerpValue > 0.75f)
+			{
+				sprite.sortingLayerName = "UI";
+			}
+			if (lerpValue >= 1f)
+			{
+				riseComplete = true;
+				waitStopwatch.IsRunning = true;
+			}
+		}
+		else if (!waitComplete)
+		{
+			lerpValue = waitStopwatch.TimePercentage;
+			if (lerpValue >= 1f)
+			{
+				waitComplete = true;
+				fallStopwatch.IsRunning = true;
+			}
+		}
+		else
+		{
+			if (fallComplete)
+			{
+				return;
+			}
+			lerpValue = fallStopwatch.TimePercentage;
+			lerpedPosition.y = Mathf.Lerp(riseHeight, startHeight, lerpValue);
+			spriteTrans.localPosition = lerpedPosition;
+			if (lerpValue >= 1f)
+			{
+				fallComplete = true;
+				ActivateAttack(2);
+				spriteTrans.gameObject.SetActive(value: false);
+				explosionEmitter.Play();
+				DustEmitter poolItem = PoolManager.GetPoolItem<DustEmitter>();
+				int particleCount = 100;
+				Vector3? emitPosition = currentPosition;
+				poolItem.EmitCircle(particleCount, 1f, -1f, -1f, emitPosition);
+				string audioID = "GroundSlam";
+				Vector2? soundOrigin = currentPosition;
+				float standardPitchRange = SoundManager.StandardPitchRange;
+				SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+				PoolManager.GetPoolItem<ParticleEffect>("FloorCrater").Emit(1, currentPosition);
+				CameraController.ShakeCamera(0.3f);
+				if (gameObject != null)
+				{
+					Object.Destroy(gameObject, 1f);
+				}
+			}
+		}
+	}
+	private void ActivateAttack(int givenLevel)
+	{
+		atkCollider.radius = ((givenLevel != 1) ? 2f : 1f);
+		atkComplete = false;
+		atkCollider.enabled = true;
+		atkStopwatch.IsRunning = true;
+		attack.ChangeAttackInfoLevel(givenLevel);
+	}
+}
+=== BoulderShield
+public class BoulderShield : MonoBehaviour
+{
+	private static GameObject prefab;
+	public Animator anim;
+	public Health health;
+	public SpriteRenderer spriteRenderer;
+	[HideInInspector]
+	public Movement movement;
+	[HideInInspector]
+	public Attack attack;
+	private Vector2 knockbackVector;
+	[HideInInspector]
+	public Collider2D hurtBoxCollider;
+	public int curSpriteIndex;
+	protected int calcSpriteIndex;
+	public Sprite[] spriteVars;
+	public Entity parentEntity;
+	public Transform parentTrans;
+	public float maxOrbitTime = 10f;
+	public float initOrbitSpeed = 4f;
+	private float minOrbitSpeed;
+	private float orbitSpeedLerpValue;
+	public bool disableOrbit;
+	public float destroyDelay = 0.5f;
+	public bool playFXOnDestroy = true;
+	[HideInInspector]
+	public NegateProjectiles negateProjectiles;
+	[HideInInspector]
+	public SortSpriteLayer spriteSorter;
+	private int orbitStopwatchID;
+	[HideInInspector]
+	public float spawnAngle;
+	private int audioStopwatchID;
+	public bool audioPlayed;
+	public bool destroyQueued;
+	private float initOrbitRadius;
+	private float extOrbitRadius;
+	private ChaosQuickStopwatch bashStopwatch = new ChaosQuickStopwatch(0.5f);
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/BoulderShield.prefab"));
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+		health = GetComponent<Health>();
+		movement = GetComponent<Movement>();
+		spriteRenderer = transform.Find("BoulderSprite").GetComponent<SpriteRenderer>();
+		attack = transform.Find("AttackBox").GetComponent<Attack>();
+		negateProjectiles = transform.Find("NegateProjectiles").GetComponent<NegateProjectiles>();
+		hurtBoxCollider = transform.Find("AllyHurtBox").GetComponent<Collider2D>();
+		spriteSorter = spriteRenderer.GetComponent<SortSpriteLayer>();
+	}
+	private void Start()
+	{
+		anim.speed = UnityEngine.Random.Range(0.9f, 1.1f);
+		Attack attack = this.attack;
+		attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(On
+		Attack attack2 = this.attack;
+		attack2.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Combine(attack2.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler
+		audioStopwatchID = ChaosStopwatch.Begin(UnityEngine.Random.Range(0f, maxOrbitTime * 0.8f));
+		if (!disableOrbit)
+		{
+			orbitStopwatchID = ChaosStopwatch.Begin(maxOrbitTime);
+			movement.InitOrbitAngle(spawnAngle);
+			movement.orbit = true;
+			movement.orbitSpeed = initOrbitSpeed;
+			initOrbitRadius = movement.orbitRadius;
+			extOrbitRadius = initOrbitRadius + 0.5f;
+		}
+		GameController.allies.Add(gameObject);
+	}
+	private void Update()
+	{
+		if (!destroyQueued)
+		{
+			if ((!disableOrbit && ChaosStopwatch.Check(orbitStopwatchID)) || (float)health.CurrentHealthValue <= 0f)
+			{
+				Reset();
+			}
+			else if (!audioPlayed && ChaosStopwatch.Check(audioStopwatchID))
+			{
+				audioPlayed = true;
+				string audioID = "EarthDust";
+				Vector2? soundOrigin = transform.position;
+				float standardPitchRange = SoundManager.StandardPitchRange;
+				SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+				PoolManager.GetPoolItem<RockDebrisEmitter>().EmitSingle(5, transform.position);
+			}
+		}
+	}
+	private void FixedUpdate()
+	{
+		if (parentTrans != null && !disableOrbit)
+		{
+			orbitSpeedLerpValue = ChaosStopwatch.GetTimePercentage(orbitStopwatchID);
+			if (orbitSpeedLerpValue > 0.8f)
+			{
+				movement.orbitSpeed = Mathf.Lerp(initOrbitSpeed, minOrbitSpeed, orbitSpeedLerpValue);
+			}
+			movement.OrbitTarget(parentTrans.position);
+			knockbackVector = movement.orbitVector;
+			attack.knockbackOverwriteVector = knockbackVector;
+			UpdateShieldSprite(knockbackVector);
+		}
+	}
+	public void UpdateShieldSprite(Vector2 givenVector, bool autoFlipX = true, bool forcePositiveX = false, bool useLargeSprite = false)
+	{
+		if (forcePositiveX && givenVector.x < 0f)
+		{
+			givenVector = new Vector2(givenVector.x * -1f, givenVector.y);
+		}
+		calcSpriteIndex = Mathf.Clamp((int)((195f - Vector2.Angle(Vector2.up, givenVector)) * 0.033f), 0, 6);
+		if (curSpriteIndex == calcSpriteIndex && !useLargeSprite)
+		{
+			return;
+		}
+		curSpriteIndex = calcSpriteIndex;
+		if (useLargeSprite)
+		{
+			if (autoFlipX && givenVector.x < 0f && curSpriteIndex != 0 && curSpriteIndex != 6)
+			{
+				spriteRenderer.transform.localScale = new Vector3(-1f, spriteRenderer.transform.localScale.y, spriteRenderer.transform.localScale.z);
+			}
+			UpdateShieldSpriteLarge();
+			return;
+		}
+		if (autoFlipX && givenVector.x < 0f && curSpriteIndex != 0 && curSpriteIndex != 6)
+		{
+			curSpriteIndex = 12 - curSpriteIndex;
+		}
+		spriteRenderer.sprite = spriteVars[curSpriteIndex];
+		curSpriteIndex = curSpriteIndex;
+	}
+	public void UpdateShieldSpriteLarge()
+	{
+		if (curSpriteIndex == 0)
+		{
+			spriteRenderer.sprite = spriteVars[12];
+		}
+		else if (curSpriteIndex == 1 || curSpriteIndex == 2)
+		{
+			spriteRenderer.sprite = spriteVars[13];
+		}
+		else if (curSpriteIndex == 3)
+		{
+			spriteRenderer.sprite = spriteVars[14];
+		}
+		else if (curSpriteIndex == 4 || curSpriteIndex == 5)
+		{
+			spriteRenderer.sprite = spriteVars[15];
+		}
+		else if (curSpriteIndex == 6)
+		{
+			spriteRenderer.sprite = spriteVars[16];
+		}
+	}
+	private void OnAttack(Collider2D col)
+	{
+		StartCoroutine(health.FlashRed());
+		StartCoroutine(BashAnim());
+	}
+	public void Reset()
+	{
+		if (!destroyQueued)
+		{
+			destroyQueued = true;
+			StartCoroutine(EndShield());
+		}
+	}
+	private void OnDisable()
+	{
+		if (parentEntity is Player)
+		{
+			(parentEntity as Player).playerSummonsList.Remove(gameObject);
+		}
+		GameController.allies.Remove(gameObject);
+	}
+	private IEnumerator BashAnim()
+	{
+		movement.orbitRadius = extOrbitRadius;
+		bashStopwatch.IsRunning = true;
+		while (!destroyQueued && bashStopwatch.IsRunning)
+		{
+			movement.orbitRadius = Mathf.Lerp(extOrbitRadius, initOrbitRadius, bashStopwatch.TimePercentage);
+			yield return null;
+		}
+		movement.orbitRadius = initOrbitRadius;
+	}
+	private IEnumerator EndShield()
+	{
+		Attack attack = this.attack;
+		attack.attackCollisionEventHandlers = (Attack.AttackCollisionEventHandler)Delegate.Remove(attack.attackCollisionEventHandlers, new Attack.AttackCollisionEventHandler(On
+		movement.orbit = false;
+		if (destroyDelay > 0f)
+		{
+			yield return new WaitForSeconds(destroyDelay);
+		}
+		if (playFXOnDestroy)
+		{
+			SoundManager.PlayAudioWithDistance("EarthPebble", transform.position);
+			PoolManager.GetPoolItem<RockDebrisEmitter>().EmitSingle(2, transform.position);
+			PoolManager.GetPoolItem<RockDebrisEmitter>().EmitSingle(1, transform.position, RockDebrisEmitter.SmallCircleSlowExplosionOverride);
+		}
+		if (gameObject != null)
+		{
+			UnityEngine.Object.Destroy(gameObject);
+		}
+	}
+}
+=== BubbleProjectile
+public class BubbleProjectile : Projectile
+{
+	private static GameObject prefab;
+	public bool markedForDestroy;
+	public float minVelocity;
+	private bool isMinVelocity;
+	public bool isLarge;
+	private Vector2 initialVelocity;
+	public float initialMagnitude;
+	public Attack attack;
+	public AnimationRandomizer animRand;
+	public static GameObject Prefab => prefab ?? (prefab = ChaosBundle.Get("Assets/Prefabs/Projectiles/Bubble.prefab"));
+	public override void Start()
+	{
+		base.Start();
+		initialVelocity = moveVector.normalized * moveSpeed;
+		initialMagnitude = initialVelocity.magnitude;
+		rigidbody2D.velocity = initialVelocity;
+		if (isLarge)
+		{
+			anim.Play("IdleLarge", -1, 0f);
+			animRand.enabled = false;
+			attack.transform.localScale *= 1.5f;
+		}
+	}
+	public override void FixedUpdate()
+	{
+		base.FixedUpdate();
+		if (!isMinVelocity && rigidbody2D.velocity.magnitude < minVelocity)
+		{
+			isMinVelocity = true;
+			rigidbody2D.velocity = rigidbody2D.velocity.normalized * minVelocity;
+			rigidbody2D.drag = 0f;
+		}
+	}
+	public void OnCollisionEnter2D(Collision2D col)
+	{
+		if (!markedForDestroy)
+		{
+			anim.Play("Bounce" + ((!isLarge) ? string.Empty : "Large"), -1, 0f);
+			transform.localEulerAngles = Globals.GetRotationVector(-Globals.GetPrimaryCardinalVec(((Vector2)transform.position - col.contacts[0].point).normalized));
+			if (Projectile.globalProjectileWallCollisionEvents != null)
+			{
+				Projectile.globalProjectileWallCollisionEvents(this);
+			}
+		}
+	}
+	public override bool OnReflect(Vector2 givenVec, float givenMod)
+	{
+		if (!base.OnReflect(givenVec, givenMod))
+		{
+			return false;
+		}
+		rigidbody2D.velocity = givenVec.normalized * moveSpeed;
+		return true;
+	}
+	public override void ResetProjectile()
+	{
+		if (!markedForDestroy)
+		{
+			PoolManager.GetPoolItem<WaterDropEmitter>().Emit((!isLarge) ? 6 : 3, transform.position, WaterDropEmitter.LargeWaterExplosionOverride);
+			string audioID = "BubblePopAlt";
+			Vector2? soundOrigin = transform.position;
+			float standardPitchRange = SoundManager.StandardPitchRange;
+			SoundManager.PlayAudioWithDistance(audioID, soundOrigin, null, 24f, -1f, standardPitchRange);
+			if (isLarge)
+			{
+				markedForDestroy = true;
+				anim.Play("PopLarge", -1, 0f);
+			}
+			else
+			{
+				PoolManager.GetPoolItem<ParticleEffect>("BubblePopEffect").Emit(1, transform.position);
+				base.ResetProjectile();
+			}
+		}
+	}
+}

@@ -1,0 +1,894 @@
+====================================================================================================
+HealOverdriveItem числа только в A: [2.0, 5.0, 100.0] только в B: []
+-- c-relic_catalog.part06.yaml C-15-relic_catalog-021
+id: C-15-relic_catalog-021
+kind: relic_catalog
+own_name: 'амулет: заряд ульты за лечение'
+numbers:
+  category: прочее
+  trigger: лечение
+  tier: 2
+  base_price: 5
+  ultimate_gain_cap_per_heal: 35
+  ultimate_scale_max: 100
+behavior: При каждом лечении владельца, если шкала ульты (0–100) ещё не готова, к ней добавляется меньшее из 35 и величины лечения.
+source_ref: HealOverdriveItem.cs
+
+-- 15-relics.items.part06.yaml C-15-items-175
+id: C-15-items-175
+kind: relic
+own_name: 'Амулет: заряд ульты за лечение'
+numbers:
+  максимум_за_одно_лечение:
+    value: 35
+    unit: очки шкалы ульты
+behavior: При каждом лечении владельца, если шкала ульты ещё не готова, к ней добавляется меньшее из величины лечения и 35.
+source_ref: HealOverdriveItem (HealOverdriveItem.cs)
+
+-- CODE
+using System;
+using UnityEngine;
+
+public class HealOverdriveItem : Item
+{
+	public static string staticID = "HealOverdriveItem";
+
+	public HealOverdriveItem()
+	{
+		ID = staticID;
+		category = Category.Misc;
+	}
+
+	public override void Activate()
+	{
+		SetModStatus(givenStatus: true);
+	}
+
+	public override void Deactivate()
+	{
+		SetModStatus(givenStatus: false);
+	}
+
+	private void SetModStatus(bool givenStatus)
+	{
+		if (SetParentAsPlayer())
+		{
+			Health health = parentPlayer.health;
+			health.healEventHandlers = (Health.HealEventHandler)Delegate.Remove(health.healEventHandlers, new Health.HealEventHandler(OnHealEvent));
+			if (givenStatus)
+			{
+				Health health2 = parentPlayer.health;
+				health2.healEventHandlers = (Health.HealEventHandler)Delegate.Combine(health2.healEventHandlers, new Health.HealEventHandler(OnHealEvent));
+			}
+		}
+	}
+
+	private void OnHealEvent(int givenValue, int overhealAmount = 0)
+	{
+		if (parentPlayer != null && !parentPlayer.overdriveReady)
+		{
+			parentPlayer.OverdriveProgress += Mathf.Min(35f, givenValue);
+		}
+	}
+}
+
+====================================================================================================
+HealWithPitKill числа только в A: [6.0] только в B: []
+-- c-relic_catalog.part06.yaml C-15-relic_catalog-024
+id: C-15-relic_catalog-024
+kind: relic_catalog
+own_name: 'кольцо: +3 HP за убийство падением'
+numbers:
+  category: защита
+  trigger: убийство
+  tier: 1
+  base_price: 6
+  heal: 3
+behavior: При чистом убийстве врага, чьё предыдущее состояние — падение в яму, и если последний удар был от арканы собственной категории владельца, владелец восстанавливает 3 HP.
+source_ref: HealWithPitKill.cs
+
+-- 15-relics.items.part06.yaml C-15-items-178
+id: C-15-items-178
+kind: relic
+own_name: 'Кольцо: здоровье за убийство падением'
+numbers:
+  лечение:
+    value: 3
+    unit: HP
+behavior: При валидном убийстве врага, чьё предыдущее состояние — падение (сброшен в яму), и последний удар был от арканы владельца, владелец восстанавливает 3 HP.
+source_ref: HealWithPitKill (HealWithPitKill.cs)
+
+-- CODE
+public class HealWithPitKill : ModWithKills
+{
+	public static string staticID = "HealWithPitKill";
+
+	public HealWithPitKill()
+	{
+		ID = staticID;
+		category = Category.Defense;
+	}
+
+	public override void HandleKillEvent(Entity givenEntity, AttackInfo givenInfo)
+	{
+		if (!(givenEntity == null) && givenEntity.fsm != null && !(parentPlayer == null) && givenEntity.fsm.previousStateName.Contains("Fall") && !(givenInfo.skillCategory != parentPlayer.skillCategory))
+		{
+			parentPlayer.health.RestoreHealth(3);
+		}
+	}
+}
+
+====================================================================================================
+Inventory числа только в A: [] только в B: [2.0, 3.0, 4.0]
+-- c-relic_catalog.part07.yaml C-15-relic_catalog-013
+id: C-15-relic_catalog-013
+kind: relic_catalog
+own_name: правила инвентаря реликвий
+numbers:
+  category: прочее
+  trigger: инвентарь
+  tier: нет
+  capacity: 12
+behavior: 'Инвентарь игрока вмещает до 12 реликвий. Повторная реликвия не добавляется. Для взаимоисключающих наборов: если у игрока уже есть проклятый член набора, новая отвергается; иначе все члены набора
+  выбрасываются и новая принимается. При заполнении инвентаря новая принимается, только если она завершает рецепт или добавляет члена уже имеющейся группы, либо сбросом освобождается слот: сбрасывается
+  первая по порядку непроклятая реликвия (в хабе сбрасывать нельзя, тогда новая отвергается); реликвия, исчезающая при выбросе, при сбросе просто пропадает. Проклятые реликвии вручную не снимаются (только
+  принудительно). Имеются: счёт проклятых; выбор случайной реликвии (по умолчанию без проклятых); выбор доступной реликвии воскрешения с наименьшим приоритетом; поиск жетона NPC; очистка с исключениями
+  (хаб-реликвии, проклятые, сборные, части рецептов). При добавлении показывается уведомление и звук, у проклятых — свой звук и эффект.'
+source_ref: Inventory.cs
+
+-- 15-relics.items.part07.yaml R-15-inv-slots
+id: R-15-inv-slots
+title: 'Инвентарь реликвий: ёмкость, добавление, снятие, очистка'
+behavior: 'У каждого владельца свой набор реликвий, не больше 12 штук; неизвестный код реликвии не принимается. Добавление идёт шагами, первый отказ прерывает: (1) такая реликвия уже есть, отказ; (2) проверка
+  взаимоисключающих множеств: если у владельца среди множества есть проклятая, отказ, иначе все имеющиеся члены множества выбрасываются; (3) если набор полон и новая реликвия не достраивает рецепт или группу,
+  выбрасывается первая по порядку добавления непроклятая реликвия; если выбросить нечего или находимся в хабе или домашней комнате, отказ; (4) реликвия привязывается к владельцу и включается, все подписчики
+  получают уведомление об изменении набора, при показе уведомления играет разный звук для проклятых и обычных реликвий (у проклятых ещё всплеск ауры), добавление проклятой реликвии засчитывается в достижение
+  «держать четыре проклятых». Обычное снятие проклятой реликвии не выполняется (звук ошибки), принудительное снятие проклятость игнорирует. При выбросе реликвия падает на пол у ног владельца, а реликвия
+  с пометкой «исчезает при выбросе» пропадает. Очистка набора может сохранять: хаб-реликвии, проклятые, сборные результаты, части рецептов; контейнеры групп при очистке распускаются без выброса. Дополнительно
+  набор умеет: выдать случайную реликвию (по умолчанию без проклятых), найти доступную реликвию воскрешения с наименьшим числом приоритета, найти жетон NPC-комнаты в наборах игроков, проверить, что реликвия
+  есть у кого-либо или у обоих игроков.'
+numbers:
+  slot_cap:
+    value: 12
+    unit: шт на игрока
+  cursed_relics_for_achievement:
+    value: 4
+    unit: шт
+conditions:
+- выбросить реликвию нельзя в хабе и домашней комнате
+- в кооперативе у двух игроков наборы раздельные
+source_refs:
+- 'Inventory (Inventory.cs): AddItem, RemoveItem, DropItem, ClearInventory, GetResurrectItem, CheckForMutallyExclusiveItems, CheckItemCombine'
+confidence: high
+
+-- CODE
+using System.Collections.Generic;
+using System.Linq;
+using Chaos.ArrayExtensions;
+using Chaos.ListExtensions;
+using UnityEngine;
+
+public class Inventory
+{
+	public delegate void ItemEventHandler(Item givenItem, bool givenStatus);
+
+	public delegate void SingleEventHandler(Item givenItem);
+
+	public delegate bool SkipConditional(Item givenItem);
+
+	public const int MaxItemCount = 12;
+
+	private int count;
+
+	private Entity parentEntity;
+
+	public Dictionary<string, Item> itemDict;
+
+	private Item currentItem;
+
+	private string currentItemID = string.Empty;
+
+	public ItemEventHandler inventoryChangeEventHandler;
+
+	public SingleEventHandler itemAddEventHandler;
+
+	private List<Item> tempRandList = new List<Item>(12);
+
+	public int Count => count;
+
+	public bool IsFull => Count >= 12;
+
+	public int CursedCount
+	{
+		get
+		{
+			int num = 0;
+			foreach (Item value in itemDict.Values)
+			{
+				if (value != null && value.isCursed)
+				{
+					num++;
+				}
+			}
+			return num;
+		}
+	}
+
+	public Inventory(Entity newParentEntity)
+	{
+		parentEntity = newParentEntity;
+		itemDict = new Dictionary<string, Item>();
+	}
+
+	public static string GetNpcTokenID()
+	{
+		string text = string.Empty;
+		Player[] activePlayers = GameController.activePlayers;
+		foreach (Player player in activePlayers)
+		{
+			text = player.inventory.GetNpcTokenItemID();
+			if (text != string.Empty)
+			{
+				break;
+			}
+		}
+		return text;
+	}
+
+	public static bool EitherPlayerHasItem(string givenItemID)
+	{
+		Player[] activePlayers = GameController.activePlayers;
+		foreach (Player player in activePlayers)
+		{
+			if (player != null && player.inventory.ContainsItem(givenItemID))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static bool BothPlayersHaveItem(string givenItemID)
+	{
+		if (GameController.activePlayers.Length <= 1)
+		{
+			return false;
+		}
+		Player[] activePlayers = GameController.activePlayers;
+		foreach (Player player in activePlayers)
+		{
+			if (player != null && !player.inventory.ContainsItem(givenItemID))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static string GetExtraInfo(int givenPlayerID, string givenItemID)
+	{
+		Player[] activePlayers = GameController.activePlayers;
+		foreach (Player player in activePlayers)
+		{
+			if (player != null && player.playerID == givenPlayerID && player.inventory.ContainsItem(givenItemID))
+			{
+				return player.inventory.GetItem(givenItemID).FormattedExtraInfo;
+			}
+		}
+		return string.Empty;
+	}
+
+	public bool CheckForMutallyExclusiveItems(string givenItemID)
+	{
+		foreach (List<string> mutuallyExclusiveItem in LootManager.mutuallyExclusiveItems)
+		{
+			if (!mutuallyExclusiveItem.Contains(givenItemID))
+			{
+				continue;
+			}
+			for (int i = 0; i < mutuallyExclusiveItem.Count; i++)
+			{
+				if (ContainsItem(mutuallyExclusiveItem[i]) && itemDict[mutuallyExclusiveItem[i]].isCursed)
+				{
+					return false;
+				}
+			}
+			for (int j = 0; j < mutuallyExclusiveItem.Count; j++)
+			{
+				DropItem(mutuallyExclusiveItem[j]);
+			}
+		}
+		return true;
+	}
+
+	public void AnnounceItemEvent(Item givenItem, bool status)
+	{
+		if (inventoryChangeEventHandler != null)
+		{
+			inventoryChangeEventHandler(givenItem, status);
+		}
+		if (itemAddEventHandler != null)
+		{
+			itemAddEventHandler(givenItem);
+		}
+	}
+
+	public bool CheckItemCombine(Item newItem)
+	{
+		if (newItem.parentCombineID != string.Empty)
+		{
+			List<string> list = itemDict.Keys.ToList();
+			list.Add(newItem.ID);
+			if (ItemRecipe.RecipeComplete(newItem.parentCombineID, list))
+			{
+				return true;
+			}
+		}
+		if (newItem.parentGroupID != string.Empty && (itemDict.ContainsKey(newItem.parentGroupID) || (GroupItemManager.groupsDict.ContainsKey(newItem.parentGroupID) && GroupItemManager.groupsDict[newItem.parentGroupID].Any((string x) => itemDict.Keys.Any((string y) => y == x)))))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	public bool AddItem(Item givenItem, bool showNotice = false, bool ignoreMax = false)
+	{
+		currentItemID = givenItem.ID;
+		Player.newItems[givenItem.category].Remove(currentItemID);
+		if (ContainsItem(currentItemID))
+		{
+			return false;
+		}
+		if (!CheckForMutallyExclusiveItems(currentItemID))
+		{
+			return false;
+		}
+		if (itemDict.Count >= 12 && !CheckItemCombine(givenItem) && !ignoreMax && !DropItem(string.Empty))
+		{
+			return false;
+		}
+		givenItem.parentEntity = parentEntity;
+		givenItem.SetParentSkillCategory();
+		itemDict[currentItemID] = givenItem;
+		givenItem.Activate();
+		if (showNotice && parentEntity is Player)
+		{
+			((Player)parentEntity).newItemNoticeUI.Display(TextManager.GetItemName(currentItemID), IconManager.GetItemIcon(currentItemID));
+			if (givenItem.isCursed)
+			{
+				SoundManager.PlayAudio("BuyCursedRelic");
+			}
+			else
+			{
+				SoundManager.PlayAudio("Powerup");
+			}
+			if (givenItem.isCursed)
+			{
+				PoolManager.GetPoolItem<ParticleEffect>("CursedAuraBurstEffect").Play(null, parentEntity.transform.position, null, null, null, null, 0f, loop: false);
+			}
+		}
+		count++;
+		AnnounceItemEvent(givenItem, status: true);
+		if (givenItem.isCursed)
+		{
+			AchievementManager.UnlockAchievement(Achievement.HoldFourCursed);
+		}
+		return true;
+	}
+
+	public bool AddItem(string givenItemID, bool showNotice = false, bool ignoreMax = false)
+	{
+		return LootManager.completeItemDict.ContainsKey(givenItemID) && AddItem(Item.CreateItem(givenItemID), showNotice, ignoreMax);
+	}
+
+	public bool RemoveItem(string givenItemID, bool forceOverride = false, bool showNotice = false)
+	{
+		if (!ContainsItem(givenItemID))
+		{
+			return false;
+		}
+		currentItem = itemDict[givenItemID];
+		if (!forceOverride && currentItem.isCursed)
+		{
+			SoundManager.PlayErrorAudio();
+			return false;
+		}
+		if (showNotice && parentEntity is Player)
+		{
+			((Player)parentEntity).newItemNoticeUI.Display(TextManager.GetItemName(givenItemID), IconManager.GetItemIcon(givenItemID), null, isSkill: false, isSignature: false, isEmpowered: false, acquired: false);
+		}
+		currentItem.Deactivate();
+		currentItem.parentEntity = null;
+		currentItem.parentPlayer = null;
+		currentItem.parentSkillCategory = string.Empty;
+		itemDict.Remove(givenItemID);
+		count--;
+		AnnounceItemEvent(currentItem, status: false);
+		return true;
+	}
+
+	public bool DropItem(string givenItemID = "")
+	{
+		string loadedLevelName = Application.loadedLevelName;
+		if (loadedLevelName == "PlayerRoom" || loadedLevelName == "Hub")
+		{
+			return false;
+		}
+		if (givenItemID == string.Empty)
+		{
+			foreach (string itemID in GetItemIDList())
+			{
+				currentItem = itemDict[itemID];
+				if (currentItem == null || currentItem.isCursed || !RemoveItem(itemID))
+				{
+					continue;
+				}
+				if (!currentItem.destroyOnDrop)
+				{
+					LootManager.DropItem(parentEntity.transform.position, 1, itemID, randomLoc: false);
+				}
+				return true;
+			}
+		}
+		else if (RemoveItem(givenItemID))
+		{
+			if (!currentItem.destroyOnDrop)
+			{
+				LootManager.DropItem(parentEntity.transform.position, 1, givenItemID, randomLoc: false);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	public List<string> GetItemIDList()
+	{
+		return new List<string>(itemDict.Keys);
+	}
+
+	public bool ContainsItem(string givenItemID)
+	{
+		return itemDict.ContainsKey(givenItemID);
+	}
+
+	public Item GetItem(string givenItemID)
+	{
+		return (!ContainsItem(givenItemID)) ? null : itemDict[givenItemID];
+	}
+
+	public ResurrectItem GetResurrectItem()
+	{
+		ResurrectItem resurrectItem = null;
+		foreach (Item value in itemDict.Values)
+		{
+			if (value is ResurrectItem { IsAvailable: not false } resurrectItem2 && (resurrectItem == null || resurrectItem.priority > resurrectItem2.priority))
+			{
+				resurrectItem = resurrectItem2;
+			}
+		}
+		return resurrectItem;
+	}
+
+	public string GetNpcTokenItemID()
+	{
+		foreach (Item value in itemDict.Values)
+		{
+			if (value != null && value is NpcTokenItem)
+			{
+				return value.ID;
+			}
+		}
+		return string.Empty;
+	}
+
+	public void ClearInventory(bool keepHubOnly = false, bool keepCursed = false, bool keepCombine = false, bool keepRecipe = false)
+	{
+		List<string> list = new List<string>();
+		foreach (Item value in itemDict.Values)
+		{
+			if (value != null && (!keepHubOnly || !value.hubOnly) && (!keepCursed || !value.isCursed) && (!keepCombine || !value.combineOnly) && (!keepRecipe || !(value.parentCombineID != string.Empty)))
+			{
+				list.Add(value.ID);
+				if (value.isGroupItem)
+				{
+					(value as GroupItem).HandleDrop(ignoreDrop: true);
+				}
+				value.Deactivate();
+				value.parentEntity = null;
+				value.parentPlayer = null;
+				value.parentSkillCategory = string.Empty;
+			}
+		}
+		for (int i = 0; i < list.Count; i++)
+		{
+			itemDict.Remove(list[i]);
+		}
+		count -= list.Count;
+	}
+
+	public void ClearInventory(SkipConditional GivenConditional)
+	{
+		List<string> list = new List<string>();
+		foreach (Item value in itemDict.Values)
+		{
+			if (value != null && GivenConditional != null && !GivenConditional(value))
+			{
+				list.Add(value.ID);
+				value.Deactivate();
+				value.parentEntity = null;
+				value.parentPlayer = null;
+				value.parentSkillCategory = string.Empty;
+			}
+		}
+		for (int i = 0; i < list.Count; i++)
+		{
+			itemDict.Remove(list[i]);
+		}
+		count -= list.Count;
+	}
+
+	public Item GetRandomItem(bool excludeCursed = true)
+	{
+		if (count == 0)
+		{
+			return null;
+		}
+		if (!excludeCursed)
+		{
+			return itemDict.Values.ToArray().GetRandomValue();
+		}
+		tempRandList.Clear();
+		foreach (Item value in itemDict.Values)
+		{
+			if (!value.isCursed)
+			{
+				tempRandList.Add(value);
+			}
+		}
+		return (tempRandList.Count != 0) ? tempRandList.GetRandomValue() : null;
+	}
+}
+
+====================================================================================================
+LightningDamageUp числа только в A: [15.0, 25.0] только в B: []
+-- c-relic_catalog.part08.yaml shock_dmg_up
+id: shock_dmg_up
+kind: relic
+own_name: 'кольцо: +12% урона молнией'
+numbers:
+  tier:
+    value: 1
+    unit: тир
+  base_price:
+    value: 6
+    unit: база цены
+    note: из 15b; золото = база × 25
+  damage_mult:
+    value: 0.12
+    unit: доля
+    note: 'мод. умножить: +12 %, итог ×1.12; арканы стихии молния, кроме статусных'
+behavior: Урон арканов стихии молния +12% (итог ×1.12). Статусные записи не затрагиваются. Значение 0.12 в этом файле не задано, взято из 15b (базовый класс стихийного урона).
+source_ref: LightningDamageUp.cs
+
+-- 15-relics.items.part08.yaml C-15-items-213
+id: C-15-items-213
+kind: relic
+own_name: 'кольцо: +12% урона молнией'
+numbers:
+  dmg_mult:
+    value: 0.12
+    unit: доля
+    note: 'мод. умножить: +12 %, итог ×1.12'
+  pool_tier: 1
+  base_price: 6
+behavior: Урон арканов стихии молния +12 % (итог ×1.12), не считая статусных эффектов.
+source_ref: LightningDamageUp (LightningDamageUp.cs)
+
+-- CODE
+public class LightningDamageUp : ElementalDamageUp
+{
+	public static string staticID = "LightningDamageUp";
+
+	public LightningDamageUp()
+		: base(staticID, ElementType.Lightning)
+	{
+	}
+}
+
+====================================================================================================
+MagicianHat числа только в A: [7.0, 25.0] только в B: []
+-- c-relic_catalog.part08.yaml empower_chance_hat
+id: empower_chance_hat
+kind: relic
+own_name: 'убор: шанс усилить аркану'
+numbers:
+  tier:
+    value: 4
+    unit: тир
+  base_price:
+    value: 5
+    unit: база цены
+    note: из 15b; золото = база × 25
+  empower_chance:
+    value: 0.16
+    unit: доля
+    note: за вход в небазовую аркану
+  cooldown_cut_after_exit:
+    value: 0.5
+    unit: доля
+    note: остаток перезарядки после выхода из усиленной арканы
+  effect_count:
+    value: 7
+    unit: шт.
+    note: число частиц эффекта искр
+behavior: При каждом входе в небазовую аркану (рывок — только при готовой перезарядке) с шансом 16% она становится усиленной на это применение. После выхода из такой арканы остаток её перезарядки сокращается
+  на 50%. Показывает эффект искр. Если при подборе уже есть вторая часть рецепта, обе удаляются и выдаётся сборная реликвия (мимо лимита).
+source_ref: MagicianHat.cs:8,10,25,107
+tags:
+- головной убор
+- часть рецепта Р4 «усиление арканов»
+
+-- 15-relics.items.part08.yaml C-15-items-217
+id: C-15-items-217
+kind: relic
+own_name: 'убор: шанс усилить аркану'
+numbers:
+  empower_chance:
+    value: 0.16
+    unit: доля
+  remaining_cooldown_cut:
+    value: 0.5
+    unit: доля остатка
+  pool_tier: 4
+  base_price: 5
+behavior: При каждом входе в небазовую аркану (рывок - только когда её перезарядка готов) с шансом 16% оно становится усиленным на это применение; после выхода из такой арканы (если она не базовая) остаток
+  его перезарядки уменьшается на 50%. Эффекты искр. Если на подборе есть вторая часть рецепта - обе удаляются и выдаётся сборная (мимо лимита).
+source_ref: MagicianHat (MagicianHat.cs)
+
+-- CODE
+using System;
+using UnityEngine;
+
+public class MagicianHat : HeadgearItem
+{
+	public static string staticID = "MagicianHat";
+
+	protected float cdrValue = 0.5f;
+
+	protected float empowerChance = 0.16f;
+
+	protected BoolVarStatMod boolMod;
+
+	protected bool skillAltered;
+
+	protected Vector2 effectPosition;
+
+	protected override string ExtraInfo => PercentToStr(empowerChance, string.Empty);
+
+	public MagicianHat()
+	{
+		ID = staticID;
+		category = Category.Offense;
+		parentCombineID = MagicianSet.staticID;
+		boolMod = new BoolVarStatMod(ID, newModValue: true, 40);
+		headgearPrefab = ChaosBundle.Get("Assets/Prefabs/Headgear/TopHat.prefab");
+	}
+
+	public override void Activate()
+	{
+		base.Activate();
+		SetModStatus(givenStatus: true);
+	}
+
+	public override void Deactivate()
+	{
+		base.Deactivate();
+		SetModStatus(givenStatus: false);
+	}
+
+	public virtual void SetModStatus(bool givenStatus)
+	{
+		if (!SetParentAsPlayer())
+		{
+			return;
+		}
+		if (givenStatus && ID != MagicianSet.staticID && parentPlayer.inventory.ContainsItem(MagicianWand.staticID))
+		{
+			parentPlayer.inventory.AddItem(MagicianSet.staticID, showNotice: false, ignoreMax: true);
+			parentPlayer.inventory.RemoveItem(MagicianWand.staticID, forceOverride: true);
+			parentPlayer.inventory.RemoveItem(staticID, forceOverride: true);
+			return;
+		}
+		Player player = parentPlayer;
+		player.skillEnterEventHandlers = (Player.SkillEventHandler)Delegate.Remove(player.skillEnterEventHandlers, new Player.SkillEventHandler(OnSkillEnter));
+		Player player2 = parentPlayer;
+		player2.skillExitEventHandlers = (Player.SkillEventHandler)Delegate.Remove(player2.skillExitEventHandlers, new Player.SkillEventHandler(OnSkillExit));
+		if (givenStatus)
+		{
+			Player player3 = parentPlayer;
+			player3.skillEnterEventHandlers = (Player.SkillEventHandler)Delegate.Combine(player3.skillEnterEventHandlers, new Player.SkillEventHandler(OnSkillEnter));
+			Player player4 = parentPlayer;
+			player4.skillExitEventHandlers = (Player.SkillEventHandler)Delegate.Combine(player4.skillExitEventHandlers, new Player.SkillEventHandler(OnSkillExit));
+		}
+	}
+
+	private void OnSkillEnter(Player.SkillState givenSkill)
+	{
+		if (givenSkill != null && CheckForActivation(givenSkill))
+		{
+			skillAltered = true;
+			givenSkill.SetEmpowered(givenStatus: true, boolMod);
+			SpawnEffect();
+		}
+	}
+
+	private void OnSkillExit(Player.SkillState givenSkill)
+	{
+		if (givenSkill != null && skillAltered)
+		{
+			skillAltered = false;
+			givenSkill.SetEmpowered(givenStatus: false, boolMod);
+			if (!givenSkill.isBasic)
+			{
+				parentPlayer.hud.MiscPing("HourglassUI");
+				givenSkill.cooldownRef.ReduceRemainingTime(givenSkill.cooldownRef.RemainingTime * cdrValue);
+			}
+		}
+	}
+
+	public virtual bool CheckForActivation(Player.SkillState givenSkill)
+	{
+		if (givenSkill == null || givenSkill.isBasic)
+		{
+			return false;
+		}
+		if (givenSkill.isDash && givenSkill is Player.BaseDashState && !((Player.BaseDashState)givenSkill).cooldownReady)
+		{
+			return false;
+		}
+		return UnityEngine.Random.value < empowerChance;
+	}
+
+	public virtual void SpawnEffect()
+	{
+		effectPosition = parentPlayer.attackOriginTrans.position;
+		PoolManager.GetPoolItem<ParticleEffect>("SparkleAura").Emit(7, effectPosition);
+		SoundManager.PlayAudioWithDistance("MagicianSparkle", effectPosition);
+	}
+}
+
+====================================================================================================
+MaxHealthUpOnHeal числа только в A: [15.0, 25.0] только в B: []
+-- c-relic_catalog.part08.yaml hp_grows_per_restore
+id: hp_grows_per_restore
+kind: relic
+own_name: 'амулет: макс. HP растёт от лечений'
+numbers:
+  tier:
+    value: 4
+    unit: тир
+  base_price:
+    value: 6
+    unit: база цены
+    note: из 15b; золото = база × 25
+  max_hp_gain:
+    value: 3
+    unit: HP
+    note: адд., за каждое лечение
+  max_hp_cap:
+    value: 75
+    unit: HP
+    note: предел за забег
+behavior: При каждом входящем лечении больше нуля макс. HP +3 (аддитивно), накапливается до предела +75 за забег. Накопленное хранится по игроку и не теряется при выбросе и повторном подборе; сбрасывается
+  новым забегом. Срабатывает на входе лечения, до его применения.
+source_ref: MaxHealthUpOnHeal.cs:13,15
+
+-- 15-relics.items.part08.yaml C-15-items-222
+id: C-15-items-222
+kind: relic
+own_name: 'амулет: макс. HP растёт от лечений'
+numbers:
+  max_hp_per_heal:
+    value: 3
+    unit: HP
+  max_hp_cap:
+    value: 75
+    unit: HP за забег
+  pool_tier: 4
+  base_price: 6
+behavior: При каждом входящем лечении >0 макс. HP +3 (адд.), накапливается; предел +75 за забег. Копится в статическом хранилище по игроку и не теряется при выбросе и повторном подборе; сброс при новом
+  забеге. Срабатывает на событии входа лечения (до его применения).
+source_ref: MaxHealthUpOnHeal (MaxHealthUpOnHeal.cs)
+
+-- CODE
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class MaxHealthUpOnHeal : Item
+{
+	public static string staticID = "MaxHealthUpOnHeal";
+
+	private static Dictionary<int, float> idHealthDict = new Dictionary<int, float>();
+
+	private NumVarStatMod healthMod;
+
+	private int maxIncrease = 75;
+
+	private int healthIncrease = 3;
+
+	private int parentID = -1;
+
+	private float HealthModValue
+	{
+		get
+		{
+			return (!idHealthDict.ContainsKey(parentID)) ? 0f : idHealthDict[parentID];
+		}
+		set
+		{
+			idHealthDict[parentID] = value;
+			healthMod.modValue = value;
+		}
+	}
+
+	protected override string ExtraInfo => "+ " + (int)HealthModValue;
+
+	public MaxHealthUpOnHeal()
+	{
+		ID = staticID;
+		category = Category.Defense;
+		healthMod = new NumVarStatMod(ID, 0f);
+		RunData.runResetEventHandlers = (RunData.RunEvent)Delegate.Remove(RunData.runResetEventHandlers, new RunData.RunEvent(OnRunReset));
+		RunData.runResetEventHandlers = (RunData.RunEvent)Delegate.Combine(RunData.runResetEventHandlers, new RunData.RunEvent(OnRunReset));
+	}
+
+	private static void OnRunReset()
+	{
+		idHealthDict.Clear();
+	}
+
+	public override void Activate()
+	{
+		SetEventHandlers(givenStatus: true);
+	}
+
+	public override void Deactivate()
+	{
+		SetEventHandlers(givenStatus: false);
+	}
+
+	private void SetEventHandlers(bool givenStatus)
+	{
+		if (SetParentAsPlayer())
+		{
+			parentID = parentPlayer.playerID;
+			ApplyHealthMod(givenStatus);
+			Health health = parentPlayer.health;
+			health.healEnterEventHandlers = (Health.HealEnterEventHandler)Delegate.Remove(health.healEnterEventHandlers, new Health.HealEnterEventHandler(OnHealEvent));
+			if (givenStatus)
+			{
+				Health health2 = parentPlayer.health;
+				health2.healEnterEventHandlers = (Health.HealEnterEventHandler)Delegate.Combine(health2.healEnterEventHandlers, new Health.HealEnterEventHandler(OnHealEvent));
+			}
+		}
+	}
+
+	private void ApplyHealthMod(bool givenStatus, int givenValue = 0)
+	{
+		if (givenStatus)
+		{
+			HealthModValue = Mathf.Min(HealthModValue + (float)givenValue, maxIncrease);
+		}
+		parentPlayer.health.healthStat.Modify(healthMod, givenStatus);
+	}
+
+	private void OnHealEvent(ref int givenValue)
+	{
+		if (parentPlayer != null && givenValue > 0)
+		{
+			ApplyHealthMod(givenStatus: true, healthIncrease);
+		}
+	}
+}
+

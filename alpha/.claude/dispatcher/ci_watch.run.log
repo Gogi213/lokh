@@ -1,0 +1,701 @@
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] PR #35: gh: HTTP 500
+[ci_watch] цикл: TimeoutExpired: Command '['gh', 'api', '-X', 'GET', 'repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100']' timed out after 60 seconds
+[ci_watch] PR #35 f81b6a7: pending
+[ci_watch] PR #36 75dc66d: pending
+[ci_watch] PR #35 f81b6a7: success
+[merge_rule] PR #35: влит
+[ci_watch] PR #36 75dc66d: success
+[merge_rule] PR #36: влит
+[ci_watch] PR #37 406edae: pending
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing": net/http: TLS handshake timeout
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37: gh: HTTP 500
+[ci_watch] PR #37 406edae: failure → engineer
+[ci_watch] PR #38 14738dc: pending
+[ci_watch] PR #38 14738dc: failure → engineer
+[ci_watch] PR #38 346cd62: pending
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] PR #37: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/406edaeecf4ee5d03e661d402417787361351c5e/check-runs?per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed 
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[bus] ci.38.346cd62: шина недоступна (URLError), в spool
+[ci_watch] PR #37: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/406edaeecf4ee5d03e661d402417787361351c5e/check-runs?per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed 
+[ci_watch] PR #38 346cd62: failure → engineer
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of ti
+[ci_watch] PR #38 f0367f0: pending
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] PR #38: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/f0367f004d63dacfb125e754cee0a9f6fade516e/check-runs?per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed 
+[ci_watch] PR #37: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/406edaeecf4ee5d03e661d402417787361351c5e/check-runs?per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed 
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of ti
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] PR #38: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/f0367f004d63dacfb125e754cee0a9f6fade516e/check-runs?per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed 
+[ci_watch] PR #37: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/406edaeecf4ee5d03e661d402417787361351c5e/check-runs?per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed 
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: i/o timeout
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[bus] ci.38.f0367f0: шина недоступна (URLError), в spool
+[ci_watch] PR #37: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/406edaeecf4ee5d03e661d402417787361351c5e/check-runs?per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed 
+[ci_watch] PR #38 f0367f0: failure
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of ti
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] PR #38: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/f0367f004d63dacfb125e754cee0a9f6fade516e/check-runs?per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed 
+[ci_watch] PR #37: Get "https://api.github.com/repos/Gogi213/role-play-vibing/commits/406edaeecf4ee5d03e661d402417787361351c5e/check-runs?per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed 
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] PR #38 64ab493: pending
+[ci_watch] PR #38 64ab493: success
+[merge_rule] PR #38: влит
+[ci_watch] PR #37 75bccc4: pending
+[ci_watch] PR #37 75bccc4: success
+[merge_rule] PR #37: влит
+[ci_watch] PR #39 17af5a9: pending
+[ci_watch] PR #40 e8470c4: pending
+[ci_watch] PR #41 57b8e69: pending
+[ci_watch] PR #42 90ec91b: pending
+[ci_watch] PR #43 4f27490: pending
+[ci_watch] PR #42 3fbf283: pending
+[ci_watch] PR #41 44862e3: pending
+[ci_watch] PR #42 730648f: pending
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[ci_watch] PR #41 525ae7c: pending
+[ci_watch] PR #39 17af5a9: success
+[merge_rule] PR #39: влит
+[ci_watch] PR #44 583dcdd: pending
+[merge_rule] PR #42: конфликт → владельцу
+[ci_watch] PR #44 e241787: pending
+[ci_watch] PR #42 c3d6038: pending
+[ci_watch] PR #41 7d1701f: pending
+[ci_watch] PR #45 d2a5105: pending
+[ci_watch] PR #41 d5d6d13: pending
+[ci_watch] PR #45 128416f: pending
+[ci_watch] PR #43 4f27490: success
+[ci_watch] PR #40 e8470c4: success
+[merge_rule] PR #43: влит
+[merge_rule] PR #40: влит
+[ci_watch] PR #44 e241787: success
+[merge_rule] PR #44: влит
+[ci_watch] PR #41 d5d6d13: success
+[ci_watch] PR #45 3f58dcc: pending
+[ci_watch] PR #42 c3d6038: success
+[merge_rule] PR #42: влит
+[ci_watch] PR #41 73a7aef: pending
+[ci_watch] PR #46 d353a59: pending
+[ci_watch] PR #41 08ab52d: pending
+[ci_watch] PR #45 3f58dcc: success
+[merge_rule] PR #45: влит
+[ci_watch] PR #47 0787543: pending
+[ci_watch] PR #47 6ab8bc9: pending
+[ci_watch] PR #46 d353a59: failure → engineer
+[ci_watch] PR #46 79d2552: pending
+[ci_watch] PR #41 08ab52d: success
+[ci_watch] PR #48 d34a895: pending
+[ci_watch] PR #41 a69ffe7: pending
+[ci_watch] PR #48 8a30288: pending
+[ci_watch] PR #47 6ab8bc9: success
+[merge_rule] PR #47: влит
+[ci_watch] PR #46 79d2552: success
+[ci_watch] цикл: RuntimeError: error connecting to api.github.com
+check your internet connection or https://githubstatus.com
+[merge_rule] PR #46: влит
+[ci_watch] PR #49 d775191: pending
+[ci_watch] PR #41 a69ffe7: success
+[ci_watch] PR #49 935603d: pending
+[ci_watch] PR #41 89212b6: pending
+[ci_watch] PR #49 64c7b6d: pending
+[ci_watch] PR #48 8a30288: success
+[merge_rule] PR #48: влит
+[ci_watch] PR #50 76e0982: pending
+[ci_watch] PR #41 89212b6: success
+[merge_rule] PR #41: влит
+[ci_watch] PR #51 7a04516: pending
+[ci_watch] PR #49 64c7b6d: success
+[merge_rule] PR #49: влит
+[ci_watch] PR #52 43412fa: pending
+[ci_watch] PR #51 93eacb9: pending
+[ci_watch] PR #50 76e0982: failure → engineer
+[ci_watch] PR #50 76e0982: pending
+[ci_watch] PR #51 5a880e0: pending
+[ci_watch] PR #51 8fae074: pending
+[ci_watch] PR #51 15529e5: pending
+[ci_watch] PR #50 76e0982: success
+[merge_rule] PR #50: влит
+[ci_watch] PR #52 43412fa: failure → engineer
+[ci_watch] PR #51 15529e5: failure → engineer
+[ci_watch] PR #52 5fe1eef: pending
+[ci_watch] PR #51 7d5efb3: pending
+[ci_watch] PR #51 0846173: pending
+[ci_watch] PR #53 d46b607: pending
+[ci_watch] PR #52 5fe1eef: success
+[merge_rule] PR #52: влит
+[ci_watch] PR #51 0846173: failure → engineer
+[ci_watch] PR #51 0846173: pending
+[ci_watch] PR #53 4d00204: pending
+[ci_watch] PR #51 0846173: success → judge
+[ci_watch] PR #51 373559b: pending
+[ci_watch] PR #53 4d00204: failure → engineer
+[ci_watch] PR #53 18bee7f: pending
+[ci_watch] PR #53 18bee7f: failure → engineer
+[ci_watch] PR #54 fc75966: pending
+[ci_watch] PR #51 373559b: success → judge
+[ci_watch] PR #54 fc75966: success
+[merge_rule] PR #54: влит
+[ci_watch] PR #51 6058d37: pending
+[ci_watch] PR #51 a79419b: pending
+[ci_watch] PR #51 a79419b: failure → engineer
+[ci_watch] PR #51 b5773ab: pending
+[ci_watch] PR #51 b5773ab: failure → engineer
+[ci_watch] PR #51 b5773ab: pending
+[ci_watch] PR #51 b5773ab: failure → engineer
+[ci_watch] PR #55 a60caca: pending
+[ci_watch] PR #55 c702414: pending
+[ci_watch] PR #55 c702414: success → judge
+[merge_rule] PR #55: влит
+[ci_watch] PR #53 4dd0290: pending
+[ci_watch] PR #53 4dd0290: failure → engineer
+[ci_watch] PR #56 15acff0: pending
+[ci_watch] PR #53 ca3ca62: pending
+[ci_watch] PR #51 8e02719: pending
+[ci_watch] PR #56 34b93e5: pending
+[ci_watch] PR #56 daa82d6: pending
+[ci_watch] PR #53 ca3ca62: success
+[merge_rule] PR #53: влит
+[ci_watch] PR #51 8e02719: success
+[ci_watch] PR #51 0d99c24: pending
+[ci_watch] PR #56 daa82d6: success → judge
+[ci_watch] PR #57 f001bbb: pending
+[ci_watch] PR #57 f001bbb: success
+[ci_watch] PR #51 0d99c24: success
+[ci_watch] PR #57 5bb73a5: pending
+[ci_watch] PR #57 5bb73a5: failure → engineer
+[ci_watch] PR #57 e5fa741: pending
+[ci_watch] PR #57 e5fa741: success
+[ci_watch] PR #56 5330d0c: pending
+[ci_watch] PR #57 062fed9: pending
+[ci_watch] PR #57 062fed9: failure → engineer
+[ci_watch] PR #56 5330d0c: success → judge
+[merge_rule] PR #56: влит
+[ci_watch] PR #57 0fc7ee8: pending
+[ci_watch] PR #57 0fc7ee8: success → judge
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] PR #51 37c26ec: pending
+[ci_watch] PR #57 118fe03: pending
+[ci_watch] PR #57 118fe03: success → judge
+[ci_watch] PR #57 dc34e54: pending
+[ci_watch] PR #57 dc34e54: success → judge
+[ci_watch] PR #51 37c26ec: success
+[merge_rule] PR #51: влит
+[ci_watch] PR #57 bbc385d: pending
+[ci_watch] PR #57 bbc385d: success → judge
+[ci_watch] PR #57 bbc385d: pending
+[ci_watch] PR #57 bbc385d: success
+[ci_watch] PR #57 bbc385d: pending
+[ci_watch] PR #57 bbc385d: success
+[merge_rule] PR #57: влит
+
+=== 2026-10-08T17:45:58+04:00 старт ci_watch.py ===
+
+=== 2026-10-08T17:56:40+04:00 старт ci_watch.py ===
+[ci_watch] PR #58 c40c5e2: pending
+
+=== 2026-10-08T18:29:52+04:00 старт ci_watch.py ===
+[ci_watch] PR #58 31aeeda: pending
+[ci_watch] PR #58 31aeeda: success
+[merge_rule] PR #58: влит
+
+=== 2026-10-08T18:35:11+04:00 старт ci_watch.py ===
+
+=== 2026-10-08T18:40:49+04:00 старт ci_watch.py ===
+
+=== 2026-10-08T18:41:48+04:00 старт ci_watch.py ===
+[ci_watch] PR #59 a8be634: pending
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": net/http: TLS handshake timeout
+[ci_watch] PR #59 a8be634: success
+[merge_rule] PR #59: влит
+
+=== 2026-10-08T18:54:47+04:00 старт ci_watch.py ===
+[ci_watch] PR #60 62a5890: pending
+[ci_watch] PR #60 62a5890: success
+[merge_rule] PR #60: влит
+
+=== 2026-10-08T19:08:30+04:00 старт ci_watch.py ===
+[ci_watch] PR #61 1271c52: pending
+[ci_watch] PR #61 1271c52: success
+[merge_rule] PR #61: влит
+
+=== 2026-10-08T19:25:22+04:00 старт ci_watch.py ===
+[ci_watch] PR #62 14a2f27: pending
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing": net/http: TLS handshake timeout
+[ci_watch] PR #62 14a2f27: success
+[merge_rule] PR #62: влит
+
+=== 2026-10-08T19:37:52+04:00 старт ci_watch.py ===
+[ci_watch] PR #63 2f9f4eb: pending
+[ci_watch] PR #63 2f9f4eb: success
+[merge_rule] PR #63: влит
+
+=== 2026-10-08T19:49:19+04:00 старт ci_watch.py ===
+
+=== 2026-10-08T21:25:23+04:00 старт ci_watch.py ===
+[ci_watch] PR #64 06ab714: pending
+[ci_watch] PR #64 2de050a: pending
+[ci_watch] PR #65 eabf4a7: pending
+[ci_watch] PR #67 454e6a5: pending
+[ci_watch] PR #66 eeaebfd: pending
+[ci_watch] PR #64 f1f5233: pending
+[ci_watch] PR #65 eabf4a7: success
+[merge_rule] PR #65: влит
+[merge_rule] PR #64: конфликт → владельцу
+
+=== 2026-10-08T21:37:41+04:00 старт ci_watch.py ===
+[ci_watch] PR #68 2616acd: pending
+[ci_watch] PR #67 454e6a5: success → judge
+[ci_watch] PR #66 eeaebfd: success → judge
+[ci_watch] PR #64 3b631a5: pending
+[merge_rule] PR #66: конфликт → владельцу
+[ci_watch] PR #69 ac0e54c: pending
+[ci_watch] PR #66 a994090: pending
+[ci_watch] PR #68 edb82be: pending
+[ci_watch] PR #70 0df25ed: pending
+[ci_watch] PR #66 a994090: success
+[merge_rule] PR #66: влит
+[merge_rule] PR #64: конфликт → владельцу
+
+=== 2026-10-08T21:51:19+04:00 старт ci_watch.py ===
+[ci_watch] PR #68 edb82be: success
+[ci_watch] PR #64 3b631a5: success
+[merge_rule] PR #68: без bump → владельцу тикета
+[ci_watch] PR #64 552524a: pending
+[ci_watch] PR #68 8a834e6: pending
+[ci_watch] PR #70 d5a606c: pending
+[ci_watch] PR #64 552524a: success
+[merge_rule] PR #64: влит
+
+=== 2026-10-08T22:05:40+04:00 старт ci_watch.py ===
+[merge_rule] PR #70: конфликт → владельцу
+[merge_rule] PR #68: конфликт → владельцу
+[ci_watch] PR #70 de74b4f: pending
+[ci_watch] PR #68 58adece: pending
+[ci_watch] PR #68 58adece: success
+[merge_rule] PR #68: влит
+
+=== 2026-10-08T22:18:52+04:00 старт ci_watch.py ===
+[merge_rule] PR #70: конфликт → владельцу
+[ci_watch] PR #70 82648a7: pending
+[ci_watch] PR #70 82648a7: success
+[merge_rule] PR #70: влит
+
+=== 2026-10-08T22:28:37+04:00 старт ci_watch.py ===
+[ci_watch] PR #71 16f8bdf: pending
+[ci_watch] PR #71 16f8bdf: success
+[merge_rule] PR #71: влит
+
+=== 2026-10-08T22:43:20+04:00 старт ci_watch.py ===
+[ci_watch] PR #72 bc3e134: pending
+
+=== 2026-10-08T22:47:05+04:00 старт ci_watch.py ===
+
+=== 2026-10-08T22:48:29+04:00 старт ci_watch.py ===
+[ci_watch] PR #73 0413af9: pending
+[ci_watch] PR #73 5500f80: pending
+[ci_watch] PR #72 bc3e134: success
+[merge_rule] PR #72: влит
+[ci_watch] PR #73 0d8bbb5: pending
+[ci_watch] PR #74 aa17c18: pending
+[merge_rule] PR #73: конфликт → владельцу
+[ci_watch] PR #73 68b5968: pending
+[ci_watch] PR #74 aa17c18: success
+[ci_watch] PR #73 68b5968: success
+[merge_rule] PR #74: влит
+[merge_rule] PR #73: конфликт → владельцу
+[ci_watch] PR #73 b2759ea: pending
+[ci_watch] PR #73 b2759ea: success
+[merge_rule] PR #73: влит
+
+=== 2026-10-08T23:23:20+04:00 старт ci_watch.py ===
+[ci_watch] PR #75 f3c3bd4: pending
+[ci_watch] PR #75 d807009: pending
+[ci_watch] PR #75 d807009: success
+[merge_rule] PR #75: влит
+
+=== 2026-10-09T00:02:37+04:00 старт ci_watch.py ===
+[ci_watch] PR #76 cc1ed69: pending
+
+=== 2026-10-09T01:47:19+04:00 старт ci_watch.py ===
+[ci_watch] PR #77 18d7801: pending
+[ci_watch] PR #76 cc1ed69: failure → engineer
+[ci_watch] PR #76 cee587d: pending
+[ci_watch] PR #77 5ad8443: pending
+[ci_watch] PR #78 870c32c: pending
+[ci_watch] PR #76 cee587d: failure → engineer
+[ci_watch] PR #77 5ad8443: success → judge
+[ci_watch] PR #76 eb67295: pending
+[ci_watch] PR #78 870c32c: success → judge
+[ci_watch] PR #78 0890faa: pending
+[ci_watch] PR #76 eb67295: success → judge
+[merge_rule] PR #76: влит
+
+=== 2026-10-09T02:14:56+04:00 старт ci_watch.py ===
+[ci_watch] PR #78 0890faa: success → judge
+[merge_rule] PR #77: конфликт → владельцу
+[ci_watch] PR #77 9792ee1: pending
+[ci_watch] PR #77 9792ee1: success
+[merge_rule] PR #77: влит
+
+=== 2026-10-09T02:27:28+04:00 старт ci_watch.py ===
+[ci_watch] PR #78 a5cbc25: pending
+[ci_watch] PR #78 a5cbc25: success
+[merge_rule] PR #78: влит
+
+=== 2026-10-09T02:40:09+04:00 старт ci_watch.py ===
+[ci_watch] PR #79 b8f6046: pending
+[ci_watch] PR #79 8438579: pending
+[ci_watch] PR #79 afde51c: pending
+[ci_watch] PR #79 98b5fa4: pending
+[ci_watch] PR #79 98b5fa4: success → judge
+[ci_watch] PR #79 2bb1f1c: pending
+[ci_watch] PR #79 2bb1f1c: success → judge
+[merge_rule] PR #79: влит
+
+=== 2026-10-09T17:37:53+04:00 старт ci_watch.py ===
+[ci_watch] PR #80 15b7768: pending
+[ci_watch] PR #80 15b7768: success
+[merge_rule] PR #80: без bump → владельцу тикета
+[ci_watch] PR #80 77b5f45: pending
+[ci_watch] PR #80 77b5f45: success
+[merge_rule] PR #80: влит
+
+=== 2026-10-10T03:26:07+04:00 старт ci_watch.py ===
+[ci_watch] PR #81 e4a6579: pending
+[ci_watch] PR #81 e4a6579: success
+[merge_rule] PR #81: влит
+
+=== 2026-10-10T06:19:15+04:00 старт ci_watch.py ===
+[ci_watch] PR #82 0c545b5: pending
+[ci_watch] PR #82 27a3b77: pending
+[ci_watch] PR #82 27a3b77: success
+[merge_rule] PR #82: влит
+
+=== 2026-10-10T06:38:02+04:00 старт ci_watch.py ===
+[ci_watch] PR #83 eb6a389: pending
+[ci_watch] PR #83 eb6a389: success
+[merge_rule] PR #83: влит
+
+=== 2026-10-10T06:50:25+04:00 старт ci_watch.py ===
+[ci_watch] PR #84 6e30684: pending
+[ci_watch] PR #84 6e30684: success
+[merge_rule] PR #84: влит
+
+=== 2026-10-10T07:03:44+04:00 старт ci_watch.py ===
+[ci_watch] PR #85 c166135: pending
+[ci_watch] PR #85 c166135: success
+[merge_rule] PR #85: влит
+
+=== 2026-10-10T07:15:57+04:00 старт ci_watch.py ===
+[ci_watch] PR #86 6f38969: pending
+[ci_watch] PR #86 6f38969: success → judge
+[merge_rule] PR #86: влит
+
+=== 2026-10-10T07:37:30+04:00 старт ci_watch.py ===
+[ci_watch] PR #87 e384b84: pending
+[ci_watch] PR #87 e384b84: success
+[merge_rule] PR #87: влит
+
+=== 2026-10-10T07:50:48+04:00 старт ci_watch.py ===
+[ci_watch] PR #88 08dbcdd: pending
+[ci_watch] PR #88 08dbcdd: failure → engineer
+[ci_watch] PR #88 b9ea1ba: pending
+[ci_watch] PR #88 b9ea1ba: failure → engineer
+[ci_watch] PR #88 b9ea1ba: pending
+[ci_watch] PR #88 b9ea1ba: success
+[merge_rule] PR #88: влит
+
+=== 2026-10-10T08:45:58+04:00 старт ci_watch.py ===
+[ci_watch] PR #89 92b228d: pending
+[ci_watch] PR #89 35b6f31: pending
+[ci_watch] PR #89 404c9e8: pending
+[ci_watch] PR #89 404c9e8: success
+[merge_rule] PR #89: влит
+
+=== 2026-10-10T22:52:32+04:00 старт ci_watch.py ===
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.5:443: connectex: A connection attempt failed because the connected party did not properl
+[ci_watch] PR #90 637ed05: pending
+[ci_watch] PR #90 34c2745: pending
+[ci_watch] PR #91 65db4be: pending
+[ci_watch] PR #90 34c2745: failure → engineer
+[ci_watch] PR #91 65db4be: failure → engineer
+[ci_watch] PR #90 34c2745: pending
+[ci_watch] PR #90 7d7951d: pending
+[ci_watch] PR #91 e57c68c: pending
+[ci_watch] PR #90 7d7951d: success
+[ci_watch] PR #91 e57c68c: failure → engineer
+[merge_rule] PR #90: без bump → владельцу тикета
+[ci_watch] PR #90 5e404f1: pending
+[ci_watch] PR #90 5e404f1: failure → engineer
+[ci_watch] PR #90 5e404f1: pending
+[ci_watch] PR #91 f6c8f7e: pending
+[ci_watch] PR #90 5e404f1: success
+[merge_rule] PR #90: влит
+
+=== 2026-10-12T21:04:09+04:00 старт ci_watch.py ===
+[ci_watch] PR #91 f6c8f7e: failure → engineer
+[ci_watch] PR #91 ba36343: pending
+[ci_watch] PR #91 ba36343: success → judge
+[merge_rule] PR #91: влит
+
+=== 2026-10-12T21:19:05+04:00 старт ci_watch.py ===
+[ci_watch] PR #92 850d563: pending
+[ci_watch] PR #92 850d563: success → judge
+[ci_watch] PR #92 eff5bb1: pending
+[ci_watch] PR #92 eff5bb1: success → judge
+[merge_rule] PR #92: без bump → владельцу тикета
+[ci_watch] PR #92 e7da46b: pending
+[ci_watch] PR #92 e7da46b: success
+[merge_rule] PR #92: влит
+
+=== 2026-10-12T21:49:43+04:00 старт ci_watch.py ===
+[ci_watch] PR #93 d45f266: pending
+[ci_watch] PR #93 d45f266: success
+[ci_watch] PR #94 4388b86: pending
+[merge_rule] PR #93: влит
+
+=== 2026-10-13T03:05:17+04:00 старт ci_watch.py ===
+[ci_watch] PR #94 4388b86: success
+[merge_rule] PR #94: конфликт → владельцу
+[ci_watch] PR #94 ad62b52: pending
+[ci_watch] PR #94 ad62b52: success
+[merge_rule] PR #94: влит
+
+=== 2026-10-13T03:19:07+04:00 старт ci_watch.py ===
+[ci_watch] PR #95 e53352c: pending
+[ci_watch] PR #95 81b8a83: pending
+[ci_watch] PR #95 81b8a83: success
+[merge_rule] PR #95: влит
+
+=== 2026-10-13T03:39:16+04:00 старт ci_watch.py ===
+
+=== 2026-10-13T03:41:48+04:00 старт ci_watch.py ===
+[ci_watch] PR #96 abf5029: pending
+
+=== 2026-10-13T04:08:20+04:00 старт ci_watch.py ===
+[ci_watch] PR #96 abf5029: success
+[merge_rule] PR #96: влит
+
+=== 2026-10-13T04:15:27+04:00 старт ci_watch.py ===
+
+=== 2026-10-13T05:39:11+04:00 старт ci_watch.py ===
+[ci_watch] PR #97 3da55e1: pending
+[ci_watch] PR #98 8a1e8ac: pending
+[ci_watch] PR #98 f806d5c: pending
+[ci_watch] PR #99 c06945e: pending
+[ci_watch] PR #97 3da55e1: success
+[merge_rule] PR #97: влит
+
+=== 2026-10-13T17:04:07+04:00 старт ci_watch.py ===
+[ci_watch] PR #98 7ead45d: pending
+[ci_watch] PR #99 92e9316: pending
+[ci_watch] PR #98 7ead45d: failure → engineer
+[ci_watch] PR #98 7ead45d: pending
+[ci_watch] PR #98 7ead45d: success → judge
+[ci_watch] PR #99 17a6d79: pending
+[merge_rule] PR #98: влит
+
+=== 2026-10-13T17:29:08+04:00 старт ci_watch.py ===
+[ci_watch] PR #100 3d86db6: pending
+[ci_watch] PR #99 17a6d79: success → judge
+[merge_rule] PR #99: конфликт → владельцу
+[ci_watch] PR #99 0c8f5ee: pending
+[ci_watch] PR #100 3d86db6: success
+[merge_rule] PR #100: влит
+[ci_watch] PR #99 0c8f5ee: success → judge
+[merge_rule] PR #99: конфликт → владельцу
+[ci_watch] PR #101 5e08fc6: pending
+[ci_watch] PR #99 084b23e: pending
+[ci_watch] PR #101 5e08fc6: success → judge
+[ci_watch] PR #99 084b23e: success → judge
+[merge_rule] PR #99: влит
+[ci_watch] PR #101 4bb4e13: pending
+
+=== 2026-10-13T18:08:17+04:00 старт ci_watch.py ===
+[ci_watch] PR #101 904cdc0: pending
+[ci_watch] PR #101 904cdc0: success → judge
+[merge_rule] PR #101: без bump → владельцу тикета
+[ci_watch] PR #101 b94335d: pending
+[ci_watch] PR #101 b94335d: failure → engineer
+[ci_watch] PR #101 b94335d: pending
+[ci_watch] PR #101 b94335d: success
+[merge_rule] PR #101: влит
+
+=== 2026-10-13T18:34:51+04:00 старт ci_watch.py ===
+[ci_watch] цикл: TimeoutExpired: Command '['gh', 'api', '-X', 'GET', 'repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100']' timed out after 60 seconds
+[ci_watch] PR #102 4d1f14b: pending
+[ci_watch] PR #102 4d1f14b: success
+[ci_watch] PR #102 6c20195: pending
+[ci_watch] PR #102 c28c8e3: pending
+[ci_watch] PR #102 c28c8e3: success
+[ci_watch] PR #102 392d1e8: pending
+[ci_watch] PR #102 392d1e8: success
+[ci_watch] PR #103 de8eee2: pending
+[ci_watch] PR #103 de8eee2: success
+[ci_watch] PR #103 34a30dc: pending
+[ci_watch] PR #103 34a30dc: success
+[ci_watch] PR #103 38bb31f: pending
+[ci_watch] PR #103 38bb31f: success
+[ci_watch] цикл: RuntimeError: gh: HTTP 500
+[ci_watch] цикл: RuntimeError: gh: HTTP 500
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: A connection attempt failed because the connected party did not properl
+
+=== 2026-10-14T14:09:11+04:00 старт ci_watch.py ===
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": read tcp 10.211.1.21:53030->140.82.121.6:443: wsarecv: An established connection was aborted by the software 
+[ci_watch] цикл: RuntimeError: Get "https://api.github.com/repos/Gogi213/role-play-vibing/pulls?state=open&per_page=100": dial tcp 140.82.121.6:443: connectex: An established connection was aborted by the software in your host mach

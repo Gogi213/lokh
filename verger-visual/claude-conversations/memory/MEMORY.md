@@ -1,0 +1,8 @@
+- [Verger project](verger-project.md) — репо yellowcubee/verger в проде: история ревью и PR #1, инцидент стейджа, плагин; текущая работа — в MVP без Google
+- [Harsh factual reviews](feedback-harsh-factual-review.md) — ревью жёсткое, но каждое утверждение с путём:строкой; этап критика
+- [Scope discipline](feedback-scope-discipline.md) — делать ровно заявленный объём (P0/P1), без коммитов/пушей до явного «да»
+- [User communication](user-communication.md) — по-русски, коротко, бывает неправильная раскладка; на «долго ещё?» — минуты и что осталось
+- [No "what next"](feedback-no-what-next.md) — не спрашивать «что дальше», писать план и следующий шаг самому
+- [Decide, do not ask](feedback-decide-dont-ask.md) — развилки по ходу не спрашивать: решать самому / отдавать Судье
+- [Verger MVP без Google](verger-open-places-mvp.md) — главная текущая работа: C:\vdev\verger, база Overture+FSQ, бесплатные LLM, 5 категорий, запуск и цифры
+- [No task list](feedback-no-task-list.md) — не выводить плашку update_plan, владельцу не нужна

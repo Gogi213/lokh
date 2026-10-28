@@ -1,0 +1,1 @@
+SessionEnd hook [sh "${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh" "${CLAUDE_PLUGIN_ROOT}/.claude/hooks/role_memory.py"] failed: Hook cancelled
