@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET Hot Path Audit"
+  short_description: "Audit the compiled CXET tick-to-trade path"
+  default_prompt: "Use $cxet-hot-path-audit for latency, allocations, locks, queues, market-pump, strategy-cycle, order-send, or performance claims."

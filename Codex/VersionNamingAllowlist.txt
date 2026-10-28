@@ -1,0 +1,47 @@
+# Full-match records: kind:repo-relative-path:exact token/path component.
+# Exceptions name external protocols/dependencies only. No own-contract debt.
+
+# Exchange API revisions and external library/TLS wire spellings.
+symbol:[^:]+:(ApiV1|ApiV1FuturesApiV2RestShared|ApiV2|ApiV4|ApiV5|AsterFapiV3FastHttpEnvelope|AsterFapiV3OrderHttpMethod|AsterV3Auth|AsterV3Credentials|AsterV3OrderCredentials|AsterV3PreparedSigner|AsterV3ThreadSigner|BuildOrderV3Body|BuildOrderV3HttpRequest|BuildOrderV3Types|BuildV5MarketPaths|BulletV2|BybitV5TradesJson|ClassicV1|ContractV1|FapiV1|FapiV3|FuturesApiV2|FuturesV1|FuturesV3|FuturesV3Config|IPV4|InverseV5|InvestApiV1|LinearMmwsV5|LinearSwapV1|LinearV5|MBEDTLS_PKCS1_V15|MmwsV5|PerpetualV2|PublicV2|QuoteV1|SpotApiUnversionedFuturesV3RestShared|SpotApiUnversionedFuturesV3WsShared|SpotMmwsV5|SpotPrivateV2|SpotPrivateV2LinearSwapStreamsUnversionedWsShared|SpotSymbolsV2|SpotV1|SpotV1LinearSwapV1RestShared|SpotV1SwapV2RestShared|SpotV3|SpotV3ContractV1RestShared|SpotV3FapiV1RestShared|SpotV3FapiV3RestShared|SpotV4|SpotV4FuturesV1RestShared|SpotV5|SwapV2|TLSV1_ALERT_UNKNOWN_CA|TradeApiV1|UtaV1|UtaV2|UtaV3|VPN_IPV4_CIDR|VPN_IPV4_GATEWAY|VPN_IPV4_NETWORK|WebsocKetV2|X509V3_CTX|X509V3_EXT_conf_nid|X509V3_set_ctx|appendAsterFapiV3AuthFields|appendAsterFapiV3Signature|asterFapiV3OrderHttpMethod|asterFapiV3OrderHttpMethodText|asterV3AppendDefaultAuthParams|asterV3AppendFormEscaped|asterV3AppendFormParam|asterV3AppendFormParamU64|asterV3AppendFormSeparator|asterV3AppendSignatureParam|asterV3NonceUs|asterV3OrderCredentialsMatch|aster_v3_sign_payload_secp256k1|buildAsterFapiV3OrderFormBody|buildAsterFapiV3OrderFormBodyUnsigned|buildAsterV3SignedFormBody|buildV3SignedBody|buildV3SignedGetTarget|bybitV5Preset|captureAsterV3OrderIdentity|contract_v1_en|finishAsterFapiV3OrderHttpQueryRequest|gate_spot_ws_v2|installAsterV3Signer|is_v6|kAsterFapiV3AccountPath|kAsterFapiV3BalancePath|kAsterFapiV3BaseRestHost|kAsterFapiV3BatchOrdersPath|kAsterFapiV3BatchOrdersPathLen|kAsterFapiV3FastHttpContentLengthDigits|kAsterFapiV3FormContentType|kAsterFapiV3LeverageBracketPath|kAsterFapiV3LeveragePath|kAsterFapiV3ListenKeyPath|kAsterFapiV3ListenKeyPathLen|kAsterFapiV3MarginTypePath|kAsterFapiV3OrderPath|kAsterFapiV3OrderPathLen|kAsterFapiV3OrderRestEndpoint|kAsterFapiV3OrderRestHost|kAsterFapiV3PositionRiskPath|kAsterFapiV3RestPort|kBinanceFapiV3AccountPath|kBinanceFapiV3BalancePath|orderTypeToAsterV3|orders_v2|patchAsterFapiV3OrderHttpContentLength|perpProductsV2|prepareAsterFapiV3OrderHttpQueryPrefix|prepareAsterV3Signer|resolveAsterV3Credentials|resolveAsterV3OrderRestCredentials|sendAsterFapiV3PreparedRestOrder|sideToAsterV3|signAsterV3Payload|signPreparedAsterV3Payload|sqlite3_close_v2|sqlite3_open_v2|sqlite3_prepare_v2|timeInForceToAsterV3|usertrades_v2|warmAsterV3Signer)
+# External API revision components are valid only in canonical exchange trees.
+path:src/src/Core/(include/cxet|src)/Exchanges/[^:]+:(ApiV1|ApiV1FuturesApiV2RestShared|ApiV2|ApiV4|ApiV5|BulletV2|ClassicV1|ContractV1|FapiV1|FapiV3|FuturesApiV2|FuturesV1|FuturesV3|FuturesV3Config|InverseV5|InvestApiV1|LinearMmwsV5|LinearSwapV1|LinearV5|MmwsV5|PerpetualV2|PublicV2|QuoteV1|SpotApiUnversionedFuturesV3RestShared|SpotApiUnversionedFuturesV3WsShared|SpotMmwsV5|SpotPrivateV2|SpotPrivateV2LinearSwapStreamsUnversionedWsShared|SpotSymbolsV2|SpotV1|SpotV1LinearSwapV1RestShared|SpotV1SwapV2RestShared|SpotV3|SpotV3ContractV1RestShared|SpotV3FapiV1RestShared|SpotV3FapiV3RestShared|SpotV4|SpotV4FuturesV1RestShared|SpotV5|SwapV2|TradeApiV1|UtaV1|UtaV2|UtaV3|WebsocKetV2)
+# Exact existing external wire filenames.
+path:src/src/Core/(include/cxet|src)/Exchanges/Aster/[^:]+:(AsterV3Auth\.hpp|AsterV3Signer\.cpp|BuildOrderV3Body\.hpp|BuildOrderV3HttpRequest\.hpp|BuildOrderV3Types\.hpp)
+path:src/benchmarks/aster_v3_sign_bench\.cpp:aster_v3_sign_bench\.cpp
+
+# Externally defined SBE schema version fields and protocol negotiation.
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Helpers/Sbe/Detail/SbePrimitives\.ipp:(kSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Helpers/Sbe/Session/Messages\.hpp:(kSchemaVersion|schemaIdVersionDeprecated|schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Helpers/Sbe/Session/SessionDecoding\.ipp:(schemaIdVersionDeprecated)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Helpers/Sbe/Wire/Decode\.hpp:(schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Helpers/Sbe/Wire/Envelope\.hpp:(exactSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Helpers/Sbe/Wire/NativeSchema\.hpp:(schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Order/Sbe/Codec/Primitives\.ipp:(kSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Binance/SpotFixSchema1_1/Spot/Fix/Order/Sbe/HotOrder/Detail/HotWriter\.ipp:(kSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/Routing/MarketRoutes\.hpp:(kPinnedSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/UtaV3/Shared/Ws/Helpers/Sbe/BitgetSbeCommon\.hpp:(admitSchemaVersion|schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/UtaV3/Shared/Ws/Helpers/Sbe/NativeSchema\.hpp:(admitSchemaVersion|kPinnedSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/UtaV3/Shared/Ws/MarketData/Sbe/Bbo/Decode\.hpp:(admitSchemaVersion|schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/UtaV3/Shared/Ws/MarketData/Sbe/Bbo/Schema\.hpp:(kPinnedSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/UtaV3/Shared/Ws/MarketData/Sbe/OrderBook/Schema\.hpp:(kPinnedSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bitget/UtaV3/Shared/Ws/MarketData/Sbe/Trade/Schema\.hpp:(kPinnedSchemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Bybit/MmwsV5/Shared/Ws/Helpers/Sbe/Decode\.hpp:(schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Gate/ApiV4/Shared/Ws/Helpers/Sbe/Framing/SbePush\.hpp:(schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Gate/ApiV4/Spot/Ws/MarketData/Sbe/Trade/Route\.hpp:(schemaVersion)
+guard:src/src/Core/include/cxet/Exchanges/Gate/ApiV4/Variant\.hpp:(kFuturesSbeSchemaVersion|kSpotSbeSchemaVersion)
+guard:src/src/Core/src/Exchanges/Gate/ApiV4/Spot/Ws/MarketData/Sbe/Trade/Decode\.cpp:(schemaVersion)
+guard:src/src/Core/src/Exchanges/Moex/Common/Sbe/SchemaLayout\.cpp:(schemaVersion)
+guard:src/src/Contracts/include/cxet/Parse/Sbe/SbeTypes\.hpp:(schemaVersion)
+guard:src/tests/offline/Exchanges/Binance/BinanceFixContracts/PrivateDecodeCases\.ipp:(binanceFixExternalSbeSchemaVersionFailsClosedCase|external_sbe_schema_version_fails_closed)
+guard:src/tests/offline/Exchanges/Binance/BinanceFixContracts\.cpp:(binanceFixExternalSbeSchemaVersionFailsClosedCase|external_sbe_schema_version_fails_closed)
+guard:src/tests/offline/Exchanges/Bybit/BybitNativeProtocols/PrivateDecodeCases\.ipp:(bybitMmwsEntrySchema2Version2MakerAndAccessCase)
+guard:src/tests/offline/Exchanges/Bybit/BybitNativeProtocols\.cpp:(bybitMmwsEntrySchema2Version2MakerAndAccessCase)
+guard:src/tests/offline/Exchanges/Gate/GateSbeMarketContracts\.cpp:(spot_public_unknown_schema_version_template_refuse)
+guard:src/tests/offline/Network/Simba/SimbaProtocolCases\.cpp:(schema_versions_are_exact_per_market)
+guard:src/tests/offline/Network/Twime/TwimeProtocolCases\.cpp:(frame_requires_exact_schema_version_root_and_template)
+guard:tools/Codex/CxetMcpServer\.py:(PROTOCOL_VERSION|SUPPORTED_PROTOCOL_VERSIONS|protocolVersion|protocol_version)
+guard:tools/Codex/tests/toolbelt/test_mcp\.py:(PROTOCOL_VERSION|protocolVersion)
+
+# Immutable TLS fixture key/certificate payload text, not symbol names.
+symbol:tools/Benchmarks/native/NativeMarketPeer\.hpp:(bWV4LmxvY2FsggpnaHR4LmxvY2FsMA0GCSqGSIb3DQEBCwUAA4IBAQCNQg9p0toi|c2V5PIzFKcAXkuI8ucbeDVh|MC4CAQAwBQYDK2VwBCIEIJK1TOyvgca7AdbV3r03l1rSxvbDhbU75uTsMunHylLr)
+path:src/src/Core/include/cxet/Exchanges/Gate/ApiV4/Spot/Ws/Helpers/Sbe/Schema/gate_spot_ws_v2\.0\.0\.xml:gate_spot_ws_v2\.0\.0\.xml

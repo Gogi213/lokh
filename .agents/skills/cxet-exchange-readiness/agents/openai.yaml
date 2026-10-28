@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET Exchange Readiness"
+  short_description: "Trace an exchange to trader readiness"
+  default_prompt: "Use $cxet-exchange-readiness for exchange onboarding, missing capabilities, selected-wire questions, partial venue support, or readiness claims."

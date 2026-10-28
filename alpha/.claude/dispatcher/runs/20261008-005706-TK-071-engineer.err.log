@@ -1,2 +1,0 @@
-[claude-code:unrecognized_model] {"model":"claude-sonnet-5-5","query_source":"sdk"}
-SessionEnd hook [sh "${CLAUDE_PLUGIN_ROOT}/hooks/run-hook.sh" "${CLAUDE_PLUGIN_ROOT}/.claude/hooks/role_memory.py"] failed: Hook cancelled

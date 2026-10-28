@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET workflow"
+  short_description: "Create or execute a CXET durable plan"
+  default_prompt: "Use $cxet-workflow when the user requests a durable cross-session plan or its execution."

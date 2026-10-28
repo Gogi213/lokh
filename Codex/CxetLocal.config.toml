@@ -1,0 +1,7 @@
+[mcp_servers.cxet_local]
+command = "/usr/bin/python3"
+args = ["tools/Codex/CxetMcpServer.py", "--repo-root", "."]
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = false
+default_tools_approval_mode = "auto"

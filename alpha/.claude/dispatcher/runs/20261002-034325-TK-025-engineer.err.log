@@ -1,2 +1,0 @@
-[claude-code:unrecognized_model] {"model":"claude-sonnet-5-5","query_source":"sdk"}
-Background tasks still running after 600s; terminating. Set CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.

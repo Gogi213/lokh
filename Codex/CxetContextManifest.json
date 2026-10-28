@@ -1,0 +1,406 @@
+{
+  "limits": {
+    "map_bytes": 6144,
+    "detail_bytes": 8192,
+    "max_results": 20,
+    "max_files": 2000,
+    "max_entries": 20000,
+    "max_file_bytes": 1048576
+  },
+  "common": {
+    "route_docs": [
+      "AGENTS.md"
+    ],
+    "rules": [
+      "Keep unrelated dirty work and preserve ownership boundaries.",
+      "Report static, test, build, runtime, browser, model, and live evidence separately.",
+      "Use static-only helpers for context selection; do not infer runtime readiness."
+    ]
+  },
+  "scopes": {
+    "contracts": {
+      "owner": "src/src/Core and src/src/Contracts",
+      "keywords": [
+        "contract",
+        "abi",
+        "api",
+        "header",
+        "schema",
+        "ownership",
+        "linkage",
+        "boundary"
+      ],
+      "roots": [
+        "src/src/Contracts",
+        "src/src/Core/include/cxet/Api",
+        "src/src/CMakeLists.txt",
+        "src/src/cmake/Sources"
+      ],
+      "route_docs": [
+        "docs/Agents/GlobalContracts.md",
+        "docs/Agents/RoleRouter.md"
+      ],
+      "anchors": [
+        "src/src/CMakeLists.txt",
+        "src/src/cmake/Sources"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetToolbelt.py hotpath --surface parser --format summary"
+      ]
+    },
+    "parser": {
+      "owner": "src/src/Core exchange and parser boundaries",
+      "keywords": [
+        "parser",
+        "parse",
+        "wire",
+        "payload",
+        "runtimev1",
+        "registerall",
+        "decoder"
+      ],
+      "roots": [
+        "src/src/Core/include/cxet/Exchanges",
+        "src/src/Core/src/Exchanges",
+        "src/src/Contracts/include/cxet/Canon",
+        "src/src/Contracts/include/cxet/Parse",
+        "src/src/Contracts/include/cxet/Primitives/Composite",
+        "src/src/Contracts/src/Canon",
+        "src/src/Contracts/src/Parse",
+        "src/tests/offline"
+      ],
+      "route_docs": [
+        "docs/Agents/HotPathFastLane.md",
+        "docs/Agents/GlobalContracts.md"
+      ],
+      "anchors": [
+        "src/src/Core/src/Exchanges/RegisterAll.cpp",
+        "src/src/Core/include/cxet/Api/Connector/ExchangeProductConnector.hpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetToolbelt.py hotpath --surface parser --format summary"
+      ]
+    },
+    "transport": {
+      "owner": "src/src/Core network and order transport",
+      "keywords": [
+        "transport",
+        "websocket",
+        "ws",
+        "framing",
+        "reconnect",
+        "heartbeat",
+        "tls",
+        "fix",
+        "grpc",
+        "rest",
+        "session"
+      ],
+      "roots": [
+        "src/src/Core/include/cxet/Network",
+        "src/src/Core/src/Network",
+        "src/src/Core/include/cxet/Api/Order",
+        "src/src/Core/src/Api/Order",
+        "src/src/Core/include/cxet/Api/User",
+        "src/src/Core/src/Api/User",
+        "src/src/Core/include/cxet/Runtime/Market/Transport",
+        "src/src/Core/src/Runtime/Market/Transport",
+        "src/src/cmake/Sources"
+      ],
+      "route_docs": [
+        "docs/Agents/HotPathFastLane.md",
+        "docs/Agents/GlobalContracts.md"
+      ],
+      "anchors": [
+        "src/src/Core/include/cxet/Network/Ws/Runtime/WsRuntime.hpp",
+        "src/src/Core/include/cxet/Network/Ws/Runtime/WsRuntimeContract.hpp",
+        "src/src/Core/include/cxet/Network/Ws/Core/WsFrameCodec.hpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetToolbelt.py hotpath --surface transport --format summary"
+      ]
+    },
+    "hotpath": {
+      "owner": "compiled CXET market, strategy, and order route",
+      "keywords": [
+        "hot path",
+        "hotpath",
+        "latency",
+        "allocation",
+        "lock",
+        "syscall",
+        "market pump",
+        "tick",
+        "low latency"
+      ],
+      "roots": [
+        "src/src/Core",
+        "src/src/Contracts",
+        "apps/trading-core",
+        "apps/trader/src/Runtime",
+        "apps/hft-parser/src/Runtime"
+      ],
+      "route_docs": [
+        "docs/Agents/HotPathFastLane.md",
+        "apps/AGENTS.md",
+        "apps/trading-core/AGENTS.md",
+        "apps/trader/AGENTS.md"
+      ],
+      "anchors": [
+        "src/src/Core/src/Runtime/Market/MarketRuntime.cpp",
+        "apps/trading-core/src/Core/include/trading_core/Contracts/Strategy/StrategyContract.hpp",
+        "apps/trader/src/Runtime/src/Strategy/ProfileUniverseStrategyRunner.cpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetToolbelt.py hotpath --surface all --format summary"
+      ]
+    },
+    "strategy": {
+      "owner": "apps/trading-core strategy semantics",
+      "keywords": [
+        "strategy",
+        "signal",
+        "alpha",
+        "runner",
+        "cycle",
+        "market data",
+        "algorithm"
+      ],
+      "roots": [
+        "apps/trading-core/src/Core/include",
+        "apps/trading-core/src/Contracts/include",
+        "apps/trading-core/src/Strategy/include/strategy",
+        "apps/trading-core/src/Core/src",
+        "apps/trader/src/Runtime"
+      ],
+      "route_docs": [
+        "docs/Agents/HotPathFastLane.md",
+        "docs/Agents/GlobalContracts.md",
+        "apps/AGENTS.md",
+        "apps/trading-core/AGENTS.md",
+        "apps/trader/AGENTS.md"
+      ],
+      "anchors": [
+        "apps/trading-core/src/Core/include/trading_core/Contracts/Strategy/StrategyContract.hpp",
+        "apps/trader/src/Runtime/src/Strategy/ProfileUniverseStrategyRunner.cpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetToolbelt.py hotpath --surface strategy --format summary"
+      ]
+    },
+    "capital": {
+      "owner": "apps/trading-core/capital basic finance and offline planning",
+      "keywords": [
+        "capital",
+        "капитал",
+        "portfolio",
+        "bellman",
+        "scenario graph"
+      ],
+      "roots": [
+        "apps/trading-core/capital",
+        "apps/trading-core/README.md",
+        "apps/trading-core/src/Core/include/trading_core/Execution",
+        "apps/trading-core/src/Core/src/Execution",
+        "apps/trading-core/src/Core/include/trading_core/Algorithm/Math",
+        "apps/trading-core/src/Contracts/include/trading_core/Contracts"
+      ],
+      "route_docs": [
+        "docs/Agents/GlobalContracts.md",
+        "docs/Agents/DevelopmentWorkflow.md",
+        "docs/Agents/HotPathFastLane.md",
+        "docs/Agents/RoleRouter.md",
+        "docs/Agents/Subagents.md",
+        "apps/AGENTS.md",
+        "apps/trading-core/AGENTS.md",
+        "apps/trading-core/capital/AGENTS.md",
+        "apps/trading-core/capital/README.md"
+      ],
+      "anchors": [
+        "apps/trading-core/capital/CMakeLists.txt",
+        "apps/trading-core/capital/include/capital/Accounting/Account.hpp",
+        "apps/trading-core/capital/include/capital/Budget/CapitalBudget.hpp",
+        "apps/trading-core/capital/include/capital/Decision/PairSizingDecision.hpp",
+        "apps/trading-core/capital/include/capital/Planning/Dp.hpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CheckAgentPolicy.py",
+        "python3 tools/Codex/CxetContextIndex.py validate"
+      ]
+    },
+    "trader": {
+      "owner": "apps/trader runtime, current-run orders, risk and projection composition",
+      "keywords": [
+        "trader",
+        "risk",
+        "journal",
+        "execution",
+        "order",
+        "account",
+        "recovery",
+        "session"
+      ],
+      "roots": [
+        "apps/trader/src",
+        "apps/trader/alerts",
+        "apps/trader/scripts",
+        "apps/trader/cmake",
+        "apps/trader/docs",
+        "apps/trader/CMakeLists.txt"
+      ],
+      "route_docs": [
+        "docs/Agents/GlobalContracts.md",
+        "docs/Agents/RoleRouter.md",
+        "apps/AGENTS.md",
+        "apps/trader/AGENTS.md"
+      ],
+      "anchors": [
+        "apps/trader/src/Order/src/Client/OrderClient.cpp",
+        "apps/trader/src/Runtime/include/trader/Runtime/Order/ProfileOrderLane.hpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetContextIndex.py validate"
+      ]
+    },
+    "hft-parser": {
+      "owner": "apps/hft-parser session, parser, and producer client fabric",
+      "keywords": [
+        "hft-parser",
+        "hft parser",
+        "ParserSession",
+        "parser session",
+        "producer client",
+        "market fabric"
+      ],
+      "roots": [
+        "apps/hft-parser/src",
+        "apps/hft-parser/tools",
+        "apps/hft-parser/docs/agents/roles",
+        "apps/hft-parser/cmake",
+        "apps/hft-parser/CMakeLists.txt"
+      ],
+      "route_docs": [
+        "docs/Agents/RoleRouter.md",
+        "docs/Agents/HotPathFastLane.md",
+        "apps/AGENTS.md",
+        "apps/hft-parser/AGENTS.md",
+        "apps/hft-parser/docs/agents/ROLE_ROUTER.md"
+      ],
+      "anchors": [
+        "apps/hft-parser/src/Clients/include/hft_parser/Session/SessionClient.hpp",
+        "apps/hft-parser/src/Clients/src/Session/SessionClient.cpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetContextIndex.py validate"
+      ]
+    },
+    "vetron": {
+      "owner": "apps/vetron browser gateway and typed projection product",
+      "keywords": [
+        "vetron",
+        "browser gateway",
+        "gateway projection",
+        "read only projection",
+        "typed control"
+      ],
+      "roots": [
+        "apps/vetron/src",
+        "apps/vetron/frontend",
+        "apps/vetron/scripts",
+        "apps/vetron/CMakeLists.txt"
+      ],
+      "route_docs": [
+        "docs/Agents/RoleRouter.md",
+        "apps/AGENTS.md",
+        "apps/vetron/AGENTS.md"
+      ],
+      "anchors": [
+        "apps/vetron/src/Gateway/include/vetron/Gateway/Gateway.hpp",
+        "apps/vetron/src/Process/include/vetron/Process/Vetrond.hpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetContextIndex.py validate"
+      ]
+    },
+    "readiness": {
+      "owner": "CXET exchange registration and capability evidence",
+      "keywords": [
+        "readiness",
+        "exchange",
+        "capability",
+        "venue",
+        "market",
+        "private",
+        "order entry",
+        "session"
+      ],
+      "roots": [
+        "src/src/Core/src/Exchanges",
+        "src/src/Core/include/cxet/Api/Connector",
+        "apps/trader/src/Runtime/include/trader/Runtime/Order",
+        "apps/hft-parser/src/Runtime/src/Session"
+      ],
+      "route_docs": [
+        "docs/Agents/RoleRouter.md",
+        "docs/Agents/HotPathFastLane.md",
+        "apps/AGENTS.md"
+      ],
+      "anchors": [
+        "src/src/Core/src/Exchanges/RegisterAll.cpp",
+        "src/src/Core/include/cxet/Api/Connector/ExchangeProductReadiness.hpp"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CxetToolbelt.py readiness --exchange binance --market futures --format summary",
+        "python3 tools/Codex/CxetToolbelt.py sources --format json"
+      ]
+    },
+    "ci": {
+      "owner": "tools/Codex and repository validation workflows",
+      "keywords": [
+        "ci",
+        "workflow",
+        "runner",
+        "github actions",
+        "check",
+        "test policy",
+        "agent policy",
+        "automation"
+      ],
+      "roots": [
+        ".github",
+        ".codex/config.toml",
+        ".codex/agents",
+        "tools/Ci",
+        "tools/Codex",
+        "tools/Build",
+        "tools/Testing",
+        "apps/hft-parser/docs/agents",
+        ".agents/skills",
+        "docs/Agents",
+        "AGENTS.md",
+        "apps/AGENTS.md",
+        "apps/hft-backtest/AGENTS.md",
+        "apps/hft-compressor/AGENTS.md",
+        "apps/hft-parser/AGENTS.md",
+        "apps/hft-recorder/AGENTS.md",
+        "apps/trader/AGENTS.md",
+        "apps/trading-core/AGENTS.md",
+        "apps/trading-core/capital/AGENTS.md",
+        "apps/vetron/AGENTS.md"
+      ],
+      "route_docs": [
+        "docs/Agents/Subagents.md",
+        "docs/Agents/ReportFormat.md",
+        "docs/Agents/PlanWorkflow.md"
+      ],
+      "anchors": [
+        "tools/Codex/CheckAgentPolicy.py",
+        "tools/Codex/CxetMcpServer.py"
+      ],
+      "static_checks": [
+        "python3 tools/Codex/CheckAgentPolicy.py",
+        "python3 tools/Codex/CxetContextIndex.py validate"
+      ]
+    }
+  }
+}

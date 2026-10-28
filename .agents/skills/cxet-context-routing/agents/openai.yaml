@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET Context Routing"
+  short_description: "Route CXET tasks to bounded repository context"
+  default_prompt: "Use $cxet-context-routing before non-trivial CXET multi-file work or review."

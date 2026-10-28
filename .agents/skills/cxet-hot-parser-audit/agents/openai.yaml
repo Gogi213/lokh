@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET Hot Parser Audit"
+  short_description: "Audit registered parsers and wire boundaries"
+  default_prompt: "Use $cxet-hot-parser-audit when parser registration, wire selection, normalized runtime/tape payloads, or parser readiness is under review."

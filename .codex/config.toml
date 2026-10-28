@@ -1,0 +1,36 @@
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "high"
+service_tier = "default"
+
+[mcp_servers.cxet_local]
+command = "/usr/bin/python3"
+args = ["tools/Codex/CxetMcpServer.py", "--repo-root", "."]
+cwd = "/home/be0h/projects/CXETCPP"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = ["cxet_context_map", "cxet_context_search", "cxet_context_postcheck"]
+default_tools_approval_mode = "auto"
+
+[mcp_servers.serena]
+command = "/home/be0h/.local/bin/serena"
+args = ["start-mcp-server", "--project", "/home/be0h/projects/CXETCPP", "--context", "codex", "--enable-web-dashboard", "false", "--enable-gui-log-window", "false", "--open-web-dashboard", "false", "--trace-lsp-communication", "false"]
+cwd = "/home/be0h/projects/CXETCPP"
+startup_timeout_sec = 120
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = ["initial_instructions", "get_current_config", "get_symbols_overview", "find_symbol", "find_referencing_symbols"]
+
+[mcp_servers.serena.env]
+SERENA_HOME = "/home/be0h/projects/CXETCPP/.serena/home"
+
+[features]
+fast_mode = true
+goals = true
+hooks = true
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 200
+default_subagent_model = "gpt-6.1-sol"
+default_subagent_reasoning_effort = "high"

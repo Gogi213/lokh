@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET Hot Transport Safety"
+  short_description: "Audit CXET transport and session safety"
+  default_prompt: "Use $cxet-hot-transport-safety for WS/FIX/gRPC/hot REST, TLS, framing, partial I/O, reconnect, sockets, or order-session issues."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET Runtime Contract"
+  short_description: "Audit CXET runtime and ownership boundaries"
+  default_prompt: "Use $cxet-runtime-contract for public headers, cross-module APIs, ABI/schema, linkage, dependency, or ownership changes."

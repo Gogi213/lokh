@@ -1,0 +1,4 @@
+interface:
+  display_name: "CXET plan audit"
+  short_description: "Audit a selected CXET durable plan"
+  default_prompt: "Use $cxet-audit-plan when the user asks to verify or review an existing CXET plan."

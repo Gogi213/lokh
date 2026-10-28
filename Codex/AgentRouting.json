@@ -1,0 +1,31 @@
+{
+  "models": {
+    "gpt-6.1-terra": ["high", "xhigh", "max"],
+    "gpt-6.1-sol": ["high", "xhigh"],
+    "gpt-6-astra": ["medium", "high"]
+  },
+  "primary": {"model": "gpt-6.1-sol", "effort": "high"},
+  "defaultWorker": {"model": "gpt-6.1-sol", "effort": "high"},
+  "routes": {
+    "research": {"model": "gpt-6.1-sol", "effort": "high"},
+    "design": {"model": "gpt-6.1-sol", "effort": "xhigh"},
+    "patch": {"model": "gpt-6.1-sol", "effort": "high", "allowedEfforts": ["high", "xhigh"]},
+    "integration": {"model": "gpt-6.1-sol", "effort": "high"},
+    "review": {"model": "gpt-6.1-sol", "effort": "xhigh"},
+    "mechanical": {"model": "gpt-6.1-terra", "effort": "high"},
+    "escalation": {"model": "gpt-6-astra", "effort": "medium", "allowedEfforts": ["medium", "high"]}
+  },
+  "nativeRoles": {
+    "architect-reviewer.toml": {"name": "architect_reviewer", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"},
+    "code-simplicity-engineer.toml": {"name": "code_simplicity_engineer", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "workspace-write"},
+    "hot-parser-engineer.toml": {"name": "hot_parser_engineer", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"},
+    "hot-transport-engineer.toml": {"name": "hot_transport_engineer", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"},
+    "low-latency-engineer.toml": {"name": "low_latency_engineer", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"},
+    "mechanical-luna.toml": {"name": "mechanical_luna", "model": "gpt-6.1-terra", "effort": "high", "sandbox": "workspace-write"},
+    "mechanical-luna-broad.toml": {"name": "mechanical_luna_broad", "model": "gpt-6.1-terra", "effort": "high", "sandbox": "workspace-write"},
+    "strategy-quant.toml": {"name": "strategy_quant", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"},
+    "trader-runtime-engineer.toml": {"name": "trader_runtime_engineer", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"},
+    "researcher-sol.toml": {"name": "researcher_sol", "model": "gpt-6.1-sol", "effort": "high", "sandbox": "read-only"},
+    "planner-sol.toml": {"name": "planner_sol", "model": "gpt-6.1-sol", "effort": "xhigh", "sandbox": "read-only"}
+  }
+}
